@@ -1,6 +1,7 @@
 {
   "name": "raven-worldsfair-2026",
   "private": true,
+  "type": "module",
   "description": "Crypto World's Fair 2026 public Fair surface + Vercel adapter",
   "engines": {
     "node": "22.x"
