@@ -31,7 +31,9 @@ const VERIFY_JS_TS = fileURLToPath(
     import.meta.url,
   ),
 );
-const VERIFY_JS_ENTRY = existsSync(VERIFY_JS_DIST) ? VERIFY_JS_DIST : VERIFY_JS_TS;
+const VERIFY_JS_ENTRY = (process.env.VERCEL || existsSync(VERIFY_JS_DIST)) && existsSync(VERIFY_JS_DIST)
+  ? VERIFY_JS_DIST
+  : VERIFY_JS_TS;
 
 /** @type {Record<string, unknown> | null} */
 let cached = null;
