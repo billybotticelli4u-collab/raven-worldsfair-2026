@@ -6,7 +6,7 @@
  * Linked from public billybotticelli4u-collab/raven-receipt-verifier
  * pinned commit 1b04356a275742752fb7afd8dfcc4269d462a778
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
@@ -17,12 +17,21 @@ import {
 
 // PRE-EXISTING RAVEN FOUNDATION — NOT CRYPTO WORLD'S FAIR WORK
 // Linked from public billybotticelli4u-collab/raven-receipt-verifier@1b04356a275742752fb7afd8dfcc4269d462a778
-const VERIFY_JS_ENTRY = fileURLToPath(
+// Prefer built dist (Vercel adapter build) so serverless does not need --experimental-strip-types;
+// fall back to TypeScript source for local Node strip-types runs.
+const VERIFY_JS_DIST = fileURLToPath(
+  new URL(
+    "../../../../vendor/raven-receipt-verifier/packages/verify-js/dist/index.js",
+    import.meta.url,
+  ),
+);
+const VERIFY_JS_TS = fileURLToPath(
   new URL(
     "../../../../vendor/raven-receipt-verifier/packages/verify-js/src/index.ts",
     import.meta.url,
   ),
 );
+const VERIFY_JS_ENTRY = existsSync(VERIFY_JS_DIST) ? VERIFY_JS_DIST : VERIFY_JS_TS;
 
 /** @type {Record<string, unknown> | null} */
 let cached = null;
