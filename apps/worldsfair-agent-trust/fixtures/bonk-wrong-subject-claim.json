@@ -1,0 +1,6 @@
+{
+  "note": "Same valid BONK receipt bytes; Agent B claims a different mint subject so subject binding fails.",
+  "claimedMintAddress": "So11111111111111111111111111111111111111112",
+  "claimedTokenProgramAddress": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+  "receiptFile": "bonk-valid-receipt.json"
+}

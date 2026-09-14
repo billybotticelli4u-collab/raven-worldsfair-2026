@@ -1,0 +1,3 @@
+[submodule "vendor/raven-receipt-verifier"]
+	path = vendor/raven-receipt-verifier
+	url = https://github.com/billybotticelli4u-collab/raven-receipt-verifier.git

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>World's Fair 2026 — Agent Trust Slice</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="eyebrow">Crypto World's Fair 2026 · Track B · Day 1</p>
+      <h1>Agent Trust Vertical Slice</h1>
+      <p class="lede">
+        Agent A refuses to trust Agent B’s Solana claim until Raven independently
+        verifies receipt evidence offline.
+      </p>
+    </div>
+    <button type="button" id="aboutBtn" class="ghost">About / Build Info</button>
+  </header>
+
+  <section class="controls card">
+    <h2>Run a path</h2>
+    <div class="btn-row">
+      <button type="button" data-path="path_a_verified" class="primary">PATH A — Verified → PROCEED</button>
+      <button type="button" data-path="path_b_tampered">PATH B — Tampered → REFUSE</button>
+      <button type="button" data-path="path_b_wrong_subject">PATH B — Wrong subject → REFUSE</button>
+      <button type="button" data-path="path_b_missing">Missing evidence → REFUSE</button>
+      <button type="button" data-path="path_b_exception">Verifier exception → REFUSE</button>
+    </div>
+  </section>
+
+  <main class="grid">
+    <article class="card agent" id="panelB">
+      <h2>Agent B <span class="tag">claim</span></h2>
+      <p class="muted" id="bStatus">Idle</p>
+      <dl id="bClaim" class="kv"></dl>
+    </article>
+
+    <article class="card raven" id="panelRaven">
+      <h2>Raven <span class="tag">verify</span></h2>
+      <p class="state" id="ravenState">—</p>
+      <p class="muted" id="ravenDetail">Waiting for evidence request</p>
+      <dl id="evidenceId" class="kv"></dl>
+    </article>
+
+    <article class="card agent" id="panelA">
+      <h2>Agent A <span class="tag">decision</span></h2>
+      <p class="outcome" id="aOutcome">—</p>
+      <p class="muted" id="aDetail">Will not trust blindly</p>
+      <ol id="timeline" class="timeline"></ol>
+    </article>
+  </main>
+
+  <section class="card">
+    <details id="techDetails">
+      <summary>Technical details (expand)</summary>
+      <pre id="techPre" class="tech">Run a path to populate structured details. Raw JSON is not shown by default.</pre>
+    </details>
+  </section>
+
+  <dialog id="aboutDialog">
+    <form method="dialog" class="about">
+      <h2>About / Build Info</h2>
+      <div id="aboutBody"></div>
+      <button value="close" class="primary">Close</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
