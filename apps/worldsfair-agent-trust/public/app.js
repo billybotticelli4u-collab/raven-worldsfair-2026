@@ -5,6 +5,7 @@ const aDetailEl = document.getElementById("aDetail");
 const bStatusEl = document.getElementById("bStatus");
 const bClaimEl = document.getElementById("bClaim");
 const evidenceIdEl = document.getElementById("evidenceId");
+const disclosureIdEl = document.getElementById("disclosureId");
 const timelineEl = document.getElementById("timeline");
 const techPre = document.getElementById("techPre");
 const aboutDialog = document.getElementById("aboutDialog");
@@ -32,6 +33,7 @@ function clearUi() {
   bStatusEl.textContent = "Preparing claim…";
   bClaimEl.innerHTML = "";
   evidenceIdEl.innerHTML = "";
+  disclosureIdEl.innerHTML = "";
   timelineEl.innerHTML = "";
 }
 
@@ -65,6 +67,23 @@ function renderResult(result) {
     ["Timestamp", id.timestamp],
   ]);
 
+  const exchange = result.exchange || [];
+  const verification = exchange.find((message) => message.type === "evidence.verification");
+  const evidenceResponse = exchange.find((message) => message.type === "evidence.response");
+  const disclosure =
+    a.disclosure ||
+    verification?.result?.disclosure ||
+    null;
+  const src = disclosure?.evidenceSource || evidenceResponse?.source || {};
+  setKv(disclosureIdEl, [
+    ["Live acquisition", disclosure ? String(disclosure.liveAcquisition === true) : String(src.liveAcquisition === true)],
+    ["Evidence source", src.mode || "(none)"],
+    ["Fixture", src.fixture || "(none)"],
+    ["Evaluation time (verify clock)", disclosure?.evaluationTime || "(undisclosed)"],
+    ["Evaluation time kind", disclosure?.evaluationTimeKind || "(undisclosed)"],
+    ["Label", disclosure?.evaluationTimeLabel || "Deterministic fixture/demo evaluation time — not wall clock; not current Solana freshness"],
+  ]);
+
   aOutcomeEl.textContent = a.decision || result.outcome || "—";
   aOutcomeEl.className = "outcome " + (a.decision === "PROCEED" ? "ok" : "bad");
   aDetailEl.textContent =
@@ -82,6 +101,11 @@ function renderResult(result) {
   // Progressive disclosure: human labels first; axes only in details (still not raw dump by default)
   const axes = a.axes || {};
   techPre.textContent = [
+    `Protocol: ${result.protocolVersion || "(legacy)"}`,
+    `Exchange: ${exchange.map((message) => message.type).join(" -> ") || "(unavailable)"}`,
+    ...exchange.map((message) =>
+      `${message.type}: id=${message.messageId} replyTo=${message.replyTo || "(root)"}`
+    ),
     `Path: ${result.path}`,
     `Decision: ${a.decision}`,
     `Raven state: ${a.ravenState}`,
@@ -89,6 +113,10 @@ function renderResult(result) {
     `Axes: valid=${axes.valid} keyTrusted=${axes.keyTrusted} stale=${axes.stale} subjectMatches=${axes.subjectMatches}`,
     `Integrity reasons: ${(axes.reasons || []).join(", ") || "(none)"}`,
     `Subject reasons: ${(axes.subjectReasons || []).join(", ") || "(none)"}`,
+    `Verification response: ${JSON.stringify(verification?.result || null)}`,
+    `Disclosure liveAcquisition: ${disclosure?.liveAcquisition}`,
+    `Disclosure evaluationTime: ${disclosure?.evaluationTime}`,
+    `Disclosure kind: ${disclosure?.evaluationTimeKind}`,
     `Agent B note: ${result.agentB?.note || ""}`,
   ].join("\n");
 }
@@ -127,6 +155,8 @@ document.getElementById("aboutBtn").addEventListener("click", async () => {
   aboutBody.innerHTML = `
     <p><strong>Official contest start:</strong> ${info.officialContestStart.instant}
       (${info.officialContestStart.zone})</p>
+    <p><strong>Built during competition:</strong> Yes — Fair surface after contest start
+      (PRE-EXISTING foundation vs FAIR WORK listed below).</p>
     <p><strong>Current Fair build commit:</strong>
       <span class="mono">${info.fairBuildCommit || "(unknown)"}</span>
       <br/><span class="muted">source: ${info.commitSource}</span></p>

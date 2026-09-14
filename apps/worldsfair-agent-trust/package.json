@@ -1,8 +1,8 @@
 {
   "name": "worldsfair-agent-trust",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Crypto World's Fair 2026 Day-1 vertical slice: Agent A refuses to trust Agent B's Solana claim until Raven receipt-v1 verifies offline.",
+  "description": "Crypto World's Fair 2026 machine-to-machine trust exchange: Agent A requires Raven-verified evidence before acting on Agent B's Solana claim.",
   "type": "module",
   "engines": {
     "node": ">=22.18"
@@ -11,7 +11,7 @@
     "start": "NODE_OPTIONS=--experimental-strip-types node src/server.js",
     "dev": "NODE_OPTIONS=--experimental-strip-types node src/server.js",
     "test": "NODE_OPTIONS=--experimental-strip-types node --test test/*.test.js",
-    "build": "node src/write-build-info.js && NODE_OPTIONS=--experimental-strip-types node --check src/server.js"
+    "build": "node src/write-build-info.js && NODE_OPTIONS=--experimental-strip-types node --check src/server.js && NODE_OPTIONS=--experimental-strip-types node --check public/app.js"
   },
   "keywords": [
     "raven",

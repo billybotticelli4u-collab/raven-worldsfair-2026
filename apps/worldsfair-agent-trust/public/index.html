@@ -9,11 +9,11 @@
 <body>
   <header class="top">
     <div>
-      <p class="eyebrow">Crypto World's Fair 2026 · Track B · Day 1</p>
-      <h1>Agent Trust Vertical Slice</h1>
+      <p class="eyebrow">Crypto World's Fair 2026 · Track B · Day 2</p>
+      <h1>Machine-to-Machine Trust</h1>
       <p class="lede">
-        Agent A refuses to trust Agent B’s Solana claim until Raven independently
-        verifies receipt evidence offline.
+        Agent B makes a Solana claim. Agent A demands machine-readable evidence,
+        consumes Raven's verification response, then proceeds or refuses.
       </p>
     </div>
     <button type="button" id="aboutBtn" class="ghost">About / Build Info</button>
@@ -42,6 +42,8 @@
       <p class="state" id="ravenState">—</p>
       <p class="muted" id="ravenDetail">Waiting for evidence request</p>
       <dl id="evidenceId" class="kv"></dl>
+      <h3 class="subhead">Truth disclosure</h3>
+      <dl id="disclosureId" class="kv"></dl>
     </article>
 
     <article class="card agent" id="panelA">

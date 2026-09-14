@@ -1,3 +1,28 @@
+# PUBLIC EXPOSURE MANIFEST — Crypto World's Fair 2026
+
+## Day-2 tip bump (Owner-authorized public successor)
+
+| Field | Value |
+| --- | --- |
+| Status | Owner Glen authorized public update Day-1 → Day-2 (additive history) |
+| Chosen product tip | **Day-2** malformed-clock repair |
+| Branch | `billy/worldsfair-2026-day2-malformed-clock-repair-2026-09-14` |
+| HEAD | `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` |
+| TREE | `3e442f93529bdb5da876b54d484294032535e84a` |
+| Worktree | `/Users/ROBY/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` |
+| Review | **INTERNAL_ADVERSARIAL_NON_AUTHOR** GO (Billy copy) — **not** EXTERNAL_INDEPENDENT |
+| Public strategy | Strategy A (submodule pin unchanged `1b04356a275742752fb7afd8dfcc4269d462a778`) |
+| Public parent | Day-1 public `feaa1fb452b8e1307979dea7fd1c561fad82aa00` (preserve history; no rewrite) |
+| Deploy / npm | **HOLD** this pass — tip bump only |
+
+Day-2 FAIR_NEW deltas vs Day-1 (app): `protocol.js`, machine-exchange + truth-disclosure +
+malformed-clock tests; ravenVerify evaluation-time parse fail-closed; UI truth disclosure;
+buildInfo Days 1–2 + Built during competition.
+
+Historical Day-1 draft body retained below for provenance.
+
+---
+
 # PUBLIC EXPOSURE MANIFEST — Crypto World's Fair 2026 (Day-1 judge surface)
 
 **Status:** DRAFT for Owner confirmation. **NOT** an authorization to create a public repo, deploy, push a public remote, or npm-publish.

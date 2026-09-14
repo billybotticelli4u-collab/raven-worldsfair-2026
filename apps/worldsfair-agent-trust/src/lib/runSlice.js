@@ -1,55 +1,74 @@
-/**
- * Orchestrates PATH A (verified) and PATH B (refused) vertical slices.
- */
-import { agentBSupplyEvidence } from "./agentB.js";
-import { agentADecide } from "./agentA.js";
+/** Orchestrates a deterministic Agent A -> Agent B -> Raven exchange. */
+import {
+  agentBHandleEvidenceRequest,
+  agentBMakeClaimMessage,
+} from "./agentB.js";
+import {
+  applyDecisionPolicy,
+  createEvidenceRequest,
+} from "./agentA.js";
+import {
+  BONK_FIXTURE_NOW,
+  ravenVerifyEvidenceResponse,
+} from "./ravenVerify.js";
+import { PROTOCOL_VERSION } from "./protocol.js";
 
-/**
- * @param {"path_a_verified" | "path_b_tampered" | "path_b_wrong_subject" | "path_b_missing" | "path_b_exception"} path
- */
-export async function runVerticalSlice(path) {
-  const modeByPath = {
-    path_a_verified: "valid",
-    path_b_tampered: "tampered",
-    path_b_wrong_subject: "wrong_subject",
-    path_b_missing: "missing",
-    path_b_exception: "throw",
-  };
-  const mode = modeByPath[path];
-  if (!mode) {
-    throw new Error(`unknown_path:${path}`);
-  }
+export { PROTOCOL_VERSION };
 
-  const fromB = agentBSupplyEvidence(mode);
-  const fromA = await agentADecide({
-    claim: fromB.claim,
-    evidence: fromB.evidence,
-    forceVerifierException: fromB.forceVerifierException === true,
+const MODE_BY_PATH = {
+  path_a_verified: "valid",
+  path_b_tampered: "tampered",
+  path_b_wrong_subject: "wrong_subject",
+  path_b_missing: "missing",
+  path_b_exception: "throw",
+};
+
+export async function runMachineExchange(path) {
+  const mode = MODE_BY_PATH[path];
+  if (!mode) throw new Error(`unknown_path:${path}`);
+
+  const claimMessage = agentBMakeClaimMessage(mode);
+  const evidenceRequest = createEvidenceRequest(claimMessage);
+  const fromB = agentBHandleEvidenceRequest(evidenceRequest, mode);
+  const verificationResponse = await ravenVerifyEvidenceResponse({
+    evidenceRequest,
+    evidenceResponse: fromB.evidenceResponse,
+    forceVerifierException: fromB.forceVerifierException,
+    now: BONK_FIXTURE_NOW,
+  });
+  const fromA = applyDecisionPolicy({
+    claimMessage,
+    evidenceRequest,
+    verificationResponse,
   });
 
   return {
+    protocolVersion: PROTOCOL_VERSION,
     path,
+    exchange: [
+      claimMessage,
+      evidenceRequest,
+      fromB.evidenceResponse,
+      verificationResponse,
+    ],
     agentB: {
       note: fromB.note,
-      evidenceStatus: fromB.evidenceStatus,
-      claim: fromB.claim,
+      evidenceStatus: fromB.evidenceResponse.status === "supplied"
+        ? "received"
+        : "missing",
+      claim: fromA.claim,
     },
     agentA: fromA,
     outcome: fromA.decision,
   };
 }
 
+export const runVerticalSlice = runMachineExchange;
+
 export async function runDemoBundle() {
-  const paths = [
-    "path_a_verified",
-    "path_b_tampered",
-    "path_b_wrong_subject",
-    "path_b_missing",
-    "path_b_exception",
-  ];
   const results = [];
-  for (const p of paths) {
-    results.push(await runVerticalSlice(p));
+  for (const path of Object.keys(MODE_BY_PATH)) {
+    results.push(await runMachineExchange(path));
   }
   return results;
 }

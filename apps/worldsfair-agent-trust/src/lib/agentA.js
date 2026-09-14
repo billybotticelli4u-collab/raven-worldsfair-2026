@@ -1,173 +1,188 @@
 /**
- * Agent A — decision machine.
- * Refuses blind trust. Requests Raven evidence. PROCEED only if verified.
+ * Agent A requests evidence, then applies its own policy to Raven's response.
+ * Raven supplies evidence facts; Agent A alone owns PROCEED / REFUSE.
  */
 import {
   BONK_FIXTURE_NOW,
-  ravenVerifyReceiptForSubject,
+  ravenVerifyEvidenceResponse,
 } from "./ravenVerify.js";
+import {
+  PROTOCOL_VERSION,
+  createClaimMessage,
+  createEvidenceResponse,
+  isProtocolMessage,
+  messageId,
+} from "./protocol.js";
 
-/**
- * @typedef {object} AgentAInput
- * @property {{ chain: string; mintAddress: string; tokenProgramAddress: string; summary?: string; claimId?: string }} claim
- * @property {unknown} [evidence]
- * @property {boolean} [forceVerifierException]
- * @property {Date | string} [now]
- */
-
-/**
- * @param {AgentAInput} input
- */
-export async function agentADecide(input) {
-  const timeline = [];
-
-  timeline.push({
-    state: "CLAIM_RECEIVED",
-    detail: "Agent A received a Solana-grounded claim from Agent B.",
-  });
-  timeline.push({
-    state: "REFUSE_BLIND_TRUST",
-    detail: "Agent A will not trust Agent B's claim without independent Raven evidence.",
-  });
-  timeline.push({
-    state: "EVIDENCE_REQUESTED",
-    detail: "Agent A requested Raven receipt-v1 evidence bound to the claimed subject.",
-  });
-
-  if (input.forceVerifierException) {
-    timeline.push({
-      state: "EVIDENCE_RECEIVED",
-      detail: "Exception probe engaged.",
-    });
-    timeline.push({ state: "VERIFYING", detail: "Invoking Raven verifier…" });
-    try {
-      throw new Error("controlled_verifier_exception");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      timeline.push({
-        state: "VERIFICATION_FAILED",
-        detail: `Verifier exception: ${message}`,
-      });
-      return {
-        decision: "REFUSE",
-        ravenState: "VERIFICATION_FAILED",
-        reason: "verifier_exception",
-        evidenceIdentity: null,
-        axes: null,
-        timeline,
-        claim: input.claim,
-      };
-    }
+export function createEvidenceRequest(claimMessage) {
+  if (
+    !isProtocolMessage(claimMessage, "solana.claim") ||
+    claimMessage.from !== "agent-b" ||
+    claimMessage.to !== "agent-a" ||
+    !claimMessage.claim?.claimId ||
+    !claimMessage.claim?.subject
+  ) {
+    throw new Error("invalid_claim_message");
   }
 
-  if (input.evidence == null) {
-    timeline.push({
-      state: "EVIDENCE_MISSING",
-      detail: "No Raven receipt was supplied.",
-    });
-    timeline.push({
-      state: "REFUSE",
-      detail: "Fail closed: missing evidence.",
-    });
-    return {
-      decision: "REFUSE",
-      ravenState: "VERIFICATION_FAILED",
-      reason: "missing_evidence",
-      evidenceIdentity: null,
-      axes: null,
+  return {
+    protocolVersion: PROTOCOL_VERSION,
+    type: "evidence.request",
+    messageId: messageId("evidence-request", claimMessage.claim.claimId),
+    from: "agent-a",
+    to: "agent-b",
+    replyTo: claimMessage.messageId,
+    claimId: claimMessage.claim.claimId,
+    requirements: {
+      evidenceType: "raven.receipt-v1",
+      subject: { ...claimMessage.claim.subject },
+      verification: {
+        integrity: "required",
+        trustedSigner: "required",
+        freshness: "required",
+        subjectBinding: "required",
+      },
+    },
+  };
+}
+
+export function applyDecisionPolicy({
+  claimMessage,
+  evidenceRequest,
+  verificationResponse,
+}) {
+  const timeline = initialTimeline();
+
+  if (!hasValidCorrelation(claimMessage, evidenceRequest, verificationResponse)) {
+    return refuse({
+      reason: "verification_correlation_failed",
       timeline,
-      claim: input.claim,
-    };
+      detail: "Fail closed: verification response did not match this claim and request.",
+      claim: flattenClaim(claimMessage),
+    });
+  }
+
+  const result = verificationResponse.result;
+  if (!hasConsistentVerificationResult(result)) {
+    const reason = result?.verified === true
+      ? "verification_contract_failed"
+      : (result?.reason ?? classifyRefuseReason(result?.axes));
+    return refuse({
+      reason,
+      timeline,
+      detail: "Agent A refuses because Raven's machine-readable requirements were not all satisfied.",
+      claim: flattenClaim(claimMessage),
+      result,
+    });
   }
 
   timeline.push({
-    state: "EVIDENCE_RECEIVED",
-    detail: "Raven receipt evidence received; independent verify starting.",
+    state: "VERIFIED",
+    detail: "Raven verified integrity, trust, freshness (against disclosed fixture evaluation time), and subject binding.",
   });
-  timeline.push({ state: "VERIFYING", detail: "Raven verifying offline…" });
-
-  let raven;
-  try {
-    const expectedSubject = {
-      chain: "solana-mainnet",
-      mintAddress: input.claim.mintAddress,
-      tokenProgramAddress: input.claim.tokenProgramAddress,
-    };
-    // Defensive: claim chain must be the frozen namespace
-    if (input.claim.chain !== "solana-mainnet") {
-      timeline.push({
-        state: "VERIFICATION_FAILED",
-        detail: "Unsupported or malformed claimed chain.",
-      });
-      return {
-        decision: "REFUSE",
-        ravenState: "VERIFICATION_FAILED",
-        reason: "unsupported_or_malformed_claim",
-        evidenceIdentity: null,
-        axes: null,
-        timeline,
-        claim: input.claim,
-      };
-    }
-
-    raven = await ravenVerifyReceiptForSubject({
-      receipt: input.evidence,
-      expectedSubject,
-      now: input.now ?? BONK_FIXTURE_NOW,
-    });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    timeline.push({
-      state: "VERIFICATION_FAILED",
-      detail: `Verifier exception: ${message}`,
-    });
-    return {
-      decision: "REFUSE",
-      ravenState: "VERIFICATION_FAILED",
-      reason: "verifier_exception",
-      evidenceIdentity: null,
-      axes: null,
-      timeline,
-      claim: input.claim,
-    };
-  }
-
-  if (raven.verified) {
-    timeline.push({
-      state: "VERIFIED",
-      detail: "Raven verified integrity, trust, freshness, and subject binding.",
-    });
-    timeline.push({
-      state: "PROCEED",
-      detail: "Agent A proceeds — claim is backed by independently verifiable evidence.",
-    });
-    return {
-      decision: "PROCEED",
-      ravenState: "VERIFIED",
-      reason: "verified",
-      evidenceIdentity: raven.evidenceIdentity,
-      axes: raven.axes,
-      timeline,
-      claim: input.claim,
-    };
-  }
-
   timeline.push({
-    state: "VERIFICATION_FAILED",
-    detail: "Raven failed closed (integrity/trust/subject/freshness).",
+    state: "PROCEED",
+    detail: "Agent A policy permits the downstream action from the verified response.",
   });
+  return {
+    decision: "PROCEED",
+    ravenState: "VERIFIED",
+    reason: "verified",
+    evidenceIdentity: result.evidenceIdentity,
+    axes: result.axes,
+    disclosure: result.disclosure ?? null,
+    timeline,
+    claim: flattenClaim(claimMessage),
+  };
+}
+
+function hasValidCorrelation(claim, request, verification) {
+  const claimSubject = claim?.claim?.subject;
+  const requestSubject = request?.requirements?.subject;
+  return Boolean(
+    isProtocolMessage(claim, "solana.claim") &&
+      isProtocolMessage(request, "evidence.request") &&
+      isProtocolMessage(verification, "evidence.verification") &&
+      request.replyTo === claim.messageId &&
+      request.claimId === claim.claim.claimId &&
+      sameSubject(requestSubject, claimSubject) &&
+      verification.requestId === request.messageId &&
+      verification.claimId === claim.claim.claimId &&
+      sameSubject(verification.subject, claimSubject) &&
+      verification.to === "agent-a" &&
+      verification.from === "raven",
+  );
+}
+
+function sameSubject(left, right) {
+  return Boolean(
+    left &&
+      right &&
+      left.chain === right.chain &&
+      left.mintAddress === right.mintAddress &&
+      left.tokenProgramAddress === right.tokenProgramAddress,
+  );
+}
+
+function hasConsistentVerificationResult(result) {
+  return Boolean(
+    result?.verified === true &&
+      result.state === "VERIFIED" &&
+      result.axes?.valid === true &&
+      result.axes?.keyTrusted === true &&
+      result.axes?.stale === false &&
+      result.axes?.subjectMatches === true,
+  );
+}
+
+function initialTimeline() {
+  return [
+    {
+      state: "CLAIM_RECEIVED",
+      detail: "Agent A received a machine-readable Solana claim from Agent B.",
+    },
+    {
+      state: "REFUSE_BLIND_TRUST",
+      detail: "Agent A will not trust Agent B's claim without independent Raven evidence.",
+    },
+    {
+      state: "EVIDENCE_REQUESTED",
+      detail: "Agent A sent requirements bound to the claim's Solana subject.",
+    },
+    {
+      state: "VERIFYING",
+      detail: "Agent A is consuming Raven's correlated verification response.",
+    },
+  ];
+}
+
+function refuse({ reason, timeline, detail, claim, result = null }) {
+  timeline.push({ state: "VERIFICATION_FAILED", detail });
   timeline.push({
     state: "REFUSE",
-    detail: "Agent A refuses — downstream action must not proceed.",
+    detail: "Agent A policy blocks the downstream action.",
   });
   return {
     decision: "REFUSE",
     ravenState: "VERIFICATION_FAILED",
-    reason: classifyRefuseReason(raven.axes),
-    evidenceIdentity: raven.evidenceIdentity,
-    axes: raven.axes,
+    reason,
+    evidenceIdentity: result?.evidenceIdentity ?? null,
+    axes: result?.axes ?? null,
+    disclosure: result?.disclosure ?? null,
     timeline,
-    claim: input.claim,
+    claim,
+  };
+}
+
+function flattenClaim(message) {
+  const claim = message?.claim ?? {};
+  return {
+    claimId: claim.claimId,
+    chain: claim.subject?.chain,
+    mintAddress: claim.subject?.mintAddress,
+    tokenProgramAddress: claim.subject?.tokenProgramAddress,
+    property: claim.property,
+    summary: claim.summary,
   };
 }
 
@@ -179,4 +194,25 @@ function classifyRefuseReason(axes) {
   if (axes.subjectMatches === false) return "subject_mismatch";
   if (axes.subjectMatches == null) return "subject_unavailable_or_invalid";
   return "verification_failed";
+}
+
+/** Backward-compatible adapter for callers that still provide claim + evidence. */
+export async function agentADecide(input) {
+  const claimMessage = createClaimMessage(input.claim);
+  const evidenceRequest = createEvidenceRequest(claimMessage);
+  const evidenceResponse = createEvidenceResponse(
+    evidenceRequest,
+    input.evidence ?? null,
+  );
+  const verificationResponse = await ravenVerifyEvidenceResponse({
+    evidenceRequest,
+    evidenceResponse,
+    forceVerifierException: input.forceVerifierException === true,
+    now: input.now ?? BONK_FIXTURE_NOW,
+  });
+  return applyDecisionPolicy({
+    claimMessage,
+    evidenceRequest,
+    verificationResponse,
+  });
 }

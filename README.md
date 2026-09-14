@@ -2,6 +2,9 @@
 
 Judge demo: Agent A refuses blind trust, requires Raven-verified Solana
 receipt-v1 evidence from Agent B, then PROCEED / REFUSE fail-closed.
+Day-2 adds an explicit deterministic `raven-agent-trust/1` machine exchange,
+truth disclosure (`liveAcquisition:false`, deterministic fixture/demo
+evaluation time), and fail-closed refusal on malformed evaluation time.
 
 **Preferred live URL (when Owner authorizes deploy):**
 https://ravenattest.com/worldsfair
@@ -42,30 +45,37 @@ demo built on that product — not the invention of Raven itself.
 
 ## CRYPTO WORLD'S FAIR 2026 WORK
 
-- Agent A / Agent B orchestration, fail-closed PROCEED/REFUSE,
-  judge-facing web UI + About/Build Info honesty, Fair app tests, and
-  provenance docs under `docs/hackathon/worldsfair-2026/`.
+- Agent A / Agent B orchestration, `raven-agent-trust/1` machine exchange,
+  fail-closed PROCEED/REFUSE, judge-facing web UI + About/Build Info honesty
+  (PRE-EXISTING vs FAIR WORK; **Built during competition** discoverable),
+  Fair app tests (including malformed-clock fail-closed), and provenance docs
+  under `docs/hackathon/worldsfair-2026/`.
 - Built after official contest start
   `2026-09-14T06:00:00-07:00` (America/Los_Angeles).
 
-### 4. Deterministic fixture verification + BONK_FIXTURE_NOW
+### 4. Deterministic fixture verification + BONK_FIXTURE_NOW (not wall-clock freshness)
 
 - PATH A/B use **offline fixtures** under
   `apps/worldsfair-agent-trust/fixtures/`.
 - Verification clock is pinned (`BONK_FIXTURE_NOW` =
   `2026-06-26T11:46:31.000Z`) so freshness is not falsely stale —
-  deterministic demo time, not wall clock.
+  **disclosed deterministic fixture/demo evaluation time**, not wall clock.
+- The **same** evaluation time is what verification uses; disclosure labels
+  `evaluationTimeKind: deterministic_fixture_demo_time` and
+  `liveAcquisition: false`.
+- **Malformed / empty / unusable evaluation time → fail-closed**
+  (`invalid_evaluation_time` / REFUSE). Never silently substitutes a demo clock.
 
 ### 5. NOT live Solana acquisition
 
 This demo does **not** perform live Solana RPC acquisition for PATH A/B.
-Evidence is offline fixture-based. Do not treat the demo as a live-chain
-fetch or production signing workflow.
+Evidence is offline fixture-based (`liveAcquisition:false`). Do not treat the
+demo as a live-chain fetch or production signing workflow.
 
 ### 6. Review class: INTERNAL_ADVERSARIAL_NON_AUTHOR — not EXTERNAL_INDEPENDENT
 
-Day-1 product tip `1ba45d5a787172da648b9da4241f119bcc49e814` /
-tree `9205ca7901c0acd12663e628bd9936c1a8eb8c76` carries
+Day-2 product tip `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` /
+tree `3e442f93529bdb5da876b54d484294032535e84a` carries
 **INTERNAL_ADVERSARIAL_NON_AUTHOR** GO (Billy copy-GO class).
 That is **not** EXTERNAL_INDEPENDENT review.
 
@@ -85,9 +95,8 @@ competition work. The linked verifier submodule is labeled
 Requires **Node.js >= 22.18** (Node 25+ also fine).
 
 ```bash
-git clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026
+git clone --recurse-submodules https://github.com/billybotticelli4u-collab/raven-worldsfair-2026
 cd raven-worldsfair-2026
-git submodule update --init --recursive
 
 # Confirm submodule pin (must be exact SHA below):
 git -C vendor/raven-receipt-verifier rev-parse HEAD
@@ -112,7 +121,7 @@ npm dependencies; verification code comes from the git submodule.
 
 | Path | Role |
 | --- | --- |
-| `apps/worldsfair-agent-trust/` | Fair Day-1 agent↔agent demo (FAIR_NEW) |
+| `apps/worldsfair-agent-trust/` | Fair Day-2 agent↔agent demo (FAIR_NEW) |
 | `docs/hackathon/worldsfair-2026/` | Fair provenance + PUBLIC_EXPOSURE_MANIFEST_V2 |
 | `vendor/raven-receipt-verifier/` | **Submodule** — PRE-EXISTING foundation pin |
 | `EXPORTED_FILE_MANIFEST.md` | Exact exported file set vs V2 |
@@ -124,14 +133,17 @@ npm dependencies; verification code comes from the git submodule.
 - This repository is **not** Owner production-publish authorization by itself
   beyond the Fair public surface authorized for this contest demo.
 - **Deploy to ravenattest.com / `/worldsfair` is HOLD** — not performed
-  by this publication pass.
+  by this Day-2 tip-bump pass.
 - **No npm publish** of `raven-receipt-verifier` or this Fair app.
 
-## Source tip (Fair product)
+## Source tip (Fair product — Day-2)
 
 | Field | Value |
 | --- | --- |
-| Branch (private Fair worktree) | `billy/worldsfair-2026-day1-agent-trust-2026-09-14` |
-| Fair HEAD | `1ba45d5a787172da648b9da4241f119bcc49e814` |
-| Fair TREE | `9205ca7901c0acd12663e628bd9936c1a8eb8c76` |
+| Branch (private Fair worktree) | `billy/worldsfair-2026-day2-malformed-clock-repair-2026-09-14` |
+| Fair HEAD | `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` |
+| Fair TREE | `3e442f93529bdb5da876b54d484294032535e84a` |
+| Worktree | `/Users/ROBY/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` |
+| Review | INTERNAL_ADVERSARIAL_NON_AUTHOR GO (Billy copy) — not EXTERNAL_INDEPENDENT |
 | Verifier pin | `1b04356a275742752fb7afd8dfcc4269d462a778` |
+| Prior public Day-1 HEAD | `feaa1fb452b8e1307979dea7fd1c561fad82aa00` |

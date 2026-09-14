@@ -18,7 +18,7 @@ test("build info shows Fair commit", () => {
 test("does not falsely label pre-existing foundation as Fair-created", () => {
   const info = readBuildInfo();
   assert.equal(info.labels.foundation, "PRE-EXISTING (not Fair-created)");
-  assert.equal(info.labels.fairApp, "FAIR WORK (World's Fair 2026 Day 1)");
+  assert.equal(info.labels.fairApp, "FAIR WORK (World's Fair 2026 Days 1-2)");
   assert.ok(PREEXISTING_FOUNDATION.length >= 1);
   assert.ok(FAIR_WORK_IN_THIS_APP.length >= 1);
   // Honesty: foundation list must mention verify-js / verifier, not claim Fair invented it

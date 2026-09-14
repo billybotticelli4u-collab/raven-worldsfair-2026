@@ -1,12 +1,11 @@
 # PUBLIC EXPOSURE MANIFEST V2 — Crypto World's Fair 2026 (judge surface)
 
-**Status:** REVISED DRAFT for **Owner final publication auth**.  
-**Owner stance:** APPROVED IN PRINCIPLE with **revise-before-publication** (this file).  
-**NOT** an authorization to create a public repo, deploy, push a public remote, or npm-publish.
+**Status:** Owner Glen authorized **Day-2 public tip bump** (Strategy A additive history).  
+**NOT** an authorization to deploy, touch ravenattest.com DNS, or npm-publish.
 
 **Revision goal vs V1:** Minimize copied pre-existing Raven implementation. Prefer **consume/link** the already-public `billybotticelli4u-collab/raven-receipt-verifier` rather than vendoring the prior 16-file `packages/verify-js` set for provenance convenience. Label any unavoidable pre-existing copy: **PRE-EXISTING RAVEN FOUNDATION — NOT CRYPTO WORLD'S FAIR WORK**.
 
-**Manifest drafted (Europe/Rome):** 2026-09-14 ~23:35 CEST (UTC+2)
+**Manifest tip-bump (Europe/Rome):** 2026-09-15 ~00:05 CEST (UTC+2)
 
 ---
 
@@ -14,24 +13,24 @@
 
 | Field | Value | Notes |
 | --- | --- | --- |
-| **Chosen product tip** | **Day-1** | Day-2 exists but **lacks** measured non-author GO (see §1.1) |
-| Worktree | `/Users/ROBY/launchguard-billy-worldsfair-2026-day1` | Fair Day-1 worktree |
-| Branch | `billy/worldsfair-2026-day1-agent-trust-2026-09-14` | also on `origin` |
-| **HEAD** | `1ba45d5a787172da648b9da4241f119bcc49e814` | matches mission Day-1 tip |
-| **TREE** | `9205ca7901c0acd12663e628bd9936c1a8eb8c76` | matches mission Day-1 tree |
+| **Chosen product tip** | **Day-2** | Owner-authorized public successor to Day-1 |
+| Worktree | `/Users/ROBY/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` | Fair Day-2 worktree |
+| Branch | `billy/worldsfair-2026-day2-malformed-clock-repair-2026-09-14` | |
+| **HEAD** | `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` | malformed-clock fail-closed tip |
+| **TREE** | `3e442f93529bdb5da876b54d484294032535e84a` | |
 | Contest baseline HEAD | `18b1a13c601cc362404dc6306fd8f4d1cc3e046e` | pre-Fair `origin/main` freeze |
 | Contest baseline TREE | `6bd7276fb71f8878bd9b3313d7200e56f447a0f3` | |
-| Independent review of chosen tip | **GO** — `INTERNAL_ADVERSARIAL_NON_AUTHOR` | `raven-rnd-gauntlet-push/wf-day1-indep-review-1ba45d5a-NOTES/INDEPENDENT_REVIEW_A_S.md` (Billy copy-GO class; **not** EXTERNAL_INDEPENDENT; **not** Owner publish auth) |
+| Independent review of chosen tip | **GO** — `INTERNAL_ADVERSARIAL_NON_AUTHOR` | Billy copy-GO class; **not** EXTERNAL_INDEPENDENT; deploy still Owner-gated |
+| Prior public Day-1 HEAD | `feaa1fb452b8e1307979dea7fd1c561fad82aa00` | preserved parent; no history rewrite |
+| Verifier submodule pin | `1b04356a275742752fb7afd8dfcc4269d462a778` | unchanged |
 
-### 1.1 Day-2 inspected — not chosen as publication tip
+### 1.1 Day-1 public baseline (superseded as tip; history retained)
 
-| Tip | Branch | HEAD | TREE | Non-author GO? |
+| Tip | Branch | HEAD | TREE | Notes |
 | --- | --- | --- | --- | --- |
-| Day-2 Billy tip (latest Fair product) | `billy/worldsfair-2026-day2-truth-disclosure-2026-09-14` (`origin` same) | `a10364771953a0af270833807e500a7cc12dfdd7` | `496a11635b9aab3fb18359148e2bc1c981fac33d` | **NO** — no `*-NOTES` / independent review GO found for `a103647` |
-| Day-2 Codex ancestor | `codex/worldsfair-2026-day2-m2m-2026-09-14` | `56761aa75a1f5fcd0e46eef0ed9dd0d6d5d9de16` | `83cbb31d020f698f6f205a99ba4803fd2e53b082` | **NO** — worktree `wf-day2-truth-disclosure-56761aa` exists without review NOTES |
+| Day-1 Strategy A export (public main parent) | public `main` @ feaa1fb | `feaa1fb452b8e1307979dea7fd1c561fad82aa00` | `94957c86e8d36a86012c3fed198d7a576fe3cdfa` | Day-1 product tip was `1ba45d5a` / `9205ca79` |
 
-**Rule applied:** use Day-2 tip only if independently reviewed with non-author GO; else Day-1 `1ba45d5a` / `9205ca79`.  
-**Day-2 delta (informational only; not in this manifest’s FAIR_NEW):** machine evidence exchange + fixture evaluation-time disclosure (`protocol.js`, `machine-exchange.test.js`, `truth-disclosure.test.js`, plus edits to agents/UI/ravenVerify). Hold Day-2 for a future tip bump **after** non-author GO + Owner re-auth.
+**Rule applied:** Day-2 tip published only after INTERNAL_ADVERSARIAL_NON_AUTHOR GO + Owner re-auth. Deploy / DNS / npm remain HOLD.
 
 ---
 
@@ -40,7 +39,7 @@
 | Item | Proposal |
 | --- | --- |
 | Public repo | `billybotticelli4u-collab/raven-worldsfair-2026` |
-| Exists today? | **No** (API 404) |
+| Exists today? | **Yes** — `billybotticelli4u-collab/raven-worldsfair-2026` (Day-1 public; tip-bump to Day-2) |
 | Visibility | **public**, Fair-only subset — **never** flip `-launchguard` public |
 | Judge URL (prefer) | `https://ravenattest.com/worldsfair` |
 | Deploy | **HOLD** until exact product head passes non-author review **and** Owner final auth (Day-1 already has Billy copy GO; deploy still Owner-gated) |
@@ -153,11 +152,11 @@ Copy the minimal Solana kernel with per-file necessity (each labeled **PRE-EXIST
 
 ---
 
-## 6. FAIR_NEW files (complete list — Day-1 tip `1ba45d5a`)
+## 6. FAIR_NEW files (complete list — Day-2 tip `a5cd592`)
 
 All created during Fair 2026 Day-1 product / provenance work (after contest start). Count = **22** tip paths + **1** this V2 file written in worktree (uncommitted) = **23** for exposure set.
 
-### App (`apps/worldsfair-agent-trust/`) — 18
+### App (`apps/worldsfair-agent-trust/`) — 22 (Day-2)
 
 | path | role |
 | --- | --- |
@@ -168,9 +167,10 @@ All created during Fair 2026 Day-1 product / provenance work (after contest star
 | `apps/worldsfair-agent-trust/src/write-build-info.js` | Build-info generator |
 | `apps/worldsfair-agent-trust/src/lib/agentA.js` | Agent A fail-closed decision |
 | `apps/worldsfair-agent-trust/src/lib/agentB.js` | Agent B claim + fixture evidence |
-| `apps/worldsfair-agent-trust/src/lib/ravenVerify.js` | Loads Raven verifier; clock pin |
-| `apps/worldsfair-agent-trust/src/lib/runSlice.js` | PATH A/B orchestration |
-| `apps/worldsfair-agent-trust/src/lib/buildInfo.js` | Foundation vs Fair UI labels |
+| `apps/worldsfair-agent-trust/src/lib/ravenVerify.js` | Loads Raven verifier; clock pin; malformed eval-time fail-closed; disclosure |
+| `apps/worldsfair-agent-trust/src/lib/protocol.js` | `raven-agent-trust/1` message helpers |
+| `apps/worldsfair-agent-trust/src/lib/runSlice.js` | PATH A/B orchestration / machine exchange |
+| `apps/worldsfair-agent-trust/src/lib/buildInfo.js` | Foundation vs Fair UI labels; Built during competition |
 | `apps/worldsfair-agent-trust/public/index.html` | Judge UI shell |
 | `apps/worldsfair-agent-trust/public/app.js` | Judge UI client |
 | `apps/worldsfair-agent-trust/public/styles.css` | Judge UI styles |
@@ -179,6 +179,9 @@ All created during Fair 2026 Day-1 product / provenance work (after contest star
 | `apps/worldsfair-agent-trust/fixtures/bonk-wrong-subject-claim.json` | Wrong-subject scenario metadata |
 | `apps/worldsfair-agent-trust/test/vertical-slice.test.js` | Verified/refused/missing/exception |
 | `apps/worldsfair-agent-trust/test/build-info.test.js` | Build-info honesty |
+| `apps/worldsfair-agent-trust/test/machine-exchange.test.js` | Deterministic machine exchange |
+| `apps/worldsfair-agent-trust/test/truth-disclosure.test.js` | liveAcquisition / evaluationTime disclosure |
+| `apps/worldsfair-agent-trust/test/malformed-clock.test.js` | invalid_evaluation_time fail-closed |
 
 ### Docs (`docs/hackathon/worldsfair-2026/`) — 5 (3 on tip + V1 + V2)
 

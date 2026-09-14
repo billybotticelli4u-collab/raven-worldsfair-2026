@@ -19,8 +19,10 @@ export const PREEXISTING_FOUNDATION = [
 ];
 
 export const FAIR_WORK_IN_THIS_APP = [
+  "Built during competition (after official contest start)",
   "Agent A / Agent B orchestration and fail-closed decision surface",
   "PATH A verified + PATH B refused vertical slice",
+  "Day-2 raven-agent-trust/1 request, response, verification, and policy exchange",
   "Judge-facing web UI + About/Build Info honesty",
   "Fair app tests and worldsfair-2026 provenance docs",
 ];
@@ -72,7 +74,7 @@ export function readBuildInfo() {
     fairWorkInThisApp: FAIR_WORK_IN_THIS_APP,
     labels: {
       foundation: "PRE-EXISTING (not Fair-created)",
-      fairApp: "FAIR WORK (World's Fair 2026 Day 1)",
+      fairApp: "FAIR WORK (World's Fair 2026 Days 1-2)",
     },
   };
 }
