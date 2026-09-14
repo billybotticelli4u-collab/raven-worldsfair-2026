@@ -254,13 +254,13 @@ Disclose in README: offline fixtures; no live RPC required for PATH A/B.
 | Auto-expose of prior **16-file verify-js convenience set** when Strategy A works | Owner revise goal |
 | Proposed/non-frozen verify-js modules (`keyManifest`, EVM receipt drafts) | Not on Fair import path |
 | `gh repo create` / Vercel deploy / npm publish without Owner **final** auth | Process |
-| Day-2 tip `a103647` until non-author GO + Owner tip bump | Review gate |
+| Superseded intermediate Day-2 tip `a103647` (not publication tip; accepted tip is `a5cd592`) | Historical — do not treat as current Fair tip |
 
 ---
 
 ## 11. Secret scan result (chosen tip Fair surface)
 
-Scanned `apps/worldsfair-agent-trust/**` + `docs/hackathon/worldsfair-2026/**` at `1ba45d5a` for private PEM/OpenSSH headers, obvious cloud/GitHub/Slack token shapes.
+Scanned `apps/worldsfair-agent-trust/**` + `docs/hackathon/worldsfair-2026/**` at Day-2 tip `a5cd592` (public Strategy A export) for private PEM/OpenSSH headers, obvious cloud/GitHub/Slack token shapes.
 
 | finding | severity |
 | --- | --- |
@@ -346,7 +346,7 @@ npm start   # http://127.0.0.1:8787
 
 | category | V1 | V2 (Strategy A default) |
 | --- | --- | --- |
-| FAIR_NEW (tip app+docs) | 22 | **22** tip + **V2 manifest** (worktree) |
+| FAIR_NEW (tip app+docs) | 22 | **Day-2 app+docs** (incl. protocol + 3 new tests) + **V2 manifest** |
 | PREEXISTING_REQUIRED copies | 16 | **0** (link public repo instead) |
 | BUILD_SUPPORT create-at-exposure | 2+ | Root README, LICENSE, `.gitignore`, `.gitmodules` / submodule |
 | Auto-expose verify-js convenience set | yes | **no** |
@@ -355,24 +355,26 @@ npm start   # http://127.0.0.1:8787
 
 ## 15. Blockers / residuals for Owner
 
-1. **Final auth** required before public repo create / push / deploy.
-2. Day-2 `a103647` product improvements exist but **block tip bump** until non-author GO.
+1. **Deploy / DNS / npm remain HOLD** — Day-2 public tip bump is Owner-authorized; live `/worldsfair` deploy is not.
+2. Intermediate Day-2 tip `a103647` is **not** the publication tip. Accepted reviewed tip is `a5cd592` / tree `3e442f93` (malformed-clock fail-closed) after INTERNAL_ADVERSARIAL_NON_AUTHOR GO + Owner re-auth.
 3. Public verifier tip ≠ monorepo verify-js tip on 2 kernel files — Adequacy OK for Fair PATH A/B with explicit trustedKeys; disclose pin `1b04356a`.
-4. Public verifier has **no `dist/`** — judges need strip-types **or** a documented build-in-submodule step.
+4. Public verifier has **no `dist/`** — judges need `NODE_OPTIONS=--experimental-strip-types` (documented in app scripts) **or** a documented build-in-submodule step.
 5. npm package still **404** — do not tell judges to `npm install raven-receipt-verifier` from registry.
-6. Import retarget + submodule are **exposure-time** Fair edits (not on `1ba45d5a` tip yet).
+6. Import retarget + submodule pin are **public Strategy A exposure edits** (retarget to `vendor/raven-receipt-verifier/...`; pin `1b04356a`).
 
 ---
 
-## 16. Ready-for-Owner-final-auth summary
+## 16. Day-2 tip-bump summary (Owner-authorized)
 
-- Revised manifest written: `docs/hackathon/worldsfair-2026/PUBLIC_EXPOSURE_MANIFEST_V2.md`
-- Tip chosen: **Day-1** `1ba45d5a` / `9205ca79` (Day-2 lacks non-author GO)
-- Dependency strategy: **A — link public `raven-receipt-verifier@1b04356a` via submodule; PREEXISTING_REQUIRED = 0**
-- FAIR_NEW: 18 app + 3 tip docs + V1/V2 manifests; no 16-file foundation copy by default
+- Manifest: `docs/hackathon/worldsfair-2026/PUBLIC_EXPOSURE_MANIFEST_V2.md` (Day-2 edition)
+- Tip chosen: **Day-2** `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` / `3e442f93529bdb5da876b54d484294032535e84a` (**not** `a103647`)
+- Prior public Day-1 HEAD preserved: `feaa1fb452b8e1307979dea7fd1c561fad82aa00` (additive history; no rewrite)
+- Dependency strategy: **A — link public `raven-receipt-verifier@1b04356a` via submodule; PREEXISTING_REQUIRED = 0; no verify-js dump**
+- FAIR_NEW: Day-2 app (incl. protocol/machine-exchange/truth-disclosure/malformed-clock) + Fair docs; no 16-file foundation copy
+- Disclosures: not live Solana; `liveAcquisition:false`; deterministic fixture/demo evaluation time; malformed eval time REFUSE; review class INTERNAL_ADVERSARIAL_NON_AUTHOR (not EXTERNAL_INDEPENDENT)
 - Secret scan: clean on Fair surface
-- Deploy: hold; prefer `/worldsfair`
-- **STOP** — awaiting Owner final publication authorization
+- Deploy: **HOLD**; prefer `/worldsfair` when separately authorized
+- **STOP** — no deploy / no npm publish in this pass
 
 ---
 
