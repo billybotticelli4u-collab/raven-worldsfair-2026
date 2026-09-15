@@ -1,0 +1,24 @@
+{
+  "name": "raven-conformance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Crypto World's Fair 2026 — Raven Conformance MVP: claimed profile vs deterministic corpus → evidence report.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "node --test test/*.test.js",
+    "conform": "node src/cli.js",
+    "build": "node --check src/server.js && node --check src/cli.js && node --check public/app.js"
+  },
+  "keywords": [
+    "raven",
+    "conformance",
+    "hackathon",
+    "worldsfair"
+  ],
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>World's Fair 2026 — Raven Conformance MVP</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="eyebrow">Crypto World's Fair 2026 · Build Stage · Conformance</p>
+      <h1>Raven Conformance MVP</h1>
+      <p class="lede">
+        Select a Raven-owned demo target, run the deterministic corpus against its
+        claimed profile, then inspect PASS / DIVERGENCE evidence and copy the
+        reproduction command. Judge-usable in about 60 seconds.
+      </p>
+    </div>
+    <button type="button" id="aboutBtn" class="ghost">About / Build Info</button>
+  </header>
+
+  <section class="controls card">
+    <h2>1. Select demo target</h2>
+    <div class="btn-row" id="targetRow"></div>
+    <p class="muted" id="targetBlurb">Choose a target to load its claimed profile.</p>
+    <div class="btn-row">
+      <button type="button" id="runBtn" class="primary" disabled>2. Run Conformance</button>
+    </div>
+  </section>
+
+  <section class="card meta">
+    <h2>Corpus / profile</h2>
+    <dl class="kv" id="metaKv"></dl>
+    <p class="muted" id="corpusWatch">Waiting to run…</p>
+  </section>
+
+  <main class="grid">
+    <article class="card">
+      <h2>Result <span class="tag">overall</span></h2>
+      <p class="outcome" id="overall">—</p>
+      <p class="muted" id="summaryLine">No run yet</p>
+      <dl class="kv" id="idKv"></dl>
+    </article>
+    <article class="card wide">
+      <h2>Vectors <span class="tag">evidence</span></h2>
+      <div id="vectorList" class="vectors"></div>
+    </article>
+  </main>
+
+  <section class="card">
+    <h2>Exact failure evidence</h2>
+    <pre id="failurePre" class="tech">Select a DIVERGENCE row after a run.</pre>
+  </section>
+
+  <section class="card">
+    <h2>Reproduction command</h2>
+    <pre id="reproPre" class="tech">Run conformance to populate.</pre>
+    <button type="button" id="copyBtn" class="ghost" disabled>Copy reproduction command</button>
+  </section>
+
+  <dialog id="aboutDialog">
+    <form method="dialog" class="about">
+      <h2>About / Build Info</h2>
+      <div id="aboutBody"></div>
+      <button value="close" class="primary">Close</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

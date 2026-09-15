@@ -1,0 +1,181 @@
+{
+  "id": "raven-canonical-envelope-demo-corpus/1",
+  "version": "1.0.0",
+  "profile": "raven-canonical-envelope/1",
+  "description": "Raven-owned deterministic demo corpus for Fair Conformance MVP. Self-contained; not copied from private corpora.",
+  "vectors": [
+    {
+      "id": "V01_valid_minimal",
+      "description": "Valid canonical envelope must ACCEPT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-01",
+        "payload": {
+          "amount": 10,
+          "asset": "DEMO",
+          "note": "ok"
+        },
+        "digest": "43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541"
+      },
+      "expected": {
+        "decision": "ACCEPT"
+      }
+    },
+    {
+      "id": "V02_valid_nested",
+      "description": "Valid nested payload must ACCEPT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-02",
+        "payload": {
+          "nested": {
+            "b": 2,
+            "a": 1
+          },
+          "list": [
+            3,
+            1,
+            2
+          ]
+        },
+        "digest": "dc43514879abc9add574407df45bfc87789a8e0266f6aca0ac22a7f6007ffb3d"
+      },
+      "expected": {
+        "decision": "ACCEPT"
+      }
+    },
+    {
+      "id": "V03_digest_mismatch",
+      "description": "Wrong digest must REJECT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-03",
+        "payload": {
+          "amount": 10,
+          "asset": "DEMO",
+          "note": "ok"
+        },
+        "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
+    },
+    {
+      "id": "V04_schema_mismatch",
+      "description": "Wrong schema must REJECT",
+      "input": {
+        "schema": "other-schema/9",
+        "id": "vec-04",
+        "payload": {
+          "amount": 10,
+          "asset": "DEMO",
+          "note": "ok"
+        },
+        "digest": "43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541"
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
+    },
+    {
+      "id": "V05_missing_digest",
+      "description": "Missing required digest must REJECT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-05",
+        "payload": {
+          "amount": 10,
+          "asset": "DEMO",
+          "note": "ok"
+        }
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
+    },
+    {
+      "id": "V06_empty_id",
+      "description": "Empty id must REJECT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "",
+        "payload": {
+          "amount": 10,
+          "asset": "DEMO",
+          "note": "ok"
+        },
+        "digest": "43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541"
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
+    },
+    {
+      "id": "V07_unexpected_top_level_field",
+      "description": "Unexpected top-level field must REJECT (subtle-defect probe)",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-07",
+        "payload": {
+          "amount": 10,
+          "asset": "DEMO",
+          "note": "ok"
+        },
+        "digest": "43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541",
+        "extra": "should-reject"
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
+    },
+    {
+      "id": "V08_unexpected_extension_key",
+      "description": "Another unexpected top-level key must REJECT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-08",
+        "payload": {
+          "amount": 10,
+          "asset": "DEMO",
+          "note": "ok"
+        },
+        "digest": "43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541",
+        "x_extension": true
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
+    },
+    {
+      "id": "V09_payload_not_object",
+      "description": "Non-object payload must REJECT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-09",
+        "payload": "nope",
+        "digest": "9b4e7a802b0bd7e5e84bb9876a454cfcd4f697120e553fd7a30ecb8ade094852"
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
+    },
+    {
+      "id": "V10_missing_schema",
+      "description": "Missing schema must REJECT",
+      "input": {
+        "id": "vec-10",
+        "payload": {
+          "amount": 10,
+          "asset": "DEMO",
+          "note": "ok"
+        },
+        "digest": "43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541"
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
+    }
+  ],
+  "content_digest_sha256": "27d6c5adac941846141671fa79a059004c7188327510a45c6e6c69d27959f23d"
+}

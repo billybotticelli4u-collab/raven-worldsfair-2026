@@ -147,3 +147,17 @@ npm dependencies; verification code comes from the git submodule.
 | Review | INTERNAL_ADVERSARIAL_NON_AUTHOR GO (Billy copy) — not EXTERNAL_INDEPENDENT |
 | Verifier pin | `1b04356a275742752fb7afd8dfcc4269d462a778` |
 | Prior public Day-1 HEAD | `feaa1fb452b8e1307979dea7fd1c561fad82aa00` |
+
+---
+
+## Related Fair app: Raven Conformance MVP
+
+Judge-usable Conformance product MVP (separate from Agent Trust):
+
+- Path: [`apps/raven-conformance/`](apps/raven-conformance/)
+- Branch tip for this work: `billy/fair-conformance-mvp-2026-09-16`
+- Loop: target → claimed profile → corpus → evidence report → clean reproduction
+- Local: `cd apps/raven-conformance && npm test && npm start` → http://127.0.0.1:8791
+
+Build Stage product milestone. Does not claim Day-3 Evidence Contract Handshake
+as this product. See that app's README for PRE-EXISTING vs FAIR-built disclosure.

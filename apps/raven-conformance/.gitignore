@@ -1,0 +1,5 @@
+reports/*.json
+!reports/.gitkeep
+node_modules/
+generated-build-info.json
+.DS_Store

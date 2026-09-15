@@ -1,0 +1,24 @@
+{
+  "name": "raven-canonical-envelope/1",
+  "version": "1.0.0",
+  "digest_algorithm": "sha256",
+  "description": "Raven-owned demo profile: accept only canonical JSON envelopes with exact top-level keys, correct schema, and payload digest.",
+  "allowed_top_level_keys": ["schema", "id", "payload", "digest"],
+  "required_top_level_keys": ["schema", "id", "payload", "digest"],
+  "schema_value": "raven-canonical-envelope/1",
+  "invocation": {
+    "interface": "stdin_json_line",
+    "input": "One JSON envelope object per invocation on stdin.",
+    "output": "One JSON object: {\"decision\":\"ACCEPT\"|\"REJECT\",\"reason\":\"string\"}"
+  },
+  "rules": [
+    "Reject if any top-level key is outside allowed_top_level_keys (no unexpected fields).",
+    "Reject if any required_top_level_key is missing.",
+    "Reject if schema !== schema_value.",
+    "Reject if id is not a non-empty string.",
+    "Reject if payload is not a plain object.",
+    "Reject if digest !== sha256-hex of canonical JSON(payload) with sorted keys and no insignificant whitespace.",
+    "ACCEPT only when all rules pass."
+  ],
+  "claimed_conformance_meaning": "A target claiming this profile must match corpus expected ACCEPT/REJECT decisions exactly."
+}

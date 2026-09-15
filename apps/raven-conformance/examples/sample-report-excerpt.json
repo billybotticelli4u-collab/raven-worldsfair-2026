@@ -1,0 +1,57 @@
+{
+  "schema": "raven-conformance-report/1",
+  "run_id": "run_2b52d34b26fe421f",
+  "target": {
+    "id": "BROKEN_SUBTLE",
+    "claimed_conformance_profile": "raven-canonical-envelope/1"
+  },
+  "claimed_profile": {
+    "name": "raven-canonical-envelope/1",
+    "version": "1.0.0",
+    "file": "raven-canonical-envelope-1.json",
+    "sha256": "914c2d5673ee9c5aaef00acac27440f6481f6397bdec81c2c835e088fe66bca4"
+  },
+  "corpus": {
+    "id": "raven-canonical-envelope-demo-corpus/1",
+    "version": "1.0.0",
+    "sha256": "27d6c5adac941846141671fa79a059004c7188327510a45c6e6c69d27959f23d",
+    "vector_count": 10
+  },
+  "summary": {
+    "test_count": 10,
+    "pass": 8,
+    "divergence": 2,
+    "overall": "DIVERGENT"
+  },
+  "sample_divergence": {
+    "vector_id": "V07_unexpected_top_level_field",
+    "description": "Unexpected top-level field must REJECT (subtle-defect probe)",
+    "expected": {
+      "decision": "REJECT"
+    },
+    "observed": {
+      "decision": "ACCEPT",
+      "reason": "subtle_accepts_extra_fields"
+    },
+    "status": "DIVERGENCE",
+    "evidence": {
+      "stdout": "{\"decision\":\"ACCEPT\",\"reason\":\"subtle_accepts_extra_fields\"}\n",
+      "stderr": "",
+      "exitCode": 0,
+      "durationMs": 50
+    }
+  },
+  "divergence_definition": "DIVERGENCE = observed decision ≠ specified corpus expectation only. Not automatically exploitable, unsafe, or malicious. No generic security score.",
+  "reproduction": {
+    "clean_clone": "git clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git\ncd raven-worldsfair-2026\ngit checkout billy/fair-conformance-mvp-2026-09-16\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target BROKEN_SUBTLE",
+    "one_liner": "cd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE"
+  },
+  "report_content_digest_sha256": "9cd956c62c7caa9159c01bdc5e3214317d61a0a3e51444879b5fe075729d35a9",
+  "limitations": [
+    "MVP isolation is local Node child_process with restricted env and timeout — not a general sandbox or container hardened runtime.",
+    "Outbound network is denied by unsetting proxies and documenting policy; this does not install a kernel network namespace.",
+    "Demo targets and corpus are Raven-owned Fair self-contained fixtures — not private production corpora.",
+    "Does not include token, marketplace, cert authority, pentest scanner, accounts, registry, billing, or governance architecture.",
+    "Author-lane Fair Build Stage product review surface only."
+  ]
+}
