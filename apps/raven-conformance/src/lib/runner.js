@@ -25,7 +25,9 @@ import {
 
 const PROFILE_FILE = "raven-canonical-envelope-1.json";
 const CORPUS_FILE = "raven-canonical-envelope-demo-corpus-1.json";
-const BRANCH_NAME = "billy/fair-challenge1-bounded-runner-2026-09-16";
+const BRANCH_NAME = "codex/challenge2-review-fixes-2026-09-16";
+
+function refuse(code) { const error = new Error(code); error.code = code; throw error; }
 
 export { restrictedEnv, DEFAULT_TIMEOUT_MS };
 
@@ -46,6 +48,7 @@ export function loadCorpus() {
     vectors: data.vectors,
   };
   const computed = sha256Hex(JSON.stringify(forDigest, null, 2) + "\n");
+  if (data.content_digest_sha256 !== computed) refuse("CORPUS_DIGEST_MISMATCH");
   return { path: p, digest: computed, declaredDigest: data.content_digest_sha256 || null, data };
 }
 
@@ -73,7 +76,7 @@ export function getTarget(targetId) {
  * Never maps crash/timeout/flood/invalid to PASS.
  */
 export function classifyResult(exec, expectedDecision, { probe = false, probeExpectation = null } = {}) {
-  if (exec.spawn_error && !exec.observed) {
+  if (exec.spawn_error) {
     return { status: "RUNNER_FAILURE", evidence_note: exec.spawn_error };
   }
   if (exec.flooded) {
@@ -85,9 +88,9 @@ export function classifyResult(exec, expectedDecision, { probe = false, probeExp
   if (exec.parseError === "spawn_error" || exec.parseError === "stdin_error") {
     return { status: "RUNNER_FAILURE", evidence_note: exec.parseError };
   }
-  // Crash: non-zero exit / signal without a valid observed decision takes priority
+  // Crash: non-zero exit / signal takes priority even after a valid decision
   // over mere unparseable stdout (hostile crash probes must not be PASS or soft-invalid-only).
-  if (((exec.exitCode !== 0 && exec.exitCode !== null) || exec.signal) && !exec.observed) {
+  if ((exec.exitCode !== 0 && exec.exitCode !== null) || exec.signal) {
     return {
       status: "TARGET_CRASH",
       evidence_note: `exitCode=${exec.exitCode} signal=${exec.signal}`,
@@ -140,6 +143,8 @@ function tallyCounts(results) {
  * Build deterministic body for digest (exclude volatile fields).
  */
 export function deterministicReportBody(report) {
+  // A digest cannot include its own stored value. Same projection before and after sealing.
+  const { deterministic_report_sha256: _selfDigest, ...identityBinding } = report.binding || {};
   const results = (report.results || []).map((r) => ({
     vector_id: r.vector_id,
     description: r.description,
@@ -174,7 +179,7 @@ export function deterministicReportBody(report) {
       verified_controls: report.isolation?.verified_controls,
       assumed_controls: report.isolation?.assumed_controls,
     },
-    binding: report.binding,
+    binding: identityBinding,
     summary: {
       test_count: report.summary.test_count,
       pass: report.summary.pass,
@@ -248,6 +253,9 @@ export async function runConformance(targetId, opts = {}) {
   const profile = loadProfile();
   const corpus = loadCorpus();
   const target = getTarget(targetId);
+  if (target.claimed_conformance_profile !== profile.data.name ||
+      target.claimed_conformance_profile_version !== profile.data.version || corpus.data.profile !== profile.data.name)
+    refuse("PROFILE_MISMATCH");
   if (target.probe) {
     throw new Error(`target_is_probe_use_runProbe:${targetId}`);
   }
@@ -393,6 +401,7 @@ export async function runConformance(targetId, opts = {}) {
       entry: target.entry,
       entry_sha256: targetDigest,
       claimed_conformance_profile: target.claimed_conformance_profile,
+      claimed_conformance_profile_version: target.claimed_conformance_profile_version,
       invocation_interface: target.invocation_interface,
       description: target.description,
     },

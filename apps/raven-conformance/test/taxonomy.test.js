@@ -61,8 +61,8 @@ describe("result taxonomy", () => {
       },
       "ACCEPT",
     );
-    // parseError checked before crash in some paths — either INVALID_OUTPUT or TARGET_CRASH
-    assert.ok(["TARGET_CRASH", "INVALID_OUTPUT"].includes(r.status));
+    // A nonzero exit takes priority over malformed output.
+    assert.equal(r.status, "TARGET_CRASH");
     assert.notEqual(r.status, "PASS");
   });
 

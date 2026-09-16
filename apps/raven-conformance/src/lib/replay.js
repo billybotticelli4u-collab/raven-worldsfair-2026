@@ -4,8 +4,9 @@
  */
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
-import { runConformance, loadProfile, loadCorpus, getTarget } from "./runner.js";
-import { fileSha256 } from "./digest.js";
+import { runConformance, loadProfile, loadCorpus, getTarget, computeDeterministicDigest } from "./runner.js";
+import { isDeepStrictEqual } from "node:util";
+import { fileSha256, sha256Hex } from "./digest.js";
 import { TARGETS_DIR } from "./paths.js";
 
 export function loadReport(reportPath) {
@@ -27,78 +28,73 @@ export function checkBundleIdentities(report) {
   const entryAbs = path.join(TARGETS_DIR, target.entry);
   const entryDigest = fileSha256(entryAbs);
 
-  const expectedProfile = report.binding?.profile_sha256 || report.claimed_profile?.sha256;
-  const expectedCorpus = report.binding?.corpus_sha256 || report.corpus?.sha256;
-  const expectedTarget = report.binding?.target_entry_sha256 || report.target?.entry_sha256;
-
-  if (expectedProfile && expectedProfile !== profile.digest) {
-    diffs.push({
-      field: "profile_sha256",
-      expected: expectedProfile,
-      actual: profile.digest,
-    });
+  for (const [field, values, actual] of [
+    ["profile_sha256", [report.binding?.profile_sha256, report.claimed_profile?.sha256], profile.digest],
+    ["corpus_sha256", [report.binding?.corpus_sha256, report.corpus?.sha256, report.corpus?.declared_content_digest_sha256], corpus.digest],
+    ["target_entry_sha256", [report.binding?.target_entry_sha256, report.target?.entry_sha256], entryDigest],
+  ]) {
+    if (values.some(value => value !== actual)) diffs.push({ field, expected: values, actual });
   }
-  if (expectedCorpus && expectedCorpus !== corpus.digest) {
-    diffs.push({
-      field: "corpus_sha256",
-      expected: expectedCorpus,
-      actual: corpus.digest,
-    });
-  }
-  if (expectedTarget && expectedTarget !== entryDigest) {
-    diffs.push({
-      field: "target_entry_sha256",
-      expected: expectedTarget,
-      actual: entryDigest,
-    });
-  }
+  for (const [field, actual, expected] of [
+    ["claimed_profile.name", report.claimed_profile?.name, profile.data.name],
+    ["claimed_profile.version", report.claimed_profile?.version, profile.data.version],
+    ["target.claimed_conformance_profile", report.target?.claimed_conformance_profile, profile.data.name],
+    ["target.claimed_conformance_profile_version", report.target?.claimed_conformance_profile_version, profile.data.version],
+    ["target.entry", report.target?.entry, target.entry],
+    ["target.version", report.target?.version, target.version],
+    ["corpus.id", report.corpus?.id, corpus.data.id],
+    ["corpus.version", report.corpus?.version, corpus.data.version],
+    ["corpus.vector_count", report.corpus?.vector_count, corpus.data.vectors.length],
+  ]) if (actual !== expected) diffs.push({ field, expected, actual });
   return { ok: diffs.length === 0, diffs, profile, corpus, entryDigest, targetId };
+}
+
+export function checkReportIntegrity(report) {
+  const diffs = [];
+  try {
+    const computed = computeDeterministicDigest(report);
+    if (report.deterministic_report_sha256 !== computed || report.binding?.deterministic_report_sha256 !== computed)
+      diffs.push({ field: "deterministic_report_sha256", error: "missing_or_mismatched_digest" });
+    // Preserve the producer's documented full-body serialization (top-level digests are added afterward).
+    const { _written_path, report_content_digest_sha256, deterministic_report_sha256, ...body } = report;
+    if (report_content_digest_sha256 !== sha256Hex(JSON.stringify(body, null, 2) + "\n"))
+      diffs.push({ field: "report_content_digest_sha256", error: "missing_or_mismatched_digest" });
+  } catch {
+    diffs.push({ field: "report", error: "invalid_report_structure" });
+  }
+  return { ok: diffs.length === 0, diffs };
 }
 
 function semanticSlice(report) {
   return {
-    overall: report.summary?.overall,
-    counts: report.summary?.counts || {
-      PASS: report.summary?.pass,
-      BEHAVIORAL_DIVERGENCE: report.summary?.divergence,
-    },
+    summary: report.summary,
     results: (report.results || []).map((r) => ({
       vector_id: r.vector_id,
-      status: r.status === "DIVERGENCE" ? "BEHAVIORAL_DIVERGENCE" : r.status,
-      expected: r.expected?.decision ?? null,
-      observed: r.observed?.decision ?? null,
+      description: r.description,
+      status: r.status,
+      expected: r.expected,
+      observed: {
+        decision: r.observed?.decision ?? null,
+        reason: r.observed?.reason ?? null,
+        parseError: r.observed?.parseError ?? null,
+        timedOut: r.observed?.timedOut ?? false,
+        flooded: r.observed?.flooded ?? false,
+      },
+      exitCode: r.evidence?.exitCode ?? null,
     })),
   };
 }
 
 export function compareSemantic(original, replayed) {
-  const a = semanticSlice(original);
-  const b = semanticSlice(replayed);
-  const diffs = [];
-  if (a.overall !== b.overall) {
-    diffs.push({ field: "overall", expected: a.overall, actual: b.overall });
-  }
-  const byId = new Map(b.results.map((r) => [r.vector_id, r]));
-  for (const r of a.results) {
-    const o = byId.get(r.vector_id);
-    if (!o) {
-      diffs.push({ field: `results.${r.vector_id}`, error: "missing_in_replay" });
-      continue;
-    }
-    if (r.status !== o.status) {
-      diffs.push({
-        field: `results.${r.vector_id}.status`,
-        expected: r.status,
-        actual: o.status,
-      });
-    }
-    if (r.observed !== o.observed) {
-      diffs.push({
-        field: `results.${r.vector_id}.observed`,
-        expected: r.observed,
-        actual: o.observed,
-      });
-    }
+  const a = semanticSlice(original), b = semanticSlice(replayed), diffs = [];
+  if (!isDeepStrictEqual(a.summary, b.summary)) diffs.push({ field: "summary", error: "mismatch" });
+  if (!Array.isArray(original.results) || !Array.isArray(replayed.results) || a.results.length !== b.results.length)
+    diffs.push({ field: "results", error: "cardinality_mismatch" });
+  const unique = rows => new Set(rows.map(r => r.vector_id)).size === rows.length;
+  if (!unique(a.results) || !unique(b.results)) diffs.push({ field: "results", error: "duplicate_vector" });
+  // Comparing the full ordered list makes omitted, added and reordered vectors visible.
+  for (let i = 0; i < Math.max(a.results.length, b.results.length); i++) {
+    if (!isDeepStrictEqual(a.results[i], b.results[i])) diffs.push({ field: `results[${i}]`, error: "semantic_mismatch" });
   }
   return { ok: diffs.length === 0, diffs };
 }
@@ -118,6 +114,12 @@ export async function replayReport(reportPath, opts = {}) {
       diffs: [],
     };
   }
+
+  const integrity = checkReportIntegrity(original);
+  if (!integrity.ok) return {
+    schema: "raven-conformance-replay/1", ok: false, bundle_match: false, semantic_match: false,
+    error: "report_integrity_mismatch", diffs: integrity.diffs,
+  };
 
   const bundle = checkBundleIdentities(original);
   if (!bundle.ok) {
