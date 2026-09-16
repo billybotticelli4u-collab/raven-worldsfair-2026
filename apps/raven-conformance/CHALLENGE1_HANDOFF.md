@@ -16,6 +16,7 @@
 | Tip advanced? | No — built from exact MVP tip |
 | Challenge 1 HEAD (feat freeze) | `d22c290edc9e779465ab790a6cbcba4986c1ecb0` |
 | Challenge 1 TREE (feat freeze) | `efc45e3f385a0d87539ecbee8382d2662ed124f7` |
+| Branch tip | `e4081fd2bdaa849499d2348d0ab49faf0dbad8aa` / tree `d1588964bd5b916722e3ac7b0b22198d42240fff` |
 
 ## Isolation verified vs curated-demo
 
