@@ -14,8 +14,8 @@
 | MVP HEAD (branch base) | `53360df071872a29447993e879add2be9406b7b5` |
 | MVP TREE | `468b0397c89165160337a53597e8b6533f1f1dec` |
 | Tip advanced? | No — built from exact MVP tip |
-| Challenge 1 HEAD |  |
-| Challenge 1 TREE |  |
+| Challenge 1 HEAD (feat freeze) | `d22c290edc9e779465ab790a6cbcba4986c1ecb0` |
+| Challenge 1 TREE (feat freeze) | `efc45e3f385a0d87539ecbee8382d2662ed124f7` |
 
 ## Isolation verified vs curated-demo
 
@@ -42,7 +42,18 @@
 
 ### Hostile probes (Darwin sandbox_exec — see evidence JSON)
 
-See `evidence/darwin-sandbox-exec-measurement-2026-09-16.json` (filled by measurement run).
+| Probe | Status |
+|-------|--------|
+| HOSTILE_NETWORK_ATTEMPT | BOUNDARY_HOLD |
+| HOSTILE_ENV_CANARY | BOUNDARY_HOLD |
+| HOSTILE_CORPUS_WRITE | BOUNDARY_HOLD |
+| HOSTILE_ENDLESS | TIMEOUT |
+| HOSTILE_CHILD_PERSIST | BOUNDARY_HOLD |
+| HOSTILE_OUTPUT_FLOOD | OUTPUT_FLOOD |
+| HOSTILE_MALFORMED_OUTPUT | INVALID_OUTPUT |
+| HOSTILE_EXIT_CRASH | TARGET_CRASH |
+
+Full JSON: `evidence/darwin-sandbox-exec-measurement-2026-09-16.json` (mode=sandbox_exec, verified=true).
 
 ### Tests
 
