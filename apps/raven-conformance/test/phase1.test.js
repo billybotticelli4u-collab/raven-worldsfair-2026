@@ -100,3 +100,12 @@ test('compatibility: SIGINT leaves no partial report',async t=>{
   await new Promise(resolve=>setTimeout(resolve,250));child.kill('SIGINT');const result=await closed;
   assert.ok(result.code===130||result.signal==='SIGINT');assert.equal(existsSync(path.join(f.dir,'reports')),false);
 });
+test('F4 verifier accepts bounded error transcripts with JSON escaping expansion',async t=>{
+  const f=await fixture(t);
+  f.target("process.stdout.write(Buffer.alloc(60000));process.stderr.write(Buffer.alloc(60000));");
+  const report=await f.runner.runConformance('CONFORMANT_REFERENCE',{write:false});
+  const bytes=JSON.stringify(report);assert.ok(Buffer.byteLength(bytes)>4*1024*1024);
+  const file=path.join(f.dir,'expanded.json');writeFileSync(file,bytes);
+  const check=spawnSync(process.execPath,[path.join(f.dir,'src/verify.js'),file],{encoding:'utf8'});
+  assert.equal(check.status,0,check.stderr);
+});

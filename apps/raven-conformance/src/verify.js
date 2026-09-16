@@ -60,7 +60,7 @@ export function verifyReport(report,{expectedDigest}={}) {
 if(process.argv[1]&&import.meta.url===pathToFileURL(realpathSync(process.argv[1])).href){
   try {
     const args=process.argv.slice(2);requireCheck(args.length===1||(args.length===3&&args[1]==='--expected-digest'),'Usage: npm run verify -- report.json [--expected-digest SHA256]');
-    const bytes=readFileSync(args[0]);requireCheck(bytes.length<=4*1024*1024,'REPORT_SIZE_LIMIT');
+    const bytes=readFileSync(args[0]);requireCheck(bytes.length<=16*1024*1024,'REPORT_SIZE_LIMIT');
     console.log(JSON.stringify(verifyReport(JSON.parse(bytes),{expectedDigest:args[2]}),null,2));
   }catch(error){console.error(JSON.stringify({status:'FAIL',error:error.message}));process.exitCode=1;}
 }
