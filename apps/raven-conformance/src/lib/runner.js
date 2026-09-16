@@ -518,8 +518,6 @@ export async function runProbe(targetId, opts = {}) {
   const isolation = resolveIsolation(workDir);
   const startedAt = new Date().toISOString();
 
-  const parentCanary = "PARENT_CANARY_" + randomUUID().slice(0, 8);
-
   const corpusPath = path.join(CORPUS_DIR, CORPUS_FILE);
   const reportsPath = REPORTS_DIR;
   const writeMarker = `hostile_write_probe_${runId}`;
@@ -533,20 +531,16 @@ export async function runProbe(targetId, opts = {}) {
   };
 
   let exec;
-  try {
-    exec = await spawnIsolated({
-      entryAbs,
-      inputObj: input,
-      workDir,
-      isolation,
-      timeoutMs: opts.timeoutMs || (target.probe_kind === "timeout" || target.id.includes("ENDLESS") ? 800 : DEFAULT_TIMEOUT_MS),
-      maxStdout: opts.maxStdout || (target.id.includes("FLOOD") ? 32 * 1024 : undefined),
-      maxStderr: opts.maxStderr || (target.id.includes("FLOOD") ? 8 * 1024 : undefined),
-      injectCanary: false,
-    });
-  } finally {
-    // no-op
-  }
+  exec = await spawnIsolated({
+    entryAbs,
+    inputObj: input,
+    workDir,
+    isolation,
+    timeoutMs: opts.timeoutMs || (target.probe_kind === "timeout" || target.id.includes("ENDLESS") ? 800 : DEFAULT_TIMEOUT_MS),
+    maxStdout: opts.maxStdout || (target.id.includes("FLOOD") ? 32 * 1024 : undefined),
+    maxStderr: opts.maxStderr || (target.id.includes("FLOOD") ? 8 * 1024 : undefined),
+    injectCanary: false,
+  });
 
   const kind = target.probe_kind || target.id;
   let status;
@@ -582,10 +576,10 @@ export async function runProbe(targetId, opts = {}) {
     }
   } else if (kind === "env" || target.id === "HOSTILE_ENV_CANARY") {
     const observed = exec.observed;
-    const leaked = observed?.canary_present === true || (exec.stdout || "").includes(parentCanary);
+    const leaked = observed?.canary_present === true;
     status = leaked ? "BOUNDARY_ESCAPE" : "BOUNDARY_HOLD";
     evidence.note = leaked ? "canary env visible to target" : "canary env absent from target (hold)";
-    evidence.parent_canary_set = true;
+    evidence.canary_env_expected_absent = true;
   } else if (kind === "write" || target.id === "HOSTILE_CORPUS_WRITE") {
     const observed = exec.observed;
     const wrote = observed?.write_succeeded === true;

@@ -39,7 +39,6 @@
   },
   "progress_events": [
     { "type": "run_started", "fields": ["run_id", "target"] },
-    { "type": "vector_started", "fields": ["run_id", "vector_id"] },
     { "type": "vector_finished", "fields": ["run_id", "vector_id", "status"] },
     { "type": "run_finished", "fields": ["run_id", "overall"] },
     { "type": "error", "fields": ["run_id", "code", "message"] }

@@ -76,7 +76,7 @@ The Challenge 2 Judge UI opens `EventSource("/api/run-stream?target=<ID>")` and 
 - `summary.incomplete` — boolean if run aborted
 - `isolation` — `{ mode, verified, platform, details, verified_controls[], assumed_controls[] }`
 - `binding` — `{ profile_sha256, corpus_sha256, target_entry_sha256, deterministic_report_sha256 }`
-- `volatile` — `{ run_id, started_at, finished_at, durations }` documented separately from digest
+- `volatile_fields` — list of serialized fields that are intentionally excluded from `deterministic_report_sha256`
 - `results[].status` — expanded taxonomy (below); `DIVERGENCE` retained as **alias of** `BEHAVIORAL_DIVERGENCE` only if needed for old UI — Challenge 1 prefers `BEHAVIORAL_DIVERGENCE` and keeps `summary.divergence` count for compatibility
 - `probe_section` — optional; present on probe runs
 

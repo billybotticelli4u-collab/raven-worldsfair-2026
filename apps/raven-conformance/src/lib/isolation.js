@@ -26,6 +26,7 @@ export const DEFAULT_TIMEOUT_MS = 3000;
 export const DEFAULT_MAX_STDOUT_BYTES = 256 * 1024;
 export const DEFAULT_MAX_STDERR_BYTES = 64 * 1024;
 export const MAX_TIMEOUT_MS = 30000;
+export const WATCHDOG_INTERVAL_MS = 50;
 
 /** Env keys allowed into the target process (explicit allowlist). */
 export const ENV_ALLOWLIST = [
@@ -328,10 +329,12 @@ export function spawnIsolated({
       windowsHide: true,
     });
 
-    const timer = setTimeout(() => {
+    const watchdog = setInterval(() => {
+      if (Date.now() - started < boundedTimeoutMs) return;
       killed = true;
+      clearInterval(watchdog);
       killProcessGroup(child.pid);
-    }, boundedTimeoutMs);
+    }, WATCHDOG_INTERVAL_MS);
 
     child.stdout.on("data", (d) => {
       if (flooded) return;
@@ -357,7 +360,7 @@ export function spawnIsolated({
     });
 
     child.on("close", (code, signal) => {
-      clearTimeout(timer);
+      clearInterval(watchdog);
       // Reap any leftover group members
       killProcessGroup(child.pid);
 
@@ -405,7 +408,7 @@ export function spawnIsolated({
       child.stdin.write(JSON.stringify(inputObj));
       child.stdin.end();
     } catch (err) {
-      clearTimeout(timer);
+      clearInterval(watchdog);
       killProcessGroup(child.pid);
       resolve({
         timedOut: false,

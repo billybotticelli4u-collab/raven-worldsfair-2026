@@ -81,6 +81,7 @@ export function compareSemantic(original, replayed) {
   const a = semanticSlice(original);
   const b = semanticSlice(replayed);
   const diffs = [];
+  const expectedIds = new Set(a.results.map((r) => r.vector_id));
   if (a.overall !== b.overall) {
     diffs.push({ field: "overall", expected: a.overall, actual: b.overall });
   }
@@ -103,6 +104,14 @@ export function compareSemantic(original, replayed) {
         field: `results.${r.vector_id}.observed`,
         expected: r.observed,
         actual: o.observed,
+      });
+    }
+  }
+  for (const replayedResult of b.results) {
+    if (!expectedIds.has(replayedResult.vector_id)) {
+      diffs.push({
+        field: `results.${replayedResult.vector_id}`,
+        error: "unexpected_in_replay",
       });
     }
   }
