@@ -59,7 +59,7 @@
         "ledger_freeze_digest": "bbff13ef366ee2dc73b542be27123d31fbccbac13768fdfc2e999fe16a25f52b",
         "live_freeze_digest": "bbff13ef366ee2dc73b542be27123d31fbccbac13768fdfc2e999fe16a25f52b",
         "status": "MATCH",
-        "established_at_commit": "resolve with: git log --diff-filter=A --format=%H -- apps/raven-attest/harness/FREEZE_LEDGER.json",
+        "established_at_commit": "cc6e5a13040ba0855b51626b1af9080e53ce87cf",
         "proves": "The frozen expectations have not drifted since the commit that introduced this file. Any later run prints MATCH or DRIFT against a dated ref.",
         "cannot_prove": "WHEN any individual expectation was authored. The first commit containing the harness (a2ede06d) already carries the revised freeze, so git cannot date round 1 and neither can this ledger. freeze_status values ORIGINAL_ROUND_1 and ORIGINAL_ROUND_2 remain AUTHOR ASSERTIONS. Residual correctly raised by GROK in non-author review, 2026-09-16; it is not retroactively fixable, only bounded going forward."
       },
