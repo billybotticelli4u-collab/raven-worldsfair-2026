@@ -8,7 +8,8 @@
       "claimed_conformance_profile": "raven-canonical-envelope/1",
       "invocation_interface": "stdin_json_line",
       "description": "Correct implementation — corpus should PASS entirely.",
-      "expected_outcome": "CONFORMANT"
+      "expected_outcome": "CONFORMANT",
+      "probe": false
     },
     {
       "id": "BROKEN_OBVIOUS",
@@ -18,7 +19,8 @@
       "claimed_conformance_profile": "raven-canonical-envelope/1",
       "invocation_interface": "stdin_json_line",
       "description": "Intentional straightforward contract violation: unconditional ACCEPT of parseable objects.",
-      "expected_outcome": "DIVERGENT"
+      "expected_outcome": "DIVERGENT",
+      "probe": false
     },
     {
       "id": "BROKEN_SUBTLE",
@@ -28,7 +30,88 @@
       "claimed_conformance_profile": "raven-canonical-envelope/1",
       "invocation_interface": "stdin_json_line",
       "description": "Raven-owned demo of verifier-class defect: accepts unexpected top-level fields while still checking digest/schema. Not a third-party vulnerability claim.",
-      "expected_outcome": "DIVERGENT"
+      "expected_outcome": "DIVERGENT",
+      "probe": false
+    },
+    {
+      "id": "HOSTILE_NETWORK_ATTEMPT",
+      "name": "Hostile network attempt",
+      "version": "1.0.0",
+      "entry": "hostile/HOSTILE_NETWORK_ATTEMPT.mjs",
+      "invocation_interface": "stdin_json_line",
+      "description": "Probe: try DNS/HTTP; expect block or observable fail. Not a conformance demo.",
+      "probe": true,
+      "probe_kind": "network"
+    },
+    {
+      "id": "HOSTILE_ENV_CANARY",
+      "name": "Hostile env canary",
+      "version": "1.0.0",
+      "entry": "hostile/HOSTILE_ENV_CANARY.mjs",
+      "invocation_interface": "stdin_json_line",
+      "description": "Probe: attempt read of canary env that runner must not pass.",
+      "probe": true,
+      "probe_kind": "env"
+    },
+    {
+      "id": "HOSTILE_CORPUS_WRITE",
+      "name": "Hostile corpus write",
+      "version": "1.0.0",
+      "entry": "hostile/HOSTILE_CORPUS_WRITE.mjs",
+      "invocation_interface": "stdin_json_line",
+      "description": "Probe: attempt write to corpus/report paths; expect fail.",
+      "probe": true,
+      "probe_kind": "write"
+    },
+    {
+      "id": "HOSTILE_ENDLESS",
+      "name": "Hostile endless loop",
+      "version": "1.0.0",
+      "entry": "hostile/HOSTILE_ENDLESS.mjs",
+      "invocation_interface": "stdin_json_line",
+      "description": "Probe: infinite loop; expect TIMEOUT.",
+      "probe": true,
+      "probe_kind": "timeout"
+    },
+    {
+      "id": "HOSTILE_CHILD_PERSIST",
+      "name": "Hostile child persist",
+      "version": "1.0.0",
+      "entry": "hostile/HOSTILE_CHILD_PERSIST.mjs",
+      "invocation_interface": "stdin_json_line",
+      "description": "Probe: spawn child that outlives; runner must cleanup.",
+      "probe": true,
+      "probe_kind": "child"
+    },
+    {
+      "id": "HOSTILE_OUTPUT_FLOOD",
+      "name": "Hostile output flood",
+      "version": "1.0.0",
+      "entry": "hostile/HOSTILE_OUTPUT_FLOOD.mjs",
+      "invocation_interface": "stdin_json_line",
+      "description": "Probe: flood stdout; expect OUTPUT_FLOOD, not PASS.",
+      "probe": true,
+      "probe_kind": "flood"
+    },
+    {
+      "id": "HOSTILE_MALFORMED_OUTPUT",
+      "name": "Hostile malformed output",
+      "version": "1.0.0",
+      "entry": "hostile/HOSTILE_MALFORMED_OUTPUT.mjs",
+      "invocation_interface": "stdin_json_line",
+      "description": "Probe: bad JSON stdout; expect INVALID_OUTPUT.",
+      "probe": true,
+      "probe_kind": "malformed"
+    },
+    {
+      "id": "HOSTILE_EXIT_CRASH",
+      "name": "Hostile exit crash",
+      "version": "1.0.0",
+      "entry": "hostile/HOSTILE_EXIT_CRASH.mjs",
+      "invocation_interface": "stdin_json_line",
+      "description": "Probe: throw/exit mid-case; expect TARGET_CRASH, not PASS.",
+      "probe": true,
+      "probe_kind": "crash"
     }
   ]
 }
