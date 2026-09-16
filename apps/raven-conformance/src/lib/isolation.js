@@ -1,8 +1,9 @@
 /**
  * Isolation boundary for raven-conformance Challenge 1.
  *
- * Darwin: prefer sandbox-exec (Seatbelt) with deny-network + write confined
- * to a per-run ephemeral workdir. Linux/other: curated_demo — runner still
+ * Darwin: prefer sandbox-exec (Seatbelt) with deny-network, broad file reads,
+ * and writes allowed to workdir + temp/dev, with explicit app-root denials.
+ * Linux/other: curated_demo — runner still
  * enforces timeout, output caps, env allowlist, process-group kill, but
  * MUST NOT claim verified sandbox enforcement.
  *
@@ -84,8 +85,8 @@ function sandboxExecAvailable() {
 }
 
 /**
- * Minimal Seatbelt profile: deny network, deny writes outside workdir,
- * allow read of target script + node + workdir, deny write to corpus/profile/reports.
+ * Minimal Seatbelt profile: deny network, allow broad reads and writes to
+ * workdir + temp/dev, deny writes to app/corpus/profile/report roots.
  */
 export function buildSeatbeltProfile({ workDir, targetScript, nodeBin }) {
   const absWork = path.resolve(workDir);
@@ -201,11 +202,11 @@ export function resolveIsolation(workDir) {
         mode: "sandbox_exec",
         verified: true,
         platform,
-        details: "Seatbelt sandbox-exec with deny-network and write confined to ephemeral workdir",
+        details: "Seatbelt sandbox-exec denies network, permits broad file reads; writes allowed to ephemeral workdir, /dev, /private/tmp, /tmp, /private/var/folders; writes to app/corpus/profile/report roots denied. Ordinary OS permissions still apply.",
         verified_controls: [
           "sandbox_exec_profile_applied",
           "deny_network",
-          "deny_write_outside_workdir",
+          "write_allowlist_workdir_dev_tmp_with_app_root_denials",
           "env_allowlist",
           "timeout_process_group_kill",
           "stdout_stderr_byte_caps",

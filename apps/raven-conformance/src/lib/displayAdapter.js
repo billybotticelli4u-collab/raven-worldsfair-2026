@@ -21,7 +21,7 @@ const PLAIN = {
   PASS: "Observed decision matches the corpus expectation for this vector.",
   BEHAVIORAL_DIVERGENCE: "Expectation mismatch only — not a security score.",
   TIMEOUT: "Target did not finish within the runner timeout — not treated as PASS.",
-  TARGET_CRASH: "Target crashed without a usable decision — not treated as PASS.",
+  TARGET_CRASH: "Target exited unsuccessfully or was terminated, even if it emitted a usable decision — not treated as PASS.",
   INVALID_OUTPUT: "Target stdout unparseable or missing decision — not treated as PASS.",
   OUTPUT_FLOOD: "Target exceeded output byte caps — not treated as PASS.",
   SKIPPED_VECTOR: "Vector was skipped — not a behavioral PASS.",

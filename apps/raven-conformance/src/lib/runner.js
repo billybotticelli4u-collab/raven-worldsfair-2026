@@ -25,7 +25,7 @@ import {
 
 const PROFILE_FILE = "raven-canonical-envelope-1.json";
 const CORPUS_FILE = "raven-canonical-envelope-demo-corpus-1.json";
-const BRANCH_NAME = "codex/challenge2-review-fixes-2026-09-16";
+const BRANCH_NAME = "codex/challenge2-disclosure-fixes-2026-09-16";
 
 function refuse(code) { const error = new Error(code); error.code = code; throw error; }
 
@@ -434,7 +434,7 @@ export async function runConformance(targetId, opts = {}) {
     allowed_resources: {
       filesystem:
         isolation.mode === "sandbox_exec"
-          ? "target script read + ephemeral workdir write only (Seatbelt)"
+          ? "Seatbelt permits broad file reads; writes allowed to ephemeral workdir, /dev, /private/tmp, /tmp, /private/var/folders; writes to app/corpus/profile/report roots denied. Ordinary OS permissions still apply."
           : "runner-intended: target script + stdin; writes not kernel-confined in curated_demo",
       network:
         isolation.mode === "sandbox_exec" && isolation.verified
