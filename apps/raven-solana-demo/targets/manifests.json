@@ -27,7 +27,7 @@
       "entry": "SOL_BROKEN_SUBTLE.mjs",
       "claimed_conformance_profile": "raven-solana-txversion-experimental/0",
       "invocation_interface": "stdin_json_line",
-      "description": "Raven-owned demo of the stale-parser defect class: correct legacy/v0 logic, no knowledge of the v1 envelope (SIMD-0385, mainnet 2026-09-09). False-rejects valid v1; misadmits non-canonical 0x81-prefixed bytes. Not a third-party vulnerability claim.",
+      "description": "Raven-owned demo of the stale-parser defect class: correct legacy/v0 logic, no knowledge of the v1 envelope (SIMD-0385, mainnet 2026-09-15). False-rejects valid v1; misadmits non-canonical 0x81-prefixed bytes. Not a third-party vulnerability claim.",
       "expected_outcome": "DIVERGENT"
     }
   ]

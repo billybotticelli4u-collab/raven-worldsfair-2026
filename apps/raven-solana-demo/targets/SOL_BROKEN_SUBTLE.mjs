@@ -3,7 +3,7 @@
  * SOL_BROKEN_SUBTLE — Raven-owned demo of the stale pre-v1 parser defect class.
  *
  * Implements legacy/v0 envelope admission CORRECTLY for the formats that
- * existed before SIMD-0385 (2026-09-09 mainnet activation of transaction v1):
+ * existed before SIMD-0385 (2026-09-15 mainnet activation of transaction v1):
  * reads a short-vec signature count at offset zero, tolerates non-minimal
  * short-vec encodings (many real parsers do), and knows only the 0x80 message
  * prefix for v0. It has no knowledge of the v1 envelope, so it misreads every

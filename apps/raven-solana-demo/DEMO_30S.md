@@ -4,8 +4,9 @@
 # 1. Show the claim (5s)
 cat profiles/raven-solana-txversion-experimental-0.json | head -8
 
-# 2. Run the whole demo (15s)
-node harness/run.js --all
+# 2. Run the whole demo (15s) — npm test FIRST: it pins the corpus vector count
+#    and profile digest (shrink/substitution guard). The harness alone is guard-free.
+npm test && node harness/run.js --all
 
 # 3. Point at the three judge-visible divergences of the stale pre-v1 parser (10s)
 #    V03_valid_v1:                    expected ACCEPT/1  observed REJECT   (false refusal — v1 gate active on mainnet since 2026-09-15T01:04:23Z, slot 447120000)
