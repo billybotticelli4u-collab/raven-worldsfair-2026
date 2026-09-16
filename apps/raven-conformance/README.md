@@ -30,7 +30,7 @@ cd apps/raven-conformance && npm run conform -- --target BROKEN_OBVIOUS
 cd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE
 ```
 
-Exit code `0` = CONFORMANT; `1` = DIVERGENT.
+Exit code `0` = CONFORMANT; `1` = DIVERGENT or HARNESS_ERROR. All verdicts are limited to the named corpus.
 
 ## Three Raven-owned demo targets
 
@@ -48,12 +48,45 @@ Corpus: `raven-canonical-envelope-demo-corpus/1` (10 vectors, self-contained)
 `DIVERGENCE` = observed decision ≠ specified corpus expectation **only**.  
 It is **not** automatically exploitable / unsafe / malicious. No generic security score.
 
-## Isolation (MVP)
+## Phase 1 execution and verification contract
 
-- Local Node `child_process` (not a general sandbox)
-- Proxies unset; no Raven credentials in target env
-- Timeout-bounded; runner owns corpus + report hash
-- stdout/stderr captured as evidence
+Target profile name and explicit `claimed_conformance_profile_version` must both
+exactly match the loaded profile. Missing or mismatched versions are refused with
+`PROFILE_MISMATCH`. The corpus must name that profile and its declared content
+digest must match recomputation (`CORPUS_DIGEST_MISMATCH`). Profile and corpus rules
+and vector expectations are unchanged. This digest check detects stale changes,
+not an attacker replacing both a corpus and its self-declared digest.
+
+`HARNESS_ERROR` covers nonzero exit/signal, timeout, invalid/absent output, spawn
+failure and output overflow. It contributes to neither PASS nor DIVERGENCE and is
+excluded from `graded_count`; any harness error blocks overall CONFORMANT.
+The summary includes divergent and harness-error vector IDs. These are no security score.
+
+The runner supports curated single-file Node scripts with builtin imports. Node
+permissions allow entry-file reads and inherited stdin, deny filesystem writes and
+child creation, and omit ambient credentials. POSIX process groups are killed on
+exit, timeout, overflow, or runner interruption. Windows is refused. Output capture
+is bounded to 64 KiB of raw bytes per stream with explicit truncation metadata.
+Network is **not restricted**. Node permissions are a cooperative runtime boundary,
+not OS isolation for malicious arbitrary code. Resource fields state these limits.
+
+Verify a saved report against the local reviewed profile, corpus and target:
+
+```sh
+npm run verify -- reports/RUN_ID.json
+npm run verify -- reports/RUN_ID.json --expected-digest EXTERNALLY_OBTAINED_SHA256
+```
+
+The standalone verifier imports no producer code. It checks the report digest,
+local artifact digests, all vector identities/expectations, transcript decisions,
+error classification and summary counts/verdict. It exits nonzero on disagreement.
+Without an independently obtained expected digest, internally consistent fabricated
+transcripts cannot be distinguished from real executions. Even a matched external
+digest establishes artifact identity, **not execution attestation**. Verification
+is not a replay, and neither command re-evaluates the profile beyond the corpus.
+
+Reproduction should use the exact commit in the separately supplied Phase 1 freeze
+packet. The branch name in the convenience command is not an immutable review identity.
 
 ## PRE-EXISTING vs BUILT DURING CRYPTO WORLD'S FAIR
 

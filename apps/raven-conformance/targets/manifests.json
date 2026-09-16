@@ -7,8 +7,9 @@
       "entry": "CONFORMANT_REFERENCE.mjs",
       "claimed_conformance_profile": "raven-canonical-envelope/1",
       "invocation_interface": "stdin_json_line",
-      "description": "Correct implementation — corpus should PASS entirely.",
-      "expected_outcome": "CONFORMANT"
+      "description": "Correct implementation \u2014 corpus should PASS entirely.",
+      "expected_outcome": "CONFORMANT",
+      "claimed_conformance_profile_version": "1.0.0"
     },
     {
       "id": "BROKEN_OBVIOUS",
@@ -18,7 +19,8 @@
       "claimed_conformance_profile": "raven-canonical-envelope/1",
       "invocation_interface": "stdin_json_line",
       "description": "Intentional straightforward contract violation: unconditional ACCEPT of parseable objects.",
-      "expected_outcome": "DIVERGENT"
+      "expected_outcome": "DIVERGENT",
+      "claimed_conformance_profile_version": "1.0.0"
     },
     {
       "id": "BROKEN_SUBTLE",
@@ -28,7 +30,8 @@
       "claimed_conformance_profile": "raven-canonical-envelope/1",
       "invocation_interface": "stdin_json_line",
       "description": "Raven-owned demo of verifier-class defect: accepts unexpected top-level fields while still checking digest/schema. Not a third-party vulnerability claim.",
-      "expected_outcome": "DIVERGENT"
+      "expected_outcome": "DIVERGENT",
+      "claimed_conformance_profile_version": "1.0.0"
     }
   ]
 }

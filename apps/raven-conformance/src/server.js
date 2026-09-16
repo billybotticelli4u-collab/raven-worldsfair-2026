@@ -97,7 +97,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(405).end("Method not allowed");
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    sendJson(res, 500, { error: "server_error", message });
+    sendJson(res, 500, { error: err.code || "server_error", message });
   }
 });
 

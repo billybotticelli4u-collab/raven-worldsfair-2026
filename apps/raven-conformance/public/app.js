@@ -97,7 +97,7 @@ function renderReport(report) {
   const ok = report.summary.overall === "CONFORMANT";
   overall.textContent = report.summary.overall;
   overall.className = ok ? "outcome ok" : "outcome bad";
-  summaryLine.textContent = `${report.summary.pass} PASS · ${report.summary.divergence} DIVERGENCE · ${report.summary.test_count} vectors`;
+  summaryLine.textContent = `${report.summary.pass} PASS · ${report.summary.divergence} DIVERGENCE · ${report.summary.harness_error || 0} HARNESS_ERROR · ${report.summary.test_count} vectors · divergent: ${(report.summary.divergent_vector_ids || []).join(", ") || "none"}`;
   corpusWatch.textContent = `Corpus ${report.corpus.id} executed. DIVERGENCE = observed ≠ expected only (not a security score).`;
   kv(idKv, [
     ["Run ID", report.run_id],
@@ -112,13 +112,22 @@ function renderReport(report) {
     const row = document.createElement("button");
     row.type = "button";
     row.className = "vec";
-    row.innerHTML = `<span class="badge ${r.status === "PASS" ? "pass" : "div"}">${r.status}</span>
-      <span><strong>${r.vector_id}</strong><br/><span class="muted">expected ${r.expected.decision} · observed ${r.observed.decision ?? "null"}</span></span>`;
+    const badge = document.createElement("span");
+    badge.className = `badge ${r.status === "PASS" ? "pass" : "div"}`;
+    badge.textContent = r.status;
+    const detail = document.createElement("span");
+    const label = document.createElement("strong");
+    label.textContent = r.vector_id;
+    const comparison = document.createElement("span");
+    comparison.className = "muted";
+    comparison.textContent = `expected ${r.expected.decision} · observed ${r.observed.decision ?? "null"}`;
+    detail.append(label, document.createElement("br"), comparison);
+    row.append(badge, detail);
     row.addEventListener("click", () => showEvidence(r, row));
     vectorList.appendChild(row);
   }
 
-  const firstDiv = report.results.find((r) => r.status === "DIVERGENCE");
+  const firstDiv = report.results.find((r) => r.status !== "PASS");
   if (firstDiv) {
     const firstBtn = vectorList.querySelector(".vec");
     // prefer divergence button
