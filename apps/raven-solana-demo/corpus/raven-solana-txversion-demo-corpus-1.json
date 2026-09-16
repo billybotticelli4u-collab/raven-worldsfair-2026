@@ -1,0 +1,234 @@
+{
+  "id": "raven-solana-txversion-demo-corpus/1",
+  "version": "1.0.0",
+  "profile": "raven-solana-txversion-experimental/0",
+  "description": "Raven-owned EXPERIMENTAL demo corpus: envelope-level admission of serialized Solana transactions (legacy/v0/v1). Expected outcomes frozen by oracle/oracle.mjs before any target ran. Not an accepted Raven protocol; establishes no on-chain behavior.",
+  "vectors": [
+    {
+      "id": "V01_valid_legacy",
+      "input": {
+        "tx_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA="
+      },
+      "requirement": "R4/R5/R8 legacy happy path",
+      "rationale": "Valid real legacy transfer (kit-generated) must ACCEPT as legacy.",
+      "provenance": "real: kit-generated offline, synthetic keys",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy"
+      }
+    },
+    {
+      "id": "V02_valid_v0",
+      "input": {
+        "tx_base64": "ARrNkJtx9vCp07Tg0gpFhAJvwI9aBJgRVNZ69Wn1jQr0LSd/tUbgUtOwVlWTyVAAzu1kaMsb1BV6/iWH8YmsJg2AAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAAAA=="
+      },
+      "requirement": "R4/R5/R8 v0 happy path",
+      "rationale": "Valid real v0 transfer (message prefix 0x80 after signatures) must ACCEPT as v0.",
+      "provenance": "real: kit-generated offline, synthetic keys",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": 0,
+        "reason": "ok:0"
+      }
+    },
+    {
+      "id": "V03_valid_v1",
+      "input": {
+        "tx_base64": "gQEAAR8AAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiBMAAAAAAAAgTgAAAAABAAAAAQACAgwAAAECAAAAgJaYAAAAAADMPVnyBP/Qhuqkqb5AMZ1glJcTLl15K6tr16aTrfvqT16WuepMxzJO7bNGF9QEUsONyPvROkbUoiGePBo8v9sA"
+      },
+      "requirement": "R3/R9 v1 happy path",
+      "rationale": "Valid real v1 transfer (version byte 0x81 at offset zero, SIMD-0385; mainnet since 2026-09-09 per Solana Compass) must ACCEPT as v1. A pre-v1 parser misreads 0x81 as a short-vec continuation byte.",
+      "provenance": "real: kit-generated offline, synthetic keys",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": 1,
+        "reason": "ok:1"
+      }
+    },
+    {
+      "id": "V04_valid_v0_with_lookup_table",
+      "input": {
+        "tx_base64": "ARrNkJtx9vCp07Tg0gpFhAJvwI9aBJgRVNZ69Wn1jQr0LSd/tUbgUtOwVlWTyVAAzu1kaMsb1BV6/iWH8YmsJg2AAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAAATMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAQAA"
+      },
+      "requirement": "R8 v0 lookup section",
+      "rationale": "v0 with one address-lookup-table entry must ACCEPT as v0; parsers that end the v0 message at the instruction list reject it as trailing bytes.",
+      "provenance": "synthetic: real v0 fixture + documented lookup section appended (Solana docs v0 layout)",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": 0,
+        "reason": "ok:0"
+      }
+    },
+    {
+      "id": "V05_valid_legacy_duplicate_account",
+      "input": {
+        "tx_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzfQSrIydCu0qzoTaL1GFeTm0CJKtxoBa6+FIKMyyXeHNwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA="
+      },
+      "requirement": "R8 legacy duplicates allowed (docs version matrix)",
+      "rationale": "Legacy transactions permit duplicate account addresses (only v1 rejects them). Contrast vector with V12: same mutation, opposite verdict by version.",
+      "provenance": "derived: dest account bytes replaced by payer bytes in real legacy fixture",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy"
+      }
+    },
+    {
+      "id": "V06_truncated_legacy",
+      "input": {
+        "tx_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmd"
+      },
+      "requirement": "R11 truncated",
+      "rationale": "Legacy fixture cut mid-accounts must REJECT.",
+      "provenance": "derived: truncation of real fixture",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "truncated:accounts"
+      }
+    },
+    {
+      "id": "V07_trailing_bytes_v0",
+      "input": {
+        "tx_base64": "ARrNkJtx9vCp07Tg0gpFhAJvwI9aBJgRVNZ69Wn1jQr0LSd/tUbgUtOwVlWTyVAAzu1kaMsb1BV6/iWH8YmsJg2AAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAAAKqqqqqq"
+      },
+      "requirement": "R11 exact consumption",
+      "rationale": "Five garbage bytes appended after a valid v0 transaction must REJECT (trailing_bytes). NOTE: @solana/kit 8.3.0's own decoder tolerates trailing bytes — this vector demonstrates that codec-level decode success is not admission hygiene.",
+      "provenance": "derived: real v0 fixture + 5 trailing 0xAA",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "trailing_bytes"
+      }
+    },
+    {
+      "id": "V08_unsupported_tx_version_2",
+      "input": {
+        "tx_base64": "ggEAAR8AAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiBMAAAAAAAAgTgAAAAABAAAAAQACAgwAAAECAAAAgJaYAAAAAADMPVnyBP/Qhuqkqb5AMZ1glJcTLl15K6tr16aTrfvqT16WuepMxzJO7bNGF9QEUsONyPvROkbUoiGePBo8v9sA"
+      },
+      "requirement": "R3 unsupported_version",
+      "rationale": "Version byte 0x82 (version 2) at offset zero is reserved/unsupported; must REJECT, not optimistic-accept a future format.",
+      "provenance": "derived: v1 fixture version byte flipped 0x81→0x82",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "unsupported_version:tx_offset0_2"
+      }
+    },
+    {
+      "id": "V09_unsupported_message_version_3",
+      "input": {
+        "tx_base64": "ARrNkJtx9vCp07Tg0gpFhAJvwI9aBJgRVNZ69Wn1jQr0LSd/tUbgUtOwVlWTyVAAzu1kaMsb1BV6/iWH8YmsJg2DAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAAAA=="
+      },
+      "requirement": "R5 message-level version",
+      "rationale": "Message prefix 0x83 (message version 3) after a valid signature section must REJECT.",
+      "provenance": "derived: v0 fixture message prefix 0x80→0x83",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "unsupported_version:msg_3"
+      }
+    },
+    {
+      "id": "V10_noncanonical_shortvec_sigcount",
+      "input": {
+        "tx_base64": "gQCRon0mHlQTp+2f/SM0k+a5XRQLorXmN5rcLxp9wCoJOAZMzIj+Vd1yYvgvERs1Lg38dF7/KtTKHrYKjS78qDcGAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAA"
+      },
+      "requirement": "R3/R4 canonical short-vec + envelope precedence",
+      "rationale": "Signature count 1 encoded non-canonically as 81 00. Under the post-SIMD-0385 envelope convention a leading 0x81 IS the v1 version byte, so this is a malformed v1 transaction; a stale pre-v1 parser reads it as count=1 and ACCEPTs. Catches non-minimal-encoding tolerance and version ambiguity together.",
+      "provenance": "derived: legacy fixture sig-count byte replaced by non-minimal two-byte encoding",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "config_mask_invalid:partial_fee_bits"
+      }
+    },
+    {
+      "id": "V11_inflated_sigcount",
+      "input": {
+        "tx_base64": "ApGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA="
+      },
+      "requirement": "R4/R7 signature section consistency",
+      "rationale": "Signature count edited 1→2 without adding a signature must REJECT.",
+      "provenance": "derived: legacy fixture count byte 0x01→0x02",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "non_canonical_shortvec:non_minimal"
+      }
+    },
+    {
+      "id": "V12_v1_duplicate_accounts",
+      "input": {
+        "tx_base64": "gQEAAR8AAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzfQSrIydCu0qzoTaL1GFeTm0CJKtxoBa6+FIKMyyXeHNwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiBMAAAAAAAAgTgAAAAABAAAAAQACAgwAAAECAAAAgJaYAAAAAADMPVnyBP/Qhuqkqb5AMZ1glJcTLl15K6tr16aTrfvqT16WuepMxzJO7bNGF9QEUsONyPvROkbUoiGePBo8v9sA"
+      },
+      "requirement": "R9 v1 duplicate rejection (docs version matrix)",
+      "rationale": "v1 rejects duplicate static account addresses; legacy/v0 allow them (V05). Parsers that apply one rule set to all versions diverge here.",
+      "provenance": "derived: dest account bytes replaced by payer bytes in real v1 fixture",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "duplicate_static_accounts"
+      }
+    },
+    {
+      "id": "V13_v1_heap_out_of_range",
+      "input": {
+        "tx_base64": "gQEAAR8AAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiBMAAAAAAAAgTgAAAAABAABAAAACAgwAAAECAAAAgJaYAAAAAADMPVnyBP/Qhuqkqb5AMZ1glJcTLl15K6tr16aTrfvqT16WuepMxzJO7bNGF9QEUsONyPvROkbUoiGePBo8v9sA"
+      },
+      "requirement": "R10 heap bounds (docs: sanitization failure)",
+      "rationale": "v1 heapSize 16384 is below the 32 KiB minimum — a sanitization failure per Solana docs. kit 8.3.0 refuses to BUILD this (client-side validation), so bytes are derived by single-field surgery on the real fixture.",
+      "provenance": "derived: heap value 65536→16384 in real v1 fixture (kit refuses to emit this)",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "config_heap_out_of_range:16384"
+      }
+    },
+    {
+      "id": "V14_malformed_base64",
+      "input": {
+        "tx_base64": "!!!not-base64!!!"
+      },
+      "requirement": "R2 strict base64",
+      "rationale": "Non-base64 input must REJECT, not coerce or accept.",
+      "provenance": "synthetic",
+      "codec_check": "not_applicable",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "malformed_base64"
+      }
+    },
+    {
+      "id": "V15_malformed_input_shape",
+      "input": {
+        "wrong_key": "AA=="
+      },
+      "requirement": "R1 input shape",
+      "rationale": "Object without exactly the tx_base64 key must REJECT (error-vs-refusal hygiene).",
+      "provenance": "synthetic",
+      "codec_check": "not_applicable",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "malformed_input:keys"
+      }
+    }
+  ],
+  "content_digest_sha256": "99d91fb7f50df03dd6dc386d5b9b222b2033d57d180bb1d080a4ecb12a48757c"
+}

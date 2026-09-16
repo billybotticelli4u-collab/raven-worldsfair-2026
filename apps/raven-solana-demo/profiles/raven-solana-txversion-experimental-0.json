@@ -1,0 +1,41 @@
+{
+  "name": "raven-solana-txversion-experimental/0",
+  "version": "0.1.0",
+  "digest_algorithm": "sha256",
+  "status": "EXPERIMENTAL — Raven R&D demo profile for Crypto World's Fair 2026. Not an accepted Raven protocol, not a certification, not a security audit.",
+  "description": "Narrow claim: envelope-level admission of serialized Solana transactions. A target claiming this profile must accept wire-valid legacy/v0/v1 transactions and reject malformed, non-canonical, or unsupported-version bytes — purely from offline byte structure. Ed25519 signature verification, account existence, blockhash freshness, simulation, and on-chain execution are OUT OF SCOPE.",
+  "scope_out": [
+    "Ed25519 signature validity",
+    "Account existence, ownership, or balances on any cluster",
+    "Blockhash freshness / lifetime validity",
+    "Simulation or execution outcome",
+    "Current mainnet behavior claims (fixtures are synthetic or locally generated; see PROVENANCE.md)"
+  ],
+  "invocation": {
+    "interface": "stdin_json_line",
+    "input": "One JSON object per invocation on stdin: {\"tx_base64\": \"<base64 of serialized transaction bytes>\"} — exactly one key.",
+    "output": "One JSON object: {\"decision\":\"ACCEPT\"|\"REJECT\",\"version\":\"legacy\"|0|1|null,\"reason\":\"string\"}. version is null iff decision is REJECT."
+  },
+  "rules": [
+    "R1 input_shape: reject malformed_input unless the input is a JSON object with exactly one key, tx_base64, a string.",
+    "R2 base64: reject malformed_base64 unless strict RFC 4648 base64 decoding succeeds (alphabet + correct padding + round-trip length).",
+    "R3 envelope_version: if decoded[0] === 0x81 the transaction is v1 (version byte at offset zero, SIMD-0385). If decoded[0] >= 0x80 and != 0x81 reject unsupported_version (0x80 reserved at offset zero; 0x82..0xFF = versions 2..127 not supported). A first byte >= 0x80 can never be a canonical short-vec signature count, so no valid legacy/v0 transaction is misclassified.",
+    "R4 sigcount_envelope (legacy/v0 family): read the signature count as a short-vec (compact-u16) in CANONICAL minimal encoding; reject non_canonical_shortvec otherwise. Reject truncated if fewer than 64*count signature bytes follow.",
+    "R5 message_version (legacy/v0 family): after signatures, message[0] === 0x80 means v0; message[0] with MSB clear means legacy; message[0] MSB set with any other value rejects unsupported_version.",
+    "R6 header_consistency (all versions): num_readonly_signed <= num_required_signatures; num_required_signatures <= account_count; (num_required_signatures - num_readonly_signed) + num_readonly_unsigned <= account_count. (Agave message sanitize semantics.)",
+    "R7 signature_count_binding: the transaction's signature vector length must equal header.num_required_signatures exactly. (Profile rule, consistent with runtime sanitize.)",
+    "R8 structure (legacy/v0): account keys short-vec (32B each), 32B blockhash, instructions short-vec [program_index u8][accounts short-vec u8][data short-vec u8]; every account index and program index must be < total addressable accounts (static + lookup-table-loaded for v0). v0 only: lookup-table short-vec follows instructions [32B table address][writable indexes short-vec][readonly indexes short-vec]. Legacy has no lookup section.",
+    "R9 structure (v1, layout per SIMD-0385 as implemented by @solana/kit 8.3.0 codec): version(0x81) | header(3) | configMask u32 LE | lifetimeToken(32) | numInstructions u8 | numStaticAccounts u8 | staticAccounts[N*32] | configValues | instructions [program_index u8][num_accounts u8][num_data_bytes u16 LE][account indexes][data] | signature tail of exactly header.num_required_signatures x 64 raw bytes (no short-vec count — the count is implicit, @solana/transactions getSignatureCountForVersionedOrThrow reads message byte 1). configMask bits: 0b11 = priorityFeeLamports (u64, both bits must be set together), 0b100 = computeUnitLimit (u32), 0b1000 = loadedAccountsDataSizeLimit (u32), 0b10000 = heapSize (u32); values positional in that field order. Reject config_mask_invalid on partial fee bits (mask & 3 == 1 or 2) or any unknown bit above 0b10000. v1 rejects duplicate static accounts (Solana docs version matrix). v1 has NO address lookup tables.",
+    "R10 heap_bounds: a present v1 heapSize must be a multiple of 1024 in [32768, 262144]; reject config_heap_out_of_range otherwise (Solana docs: out-of-range heap is a sanitization failure).",
+    "R11 exact_consumption: parsing must consume every byte exactly; reject trailing_bytes or truncated.",
+    "R12 size_caps: legacy/v0 total <= 1232 bytes; v1 total <= 4096 bytes (Solana docs version matrix).",
+    "R13 ACCEPT only when all applicable rules pass, reporting the detected version; REJECT otherwise with version null."
+  ],
+  "sources": [
+    "Solana docs — Transaction versions (legacy/0/1, size limits, ALTs, duplicate-address matrix): https://solana.com/docs/core/transactions/versions (accessed 2026-09-16)",
+    "Solana Foundation solana-dev-skill — Transaction v1 (SIMD-0385/SIMD-0296): v1 envelope reorder, version byte 0x81 at offset zero, config layout, heap bounds: https://github.com/solana-foundation/solana-dev-skill/blob/main/skills/solana-dev/references/transactions-v1.md (accessed 2026-09-16)",
+    "@solana/kit 8.3.0 — @solana/transaction-messages v1 codec source (config mask bit assignments, instruction header layout): node_modules/@solana/transaction-messages/dist/index.node.mjs lines 467-485, 515-560 (pinned, see PROVENANCE.md)",
+    "SIMD-0385 (transaction v1 format), SIMD-0296 (larger transactions) — referenced via the above"
+  ],
+  "claimed_conformance_meaning": "A target claiming this profile must match corpus expected decision AND version exactly on every vector. CONFORMANT on this corpus means: matched this named corpus at its pinned digest on these byte-level rules. It does not establish external-spec conformance, signature validity, or on-chain behavior."
+}

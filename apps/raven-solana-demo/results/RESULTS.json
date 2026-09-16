@@ -1,0 +1,56 @@
+{
+  "schema": "raven-solana-demo-results/1",
+  "frozen_at": "2026-09-16",
+  "measured_by": "KIMI (Raven R&D agent) — author evidence, not independent review",
+  "base_repo": {
+    "repo": "billybotticelli4u-collab/raven-worldsfair-2026",
+    "branch": "billy/fair-conformance-mvp-2026-09-16",
+    "head": "53360df071872a29447993e879add2be9406b7b5",
+    "tree": "468b0397c89165160337a53597e8b6533f1f1dec"
+  },
+  "corpus": {
+    "id": "raven-solana-txversion-demo-corpus/1",
+    "vector_count": 15,
+    "content_digest_sha256": "99d91fb7f50df03dd6dc386d5b9b222b2033d57d180bb1d080a4ecb12a48757c",
+    "expected_frozen_by": "oracle/oracle.mjs before any target execution; all 13 byte vectors cross-checked against @solana/kit 8.3.0 decoder (decode_ok/decode_fail/profile-stricter labels all confirmed)"
+  },
+  "environment": {
+    "node": "v24.18.0",
+    "platform": "darwin/arm64",
+    "isolation": "local node child_process, restricted env, 3000ms timeout — not a container"
+  },
+  "targets": {
+    "SOL_CONFORMANT_REFERENCE": {
+      "overall": "CONFORMANT",
+      "pass": 15,
+      "divergence": 0,
+      "note": "Verdicts identical across two consecutive runs (run_eaeb646107d34a98, run_561bcd10345043ec)."
+    },
+    "SOL_BROKEN_OBVIOUS": {
+      "overall": "DIVERGENT",
+      "pass": 4,
+      "divergence": 11,
+      "divergence_vectors": ["V02", "V04", "V06", "V07", "V08", "V09", "V10", "V11", "V12", "V13", "V14"]
+    },
+    "SOL_BROKEN_SUBTLE": {
+      "overall": "DIVERGENT",
+      "pass": 13,
+      "divergence": 2,
+      "divergence_vectors": {
+        "V03_valid_v1": "expected ACCEPT/1, observed REJECT (truncated:signatures) — stale parser reads v1 version byte 0x81 as a short-vec continuation and computes 129 signatures. FALSE REFUSAL of a valid post-2026-09-09 mainnet format.",
+        "V10_noncanonical_shortvec_sigcount": "expected REJECT, observed ACCEPT/legacy — stale parser tolerates the non-minimal two-byte signature count 0x81 0x00 and admits bytes that the post-SIMD-0385 envelope convention defines as a (malformed) v1 transaction. INCORRECT ADMISSION."
+      }
+    }
+  },
+  "controls": {
+    "accept_everything_caught": true,
+    "refuse_everything_would_be_caught_by": ["V01", "V02", "V03", "V04", "V05"],
+    "kit_cross_check": "PASS (13 byte vectors; see corpus codec_check labels)"
+  },
+  "not_established": [
+    "Ed25519 signature validity (out of profile scope)",
+    "Current mainnet behavior (fixtures are locally generated/synthetic)",
+    "External-spec conformance or independent certification (oracle and reference share an author)",
+    "Container-grade isolation"
+  ]
+}

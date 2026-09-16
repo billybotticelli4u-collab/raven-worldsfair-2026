@@ -1,0 +1,21 @@
+{
+  "name": "raven-solana-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EXPERIMENTAL Raven Conformance demo: Solana transaction-version envelope admission (legacy/v0/v1). Optional, off the critical path of the primary receipt-conformance demo.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "demo": "node harness/run.js --all",
+    "conform": "node harness/run.js --target",
+    "build-corpus": "node fixtures/build-corpus.mjs --kit-check",
+    "oracle": "node oracle/oracle.mjs"
+  },
+  "devDependencies": {
+    "@solana/kit": "8.3.0"
+  },
+  "comment": "Harness, targets, and oracle are dependency-free Node. @solana/kit is needed ONLY to regenerate fixtures (fixtures/generate.mjs) or re-run the kit cross-check in build-corpus. The corpus JSON is committed; judges do not need npm install.",
+  "license": "Apache-2.0"
+}

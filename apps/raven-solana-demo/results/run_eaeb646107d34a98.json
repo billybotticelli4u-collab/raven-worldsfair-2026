@@ -1,0 +1,962 @@
+{
+  "run_id": "run_eaeb646107d34a98",
+  "reports": [
+    {
+      "schema": "raven-solana-demo-report/1",
+      "run_id": "run_eaeb646107d34a98",
+      "started_at": "2026-09-16T02:18:30.135Z",
+      "product": "raven-solana-demo",
+      "experimental": true,
+      "target": {
+        "id": "SOL_CONFORMANT_REFERENCE",
+        "entry": "SOL_CONFORMANT_REFERENCE.mjs",
+        "entry_sha256": "90a4b0bc6473ac7f1a53540b62b65ddd69d6004538345b819838c11a72dabd25",
+        "claimed_conformance_profile": "raven-solana-txversion-experimental/0"
+      },
+      "claimed_profile": {
+        "name": "raven-solana-txversion-experimental/0",
+        "version": "0.1.0",
+        "sha256": "051f4fe382c1ea11d77737ddc796b3246f37a73dfcc95e48619c084ffc88a537"
+      },
+      "corpus": {
+        "id": "raven-solana-txversion-demo-corpus/1",
+        "version": "1.0.0",
+        "sha256": "99d91fb7f50df03dd6dc386d5b9b222b2033d57d180bb1d080a4ecb12a48757c",
+        "declared_content_digest_sha256": "99d91fb7f50df03dd6dc386d5b9b222b2033d57d180bb1d080a4ecb12a48757c",
+        "digest_matches_declared": true,
+        "vector_count": 15
+      },
+      "environment": {
+        "node": "v24.18.0",
+        "platform": "darwin",
+        "arch": "arm64",
+        "os": "Darwin 25.4.0",
+        "isolation": "local_node_child_process_restricted_env_timeout_mvp_style_not_a_sandbox",
+        "network_policy": "outbound_denied_by_default_proxies_unset"
+      },
+      "summary": {
+        "test_count": 15,
+        "pass": 15,
+        "divergence": 0,
+        "overall": "CONFORMANT"
+      },
+      "results": [
+        {
+          "vector_id": "V01_valid_legacy",
+          "requirement": "R4/R5/R8 legacy happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": "legacy"
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 28
+          }
+        },
+        {
+          "vector_id": "V02_valid_v0",
+          "requirement": "R4/R5/R8 v0 happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 0
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 0,
+            "reason": "ok:0"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 23
+          }
+        },
+        {
+          "vector_id": "V03_valid_v1",
+          "requirement": "R3/R9 v1 happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 1
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 1,
+            "reason": "ok:1"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 23
+          }
+        },
+        {
+          "vector_id": "V04_valid_v0_with_lookup_table",
+          "requirement": "R8 v0 lookup section",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 0
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 0,
+            "reason": "ok:0"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V05_valid_legacy_duplicate_account",
+          "requirement": "R8 legacy duplicates allowed (docs version matrix)",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": "legacy"
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V06_truncated_legacy",
+          "requirement": "R11 truncated",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "truncated:accounts"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 24
+          }
+        },
+        {
+          "vector_id": "V07_trailing_bytes_v0",
+          "requirement": "R11 exact consumption",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "trailing_bytes"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V08_unsupported_tx_version_2",
+          "requirement": "R3 unsupported_version",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "unsupported_version:tx_offset0_2"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V09_unsupported_message_version_3",
+          "requirement": "R5 message-level version",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "unsupported_version:msg_3"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V10_noncanonical_shortvec_sigcount",
+          "requirement": "R3/R4 canonical short-vec + envelope precedence",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "config_mask_invalid:partial_fee_bits"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 23
+          }
+        },
+        {
+          "vector_id": "V11_inflated_sigcount",
+          "requirement": "R4/R7 signature section consistency",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "header_inconsistent:ro_signed_gt_req"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V12_v1_duplicate_accounts",
+          "requirement": "R9 v1 duplicate rejection (docs version matrix)",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "duplicate_static_accounts"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V13_v1_heap_out_of_range",
+          "requirement": "R10 heap bounds (docs: sanitization failure)",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "config_heap_out_of_range:16384"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V14_malformed_base64",
+          "requirement": "R2 strict base64",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "malformed_base64"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V15_malformed_input_shape",
+          "requirement": "R1 input shape",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "malformed_input:keys"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        }
+      ],
+      "divergence_definition": "DIVERGENCE = observed decision or version ≠ frozen corpus expectation. Expectations frozen by oracle/oracle.mjs before targets ran; kit 8.3.0 decoder cross-checked all byte vectors. Not a security score.",
+      "limitations": [
+        "EXPERIMENTAL demo profile — not an accepted Raven protocol, not a certification.",
+        "Envelope-level byte-structure admission only: no Ed25519 signature verification, no account/blockhash/chain-state checks, no simulation or execution.",
+        "Fixtures are locally generated with @solana/kit 8.3.0 using synthetic throwaway keys and a synthetic blockhash, or derived from them by documented surgery. No live-mainnet claim is made from them.",
+        "MVP-style isolation: restricted env + timeout, not a container."
+      ]
+    },
+    {
+      "schema": "raven-solana-demo-report/1",
+      "run_id": "run_eaeb646107d34a98",
+      "started_at": "2026-09-16T02:18:30.461Z",
+      "product": "raven-solana-demo",
+      "experimental": true,
+      "target": {
+        "id": "SOL_BROKEN_OBVIOUS",
+        "entry": "SOL_BROKEN_OBVIOUS.mjs",
+        "entry_sha256": "4464effe81ca3eeef43a5e01bda88bce120d11e13d3fecbec2e38ca104c79c86",
+        "claimed_conformance_profile": "raven-solana-txversion-experimental/0"
+      },
+      "claimed_profile": {
+        "name": "raven-solana-txversion-experimental/0",
+        "version": "0.1.0",
+        "sha256": "051f4fe382c1ea11d77737ddc796b3246f37a73dfcc95e48619c084ffc88a537"
+      },
+      "corpus": {
+        "id": "raven-solana-txversion-demo-corpus/1",
+        "version": "1.0.0",
+        "sha256": "99d91fb7f50df03dd6dc386d5b9b222b2033d57d180bb1d080a4ecb12a48757c",
+        "declared_content_digest_sha256": "99d91fb7f50df03dd6dc386d5b9b222b2033d57d180bb1d080a4ecb12a48757c",
+        "digest_matches_declared": true,
+        "vector_count": 15
+      },
+      "environment": {
+        "node": "v24.18.0",
+        "platform": "darwin",
+        "arch": "arm64",
+        "os": "Darwin 25.4.0",
+        "isolation": "local_node_child_process_restricted_env_timeout_mvp_style_not_a_sandbox",
+        "network_policy": "outbound_denied_by_default_proxies_unset"
+      },
+      "summary": {
+        "test_count": 15,
+        "pass": 4,
+        "divergence": 11,
+        "overall": "DIVERGENT"
+      },
+      "results": [
+        {
+          "vector_id": "V01_valid_legacy",
+          "requirement": "R4/R5/R8 legacy happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": "legacy"
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V02_valid_v0",
+          "requirement": "R4/R5/R8 v0 happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 0
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V03_valid_v1",
+          "requirement": "R3/R9 v1 happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 1
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 1,
+            "reason": "ok:1"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V04_valid_v0_with_lookup_table",
+          "requirement": "R8 v0 lookup section",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 0
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V05_valid_legacy_duplicate_account",
+          "requirement": "R8 legacy duplicates allowed (docs version matrix)",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": "legacy"
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 20
+          }
+        },
+        {
+          "vector_id": "V06_truncated_legacy",
+          "requirement": "R11 truncated",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V07_trailing_bytes_v0",
+          "requirement": "R11 exact consumption",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V08_unsupported_tx_version_2",
+          "requirement": "R3 unsupported_version",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V09_unsupported_message_version_3",
+          "requirement": "R5 message-level version",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 23
+          }
+        },
+        {
+          "vector_id": "V10_noncanonical_shortvec_sigcount",
+          "requirement": "R3/R4 canonical short-vec + envelope precedence",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 1,
+            "reason": "ok:1"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V11_inflated_sigcount",
+          "requirement": "R4/R7 signature section consistency",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V12_v1_duplicate_accounts",
+          "requirement": "R9 v1 duplicate rejection (docs version matrix)",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 1,
+            "reason": "ok:1"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V13_v1_heap_out_of_range",
+          "requirement": "R10 heap bounds (docs: sanitization failure)",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 1,
+            "reason": "ok:1"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 24
+          }
+        },
+        {
+          "vector_id": "V14_malformed_base64",
+          "requirement": "R2 strict base64",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V15_malformed_input_shape",
+          "requirement": "R1 input shape",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "cannot_decode"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        }
+      ],
+      "divergence_definition": "DIVERGENCE = observed decision or version ≠ frozen corpus expectation. Expectations frozen by oracle/oracle.mjs before targets ran; kit 8.3.0 decoder cross-checked all byte vectors. Not a security score.",
+      "limitations": [
+        "EXPERIMENTAL demo profile — not an accepted Raven protocol, not a certification.",
+        "Envelope-level byte-structure admission only: no Ed25519 signature verification, no account/blockhash/chain-state checks, no simulation or execution.",
+        "Fixtures are locally generated with @solana/kit 8.3.0 using synthetic throwaway keys and a synthetic blockhash, or derived from them by documented surgery. No live-mainnet claim is made from them.",
+        "MVP-style isolation: restricted env + timeout, not a container."
+      ]
+    },
+    {
+      "schema": "raven-solana-demo-report/1",
+      "run_id": "run_eaeb646107d34a98",
+      "started_at": "2026-09-16T02:18:30.786Z",
+      "product": "raven-solana-demo",
+      "experimental": true,
+      "target": {
+        "id": "SOL_BROKEN_SUBTLE",
+        "entry": "SOL_BROKEN_SUBTLE.mjs",
+        "entry_sha256": "d321ce1ad1727df00a6be553483b7bd891d84b05fa1d36445146b20f8699a007",
+        "claimed_conformance_profile": "raven-solana-txversion-experimental/0"
+      },
+      "claimed_profile": {
+        "name": "raven-solana-txversion-experimental/0",
+        "version": "0.1.0",
+        "sha256": "051f4fe382c1ea11d77737ddc796b3246f37a73dfcc95e48619c084ffc88a537"
+      },
+      "corpus": {
+        "id": "raven-solana-txversion-demo-corpus/1",
+        "version": "1.0.0",
+        "sha256": "99d91fb7f50df03dd6dc386d5b9b222b2033d57d180bb1d080a4ecb12a48757c",
+        "declared_content_digest_sha256": "99d91fb7f50df03dd6dc386d5b9b222b2033d57d180bb1d080a4ecb12a48757c",
+        "digest_matches_declared": true,
+        "vector_count": 15
+      },
+      "environment": {
+        "node": "v24.18.0",
+        "platform": "darwin",
+        "arch": "arm64",
+        "os": "Darwin 25.4.0",
+        "isolation": "local_node_child_process_restricted_env_timeout_mvp_style_not_a_sandbox",
+        "network_policy": "outbound_denied_by_default_proxies_unset"
+      },
+      "summary": {
+        "test_count": 15,
+        "pass": 13,
+        "divergence": 2,
+        "overall": "DIVERGENT"
+      },
+      "results": [
+        {
+          "vector_id": "V01_valid_legacy",
+          "requirement": "R4/R5/R8 legacy happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": "legacy"
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V02_valid_v0",
+          "requirement": "R4/R5/R8 v0 happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 0
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 0,
+            "reason": "ok:0"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V03_valid_v1",
+          "requirement": "R3/R9 v1 happy path",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 1
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "truncated:signatures"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V04_valid_v0_with_lookup_table",
+          "requirement": "R8 v0 lookup section",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": 0
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": 0,
+            "reason": "ok:0"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 23
+          }
+        },
+        {
+          "vector_id": "V05_valid_legacy_duplicate_account",
+          "requirement": "R8 legacy duplicates allowed (docs version matrix)",
+          "expected": {
+            "decision": "ACCEPT",
+            "version": "legacy"
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V06_truncated_legacy",
+          "requirement": "R11 truncated",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "truncated:accounts"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V07_trailing_bytes_v0",
+          "requirement": "R11 exact consumption",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "trailing_bytes"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V08_unsupported_tx_version_2",
+          "requirement": "R3 unsupported_version",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "truncated:signatures"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V09_unsupported_message_version_3",
+          "requirement": "R5 message-level version",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "unsupported_message_version:3"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V10_noncanonical_shortvec_sigcount",
+          "requirement": "R3/R4 canonical short-vec + envelope precedence",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "ACCEPT",
+            "version": "legacy",
+            "reason": "ok:legacy"
+          },
+          "status": "DIVERGENCE",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        },
+        {
+          "vector_id": "V11_inflated_sigcount",
+          "requirement": "R4/R7 signature section consistency",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "truncated:accounts"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V12_v1_duplicate_accounts",
+          "requirement": "R9 v1 duplicate rejection (docs version matrix)",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "truncated:signatures"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V13_v1_heap_out_of_range",
+          "requirement": "R10 heap bounds (docs: sanitization failure)",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "truncated:signatures"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 23
+          }
+        },
+        {
+          "vector_id": "V14_malformed_base64",
+          "requirement": "R2 strict base64",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "malformed_base64"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 21
+          }
+        },
+        {
+          "vector_id": "V15_malformed_input_shape",
+          "requirement": "R1 input shape",
+          "expected": {
+            "decision": "REJECT",
+            "version": null
+          },
+          "observed": {
+            "decision": "REJECT",
+            "version": null,
+            "reason": "malformed_input:keys"
+          },
+          "status": "PASS",
+          "evidence": {
+            "exitCode": 0,
+            "durationMs": 22
+          }
+        }
+      ],
+      "divergence_definition": "DIVERGENCE = observed decision or version ≠ frozen corpus expectation. Expectations frozen by oracle/oracle.mjs before targets ran; kit 8.3.0 decoder cross-checked all byte vectors. Not a security score.",
+      "limitations": [
+        "EXPERIMENTAL demo profile — not an accepted Raven protocol, not a certification.",
+        "Envelope-level byte-structure admission only: no Ed25519 signature verification, no account/blockhash/chain-state checks, no simulation or execution.",
+        "Fixtures are locally generated with @solana/kit 8.3.0 using synthetic throwaway keys and a synthetic blockhash, or derived from them by documented surgery. No live-mainnet claim is made from them.",
+        "MVP-style isolation: restricted env + timeout, not a container."
+      ]
+    }
+  ]
+}
