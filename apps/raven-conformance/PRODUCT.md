@@ -43,3 +43,11 @@ Machine-readable `raven-conformance-report/1` plus human view:
 ## Review classification (author lane)
 
 Classify `READY_FOR_HACKATHON_PRODUCT_REVIEW` or `NOT_READY` after freeze.
+
+## Challenge 1 (this branch)
+
+Bounded isolation runner + result taxonomy + hostile probes + replay + UI contract.
+
+## Challenge 2 Judge UI (this branch)
+
+Author-lane Fair Build Stage UI for 60-second judge understanding: live progress from runner events, display-adapter status kinds, a11y, XSS text-only rendering, recorded-report fallback, download + reproduce. Does not rewrite engine verdicts; does not maintain a second runner. Consumes `interface/raven-conformance-ui-contract/1`.
