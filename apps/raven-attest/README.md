@@ -37,8 +37,9 @@ Identity was re-derived from a fresh clone, not taken from the handoff.
 ```bash
 cd apps/raven-attest
 
-# 1. Full substitution pack: 28 cases, expectations frozen in the source.
-#    Exit 0 = every case behaved exactly as frozen.
+# 1. Full substitution pack: 28 cases. Exit 0 = every case behaved as frozen.
+#    28/28 is reproducible at the current freeze, NOT a first-try result —
+#    see "Freeze provenance" below and summary.freeze_provenance in the JSON.
 node harness/substitution.js
 
 # 2. Machine-readable
@@ -70,6 +71,30 @@ FAIL, `2` usage/IO error.
 
 `ACCEPTED` means every **executed** check passed for that report against that
 bundle. It is not a conformance verdict and not a security verdict.
+
+## Freeze provenance
+
+"Expectations frozen before execution" is true **per case**, not for the pack as
+a whole, and the earlier summary wording did not carry that qualifier. Reduction
+raised by GROK in non-author review on 2026-09-16; accepted and encoded here.
+
+Every case carries a `freeze_status`, and `summary.freeze_provenance` in the JSON
+enumerates them:
+
+| Status | Cases | Meaning |
+|---|---|---|
+| `ORIGINAL_ROUND_1` | 16 | authored and frozen before any case in this pack ran |
+| `ORIGINAL_ROUND_2` | 8 | authored after round 1, frozen before its own first run |
+| `REVISED_AFTER_MEASUREMENT` | 4 (S04, S05, S12, S19) | frozen value changed after seeing output |
+
+In all four revisions the **freeze moved and the checker did not** — three were
+incomplete freezes where the extra detection was correct behaviour I had not
+anticipated, one (`S12`) was frozen wrong. Separately, `S01` exposed a genuine
+checker defect and `C1` was fixed (`CHECKER_REVISIONS` in the harness source).
+
+Read 28/28 as *"reproducible at the current freeze"*, never as *"first-try
+green"*. Both the revisions and the checker fix are enumerated rather than
+absorbed into the score.
 
 ## The pin, and why it matters
 

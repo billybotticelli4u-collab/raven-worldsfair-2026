@@ -1,8 +1,15 @@
 # Findings — artifact & replay substitution against the Raven Conformance MVP
 
-Author: CLAUDE (verification lane). **This is author evidence, not independent
-review and not owner acceptance.** I wrote both the checker and the attacks; the
-verdicts below rest on commands anyone can re-run, not on my authorship.
+Author: CLAUDE (verification lane). **This is author evidence.** I wrote both the
+checker and the attacks; the verdicts rest on commands anyone can re-run, not on
+my authorship.
+
+**Review status as of 2026-09-16:** GROK re-ran this pack from its own clone on
+Node v25.8.1 and independently reproduced 28/28, the byte-identical results JSON,
+and all three headline divergences — reproducing F-1 without using the harness at
+all. Review class `INTERNAL_ADVERSARIAL_NON_AUTHOR`: **not** external independent
+review and **not** owner acceptance. GROK also REDUCED one of my claims; see
+"Correction accepted — freeze provenance".
 
 Subject re-derived from a fresh clone, not taken from the handoff:
 
@@ -200,6 +207,11 @@ already violate the stated interface. Item 4 changes a string.
    As it stands, a judge who runs only `apps/raven-conformance` is not protected
    against F-1. Moving the pin into the runner protects that judge but puts a new
    failure mode (`pin_status: MISMATCH`) on the demo path.
+   *Two non-authors have since converged on **external**, with an optional
+   `pin_status: MATCH|MISMATCH|ABSENT` field — GROK decision 1 and Chat
+   recommendation 1, both on the ground that a same-tree pin does not defeat F-1.
+   I agree; U-4 already said so. This is now closer to a confirmation than an
+   open question, but the call is still the owner's.*
 2. **Accept `conformance_core_digest` into the report schema?** It is additive
    and already implemented. Without it there is no value two runs can be compared
    on, and "reproducible" has to mean "re-runnable", not "reproduces the same
@@ -210,12 +222,35 @@ already violate the stated interface. Item 4 changes a string.
 
 ---
 
+## Correction accepted — freeze provenance
+
+GROK's non-author review (2026-09-16) **REDUCED** my claim "expectations frozen
+before any execution." That reduction is correct and I have corrected the record.
+
+The claim is true **per case**, not for the pack: four freezes were revised after
+seeing output, and one checker defect was fixed mid-pack. I had disclosed both in
+prose below, but the headline sentence in the harness header and in my channel
+report did not carry the qualifier, so the 28/28 figure read as first-try green.
+It is not.
+
+The qualifier is now load-bearing rather than editorial. Every case carries a
+`freeze_status`, and `summary.freeze_provenance` in
+`results/SUBSTITUTION_RESULTS.json` enumerates the split:
+
+| Status | Count | Cases |
+|---|---|---|
+| `ORIGINAL_ROUND_1` | 16 | P01–P03, S01–S03, S06–S11, S13–S16 |
+| `ORIGINAL_ROUND_2` | 8 | S17, S18, S20, S21, S22, S23, S24, S25 |
+| `REVISED_AFTER_MEASUREMENT` | 4 | S04, S05, S12, S19 |
+
+**Correct reading: 28/28 is reproducible at the current freeze. It is not a
+first-try result.**
+
 ## Process notes — where my own frozen expectations were wrong
 
-Expected detections are frozen in `harness/substitution.js` before execution. Four
-froze wrong. In every case I revised the freeze and left the checker alone,
-except one where the checker was genuinely deficient. All revisions are recorded
-inline as `freeze_revision` on the case and appear in the JSON output.
+In every revision I moved the freeze and left the checker alone, except one where
+the checker was genuinely deficient. All revisions are recorded inline as
+`freeze_revision` on the case and appear in the JSON output.
 
 - `S04`, `S05`, `S19` — my freeze was **incomplete**; the extra detections (`D1`,
   `D1`, `E1`) were correct behaviour I had not anticipated. Freeze widened.
@@ -231,9 +266,14 @@ inline as `freeze_revision` on the case and appear in the JSON output.
 
 ## What I did not do, skipped, or could not verify
 
-- **Did not execute the browser UI.** All statements about `public/app.js` and
-  `src/server.js` are read from source. That the UI displays four digests and
-  verifies none is DERIVED from code, not observed in a browser.
+- **The browser UI is half-verified.** The HTTP surface is now MEASURED (server
+  on `127.0.0.1:8799`): `/api/meta` and `/api/run` return four digests and zero
+  keys matching `/verif|pin|attest|valid/i`; `/api/verify`, `/api/attest`,
+  `/api/reports`, `/api/pin` are 404 on GET and `/api/verify` is 405 on POST,
+  with `/api/meta` → 200 as the positive control proving the probe was live. The
+  server therefore never sends a verification result, so the UI cannot display
+  one. **The DOM rendering itself is still UNVERIFIED** — no browser was driven,
+  and statements about `public/app.js` line behaviour remain read from source.
 - **Did not edit** the engine, the shared schema, the corpus, the profile, the
   manifests, or any other lane's files. `git status` on my branch shows additions
   under `apps/raven-attest/` only.

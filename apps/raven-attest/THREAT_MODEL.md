@@ -37,8 +37,23 @@ what the report was about*, and it does not establish *who produced it*.
 
 "A displayed hash is not verification": `public/app.js` prints the profile,
 corpus, target-entry and report digests (lines 48–54, 102–108) and verifies none
-of them. *(Read from source; the browser UI was not executed — see FINDINGS
-"What I did not verify".)*
+of them.
+
+MEASURED at the HTTP boundary (server on `127.0.0.1:8799`, 2026-09-16):
+
+```
+GET  /api/meta    200  → profile.sha256, corpus.sha256, vector_count; no verification field
+POST /api/run     200  → full report; 4 digests present;
+                         keys matching /verif|pin|attest|valid/i : []
+GET  /api/verify  404     GET /api/attest 404
+GET  /api/reports 404     GET /api/pin    404
+POST /api/verify  405
+GET  /api/meta    200  ← positive control: the 404 probe is real, not a dead host
+```
+
+So the server never sends a verification result, and the UI therefore cannot
+display one. The *DOM rendering* itself remains unverified — no browser was
+driven. See FINDINGS "What I did not verify".
 
 ## 3. Attacker models
 

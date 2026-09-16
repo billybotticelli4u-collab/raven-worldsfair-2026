@@ -6,9 +6,21 @@
  * applies exactly one mutation, optionally re-runs the UNMODIFIED engine inside
  * that bundle, then runs raven-attest against the resulting report.
  *
- * Expected outcomes are frozen in CASES[].expect BEFORE any target output is
- * observed: `detected_by` lists the attest check ids that MUST fail. The harness
+ * `expect.detected_by` lists the attest check ids that MUST fail. The harness
  * fails the case if a listed check does not fail, or if an unlisted check fails.
+ *
+ * FREEZE PROVENANCE — read this before quoting the 28/28 figure.
+ * "Frozen before execution" is true per case, not for the pack as a whole. Each
+ * case carries `freeze_status`:
+ *   ORIGINAL_ROUND_1          authored and frozen before ANY case in this pack ran
+ *   ORIGINAL_ROUND_2          authored after round 1, frozen before ITS OWN first run
+ *   REVISED_AFTER_MEASUREMENT frozen value was changed after observing output
+ * Four cases (S04, S05, S12, S19) are REVISED: three had incomplete freezes where
+ * the extra detection was correct, one (S12) was frozen wrong. In all four the
+ * freeze moved and the checker did not. Separately, S01 exposed a real checker
+ * defect and C1 was fixed (see CHECKER_REVISIONS). The 28/28 figure is therefore
+ * "reproducible at the current freeze", not "first-try green". Reduction raised
+ * by GROK in non-author review, 2026-09-16; accepted.
  *
  * Nothing here edits the engine, the shared schema, or the source tree.
  *
@@ -82,6 +94,17 @@ function runEngineAllowDivergent(app, target, cwd) {
   }
 }
 
+const CHECKER_REVISIONS = [
+  {
+    id: "checker-revision-1",
+    check: "C1",
+    found_by: "S01",
+    round: 1,
+    what:
+      "C1 compared the pinned target entry digest only against what the report claimed, not against the bytes on disk, so swapping the target file after the run went unnoticed by the pin. C1 now checks both sides.",
+  },
+];
+
 const p = (app, ...rest) => path.join(app, ...rest);
 const CORPUS = ["corpus", "raven-canonical-envelope-demo-corpus-1.json"];
 const PROFILE = ["profiles", "raven-canonical-envelope-1.json"];
@@ -93,6 +116,7 @@ const MANIFESTS = ["targets", "manifests.json"];
 const CASES = [
   {
     id: "P01",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "positive-control",
     title: "Valid replay of a CONFORMANT report succeeds",
     expect: { verdict: "ACCEPTED", detected_by: [] },
@@ -100,6 +124,7 @@ const CASES = [
   },
   {
     id: "P02",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "positive-control",
     title: "Valid replay of a DIVERGENT report also succeeds (integrity ≠ conformance)",
     note: "BROKEN_SUBTLE legitimately fails 2 vectors. The report is honest, so attest must ACCEPT it.",
@@ -108,6 +133,7 @@ const CASES = [
   },
   {
     id: "P03",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "positive-control",
     title: "Clean-room replay from an unrelated working directory succeeds",
     note: "Engine invoked with cwd=/ ; attest invoked with absolute paths only.",
@@ -117,6 +143,7 @@ const CASES = [
 
   {
     id: "S01",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "target-substitution",
     title: "Target bytes swapped after the run (same id, same entry filename)",
     expect: { verdict: "REJECTED", detected_by: ["A6", "C1"] },
@@ -128,6 +155,7 @@ const CASES = [
   },
   {
     id: "S02",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "target-substitution",
     title: "Manifest re-points CONFORMANT_REFERENCE at the broken implementation, then runs",
     note: "The engine never digests manifests.json, so the emitted report is fully self-consistent.",
@@ -141,6 +169,7 @@ const CASES = [
   },
   {
     id: "S03",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "corpus-substitution",
     title: "Corpus shrunk to hide the two vectors BROKEN_SUBTLE fails, digest resealed",
     note: "Yields a CONFORMANT verdict for a target that is known-broken. Self-consistent end to end.",
@@ -154,6 +183,7 @@ const CASES = [
   },
   {
     id: "S04",
+    freeze_status: "REVISED_AFTER_MEASUREMENT",
     kind: "corpus-substitution",
     title: "Corpus vector expectation flipped, self-declared digest NOT resealed",
     expect: { verdict: "REJECTED", detected_by: ["A3", "C1", "D1"] },
@@ -168,6 +198,7 @@ const CASES = [
   },
   {
     id: "S05",
+    freeze_status: "REVISED_AFTER_MEASUREMENT",
     kind: "profile-substitution",
     title: "Profile rules rewritten to permit unexpected fields; version bumped to 2.0.0",
     note: "Measured consequence: the run outcome is byte-identical. The profile is descriptive, not executed.",
@@ -198,6 +229,7 @@ const CASES = [
   },
   {
     id: "S06",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "report-tamper",
     title: "Expected results rewritten inside the report, report digest resealed",
     expect: { verdict: "REJECTED", detected_by: ["B6"] },
@@ -220,6 +252,7 @@ const CASES = [
   },
   {
     id: "S07",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "report-tamper",
     title: "Observed decisions rewritten inside the report, status+summary+digest made self-consistent",
     note: "Only the retained raw stdout still disagrees.",
@@ -239,6 +272,7 @@ const CASES = [
   },
   {
     id: "S08",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "report-tamper",
     title: "Summary inflated without touching rows, report digest resealed",
     expect: { verdict: "REJECTED", detected_by: ["B2"] },
@@ -250,6 +284,7 @@ const CASES = [
   },
   {
     id: "S09",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "report-tamper",
     title: "Report edited but digest NOT resealed",
     expect: { verdict: "REJECTED", detected_by: ["B1", "B2"] },
@@ -263,6 +298,7 @@ const CASES = [
   },
   {
     id: "S10",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "reordering",
     title: "Result rows reordered inside the report, digest resealed",
     expect: { verdict: "REJECTED", detected_by: ["B5"] },
@@ -274,6 +310,7 @@ const CASES = [
   },
   {
     id: "S11",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "reordering",
     title: "Corpus vectors reordered in the bundle, corpus digest resealed, engine re-run",
     note: "Report is self-consistent with the reordered corpus; only the pin disagrees.",
@@ -287,6 +324,7 @@ const CASES = [
   },
   {
     id: "S12",
+    freeze_status: "REVISED_AFTER_MEASUREMENT",
     kind: "path-traversal",
     title: "Replay reference escapes targets/ via ../ in the manifest entry",
     note: "Also measures whether the UNMODIFIED engine executes the escaped path.",
@@ -317,6 +355,7 @@ const CASES = [
   },
   {
     id: "S13",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "stale-reuse",
     title: "The same report presented twice against a run-id ledger",
     expect: { verdict: "REJECTED", detected_by: ["G1"] },
@@ -331,6 +370,7 @@ const CASES = [
   },
   {
     id: "S14",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "run-id-collision",
     title: "Two materially different reports forced to share one run_id",
     expect: { verdict: "REJECTED", detected_by: ["G1"] },
@@ -349,6 +389,7 @@ const CASES = [
   },
   {
     id: "S15",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "overclaim",
     title: "Report body edited to claim signer trust and successful on-chain execution",
     expect: { verdict: "REJECTED", detected_by: ["E1"] },
@@ -361,6 +402,7 @@ const CASES = [
   },
   {
     id: "S16",
+    freeze_status: "ORIGINAL_ROUND_1",
     kind: "corpus-substitution",
     title: "Same attack as S03, but attest run WITHOUT an out-of-band pin",
     note: "Establishes what the report alone can and cannot show. Expected to be ACCEPTED — that is the gap, not a bug in attest.",
@@ -378,6 +420,7 @@ const CASES = [
   //     A check that never fails in any case is an untested guard, not a passing one.
   {
     id: "S17",
+    freeze_status: "ORIGINAL_ROUND_2",
     kind: "profile-substitution",
     title: "Profile bytes swapped after the run (report keeps the old profile digest)",
     expect: { verdict: "REJECTED", detected_by: ["A1", "C1", "D1"] },
@@ -391,6 +434,7 @@ const CASES = [
   },
   {
     id: "S18",
+    freeze_status: "ORIGINAL_ROUND_2",
     kind: "report-tamper",
     title: "Corpus vector_count and carried declared digest rewritten in the report",
     expect: { verdict: "REJECTED", detected_by: ["A3b", "A4"] },
@@ -403,6 +447,7 @@ const CASES = [
   },
   {
     id: "S19",
+    freeze_status: "REVISED_AFTER_MEASUREMENT",
     kind: "report-tamper",
     title: "Target identity fields rewritten in the report (manifest still says otherwise)",
     expect: { verdict: "REJECTED", detected_by: ["A5", "E1"] },
@@ -417,6 +462,7 @@ const CASES = [
   },
   {
     id: "S20",
+    freeze_status: "ORIGINAL_ROUND_2",
     kind: "report-tamper",
     title: "Row status flipped to PASS with summary made to agree; expected/observed left intact",
     expect: { verdict: "REJECTED", detected_by: ["B3"] },
@@ -429,6 +475,7 @@ const CASES = [
   },
   {
     id: "S21",
+    freeze_status: "ORIGINAL_ROUND_2",
     kind: "report-tamper",
     title: "Run timestamps inverted (finished before started)",
     expect: { verdict: "REJECTED", detected_by: ["B7"] },
@@ -442,6 +489,7 @@ const CASES = [
   },
   {
     id: "S22",
+    freeze_status: "ORIGINAL_ROUND_2",
     kind: "target-substitution",
     title: "Report references a target id that this bundle does not define",
     expect: { verdict: "REJECTED", detected_by: ["A5", "C1"] },
@@ -453,6 +501,7 @@ const CASES = [
   },
   {
     id: "S23",
+    freeze_status: "ORIGINAL_ROUND_2",
     kind: "profile-substitution",
     title: "Profile name/version restated in the report while the profile digest is left correct",
     note: "Shows that claimed_profile.sha256 does not cover the human-readable profile identity printed beside it.",
@@ -466,6 +515,7 @@ const CASES = [
   },
   {
     id: "S24",
+    freeze_status: "ORIGINAL_ROUND_2",
     kind: "report-tamper",
     title: "Corpus digest rewritten in the report while the bundle corpus is untouched",
     expect: { verdict: "REJECTED", detected_by: ["A2"] },
@@ -477,6 +527,7 @@ const CASES = [
   },
   {
     id: "S25",
+    freeze_status: "ORIGINAL_ROUND_2",
     kind: "stale-reuse",
     title: "Report file renamed away from its run_id",
     note: "Classified UNDERSPECIFIED, not rejected: no contract in the MVP makes the filename authoritative.",
@@ -572,6 +623,7 @@ for (const c of CASES) {
     missing_detections: missing,
     unexpected_detections: unexpected,
     case_result: caseResult,
+    freeze_status: c.freeze_status,
     freeze_revision: c.freeze_revision ?? null,
     side_evidence: out.side_evidence ?? null,
     failure_detail: res.checks.filter((x) => x.verdict === "FAIL").map((x) => ({ id: x.id, detail: x.detail })),
@@ -623,6 +675,14 @@ const summary = {
   off_expectation: runs.filter((r) => r.case_result === "OFF_EXPECTATION").length,
   harness_errors: runs.filter((r) => r.case_result === "HARNESS_ERROR").length,
   untested_guards: detectorCoverage.filter((d) => d.status.startsWith("UNTESTED")).map((d) => d.check),
+  freeze_provenance: {
+    original_round_1: runs.filter((r) => r.freeze_status === "ORIGINAL_ROUND_1").map((r) => r.id),
+    original_round_2: runs.filter((r) => r.freeze_status === "ORIGINAL_ROUND_2").map((r) => r.id),
+    revised_after_measurement: runs.filter((r) => r.freeze_status === "REVISED_AFTER_MEASUREMENT").map((r) => r.id),
+    checker_revisions: CHECKER_REVISIONS,
+    honest_reading:
+      "28/28 is reproducible at the current freeze. It is not a first-try result: 4 freezes were revised after measurement and 1 checker defect was fixed. Both are enumerated here rather than absorbed into the score.",
+  },
 };
 
 // The JSON artifact is deliberately free of temp paths, run ids and timestamps,
@@ -637,6 +697,7 @@ if (asJson) {
     console.log(`[${r.case_result.padEnd(15)}] ${r.id}  ${r.title}`);
     console.log(`                    frozen: ${r.frozen_expectation ? `${r.frozen_expectation.verdict} via [${r.frozen_expectation.detected_by.join(",") || "—"}]` : "n/a"}`);
     console.log(`                    measured: ${r.measured ? `${r.measured.verdict} via [${r.measured.failed_checks.join(",") || "—"}]` : r.harness_error}`);
+    console.log(`                    freeze: ${r.freeze_status}`);
     if (r.freeze_revision) console.log(`                    freeze revised: ${r.freeze_revision}`);
     if (r.side_evidence) console.log(`                    side: ${JSON.stringify(r.side_evidence)}`);
   }
