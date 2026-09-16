@@ -14,8 +14,8 @@
 | MVP HEAD (branch base) | `53360df071872a29447993e879add2be9406b7b5` |
 | MVP TREE | `468b0397c89165160337a53597e8b6533f1f1dec` |
 | Tip advanced? | No — built from exact MVP tip |
-| Challenge 1 HEAD | _(stamped after commit)_ |
-| Challenge 1 TREE | _(stamped after commit)_ |
+| Challenge 1 HEAD |  |
+| Challenge 1 TREE |  |
 
 ## Isolation verified vs curated-demo
 
