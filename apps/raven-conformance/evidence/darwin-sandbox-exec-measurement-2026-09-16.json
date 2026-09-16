@@ -1,0 +1,50 @@
+{
+  "measured_at": "2026-09-16T01:53:20.621Z",
+  "platform": "darwin",
+  "node": "v25.8.1",
+  "demo_overall": "CONFORMANT",
+  "probes": [
+    {
+      "id": "HOSTILE_NETWORK_ATTEMPT",
+      "status": "BOUNDARY_HOLD",
+      "note": "network attempt failed or reported blocked"
+    },
+    {
+      "id": "HOSTILE_ENV_CANARY",
+      "status": "BOUNDARY_HOLD",
+      "note": "canary env absent from target (hold)"
+    },
+    {
+      "id": "HOSTILE_CORPUS_WRITE",
+      "status": "BOUNDARY_HOLD",
+      "note": "write failed as expected",
+      "write_succeeded": false
+    },
+    {
+      "id": "HOSTILE_ENDLESS",
+      "status": "TIMEOUT",
+      "note": "endless loop killed by timeout (hold)"
+    },
+    {
+      "id": "HOSTILE_CHILD_PERSIST",
+      "status": "BOUNDARY_HOLD",
+      "note": "child reaped by runner cleanup (hold)",
+      "child_alive": false
+    },
+    {
+      "id": "HOSTILE_OUTPUT_FLOOD",
+      "status": "OUTPUT_FLOOD",
+      "note": "output flood capped by runner"
+    },
+    {
+      "id": "HOSTILE_MALFORMED_OUTPUT",
+      "status": "INVALID_OUTPUT",
+      "note": "malformed stdout classification"
+    },
+    {
+      "id": "HOSTILE_EXIT_CRASH",
+      "status": "TARGET_CRASH",
+      "note": "crash must not classify as PASS"
+    }
+  ]
+}

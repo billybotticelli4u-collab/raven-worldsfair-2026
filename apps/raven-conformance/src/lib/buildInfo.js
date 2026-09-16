@@ -21,8 +21,11 @@ export const PREEXISTING = [
 export const FAIR_BUILT = [
   "Conformance product loop (target → claimed profile → corpus → execution → evidence report → reproduction)",
   "Profile abstraction: raven-canonical-envelope/1",
-  "MVP runner with local child-process isolation bounds",
-  "Deterministic machine-readable + human report",
+  "Challenge 1 bounded runner: sandbox-exec on Darwin / curated_demo disclosure otherwise",
+  "Expanded result taxonomy (no silent PASS for crash/timeout/flood/invalid)",
+  "Hostile Raven-owned boundary probes + replay CLI",
+  "UI contract interface for UI lane (local publish)",
+  "Deterministic report digest vs volatile metadata",
   "Judge UI (select target → Run Conformance → evidence → copy reproduction)",
   "Three Raven-owned demo targets: CONFORMANT_REFERENCE, BROKEN_OBVIOUS, BROKEN_SUBTLE",
   "Self-contained Raven-owned demo corpus (not private corpora)",

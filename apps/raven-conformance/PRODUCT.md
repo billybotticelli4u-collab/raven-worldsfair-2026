@@ -43,3 +43,12 @@ Machine-readable `raven-conformance-report/1` plus human view:
 ## Review classification (author lane)
 
 Classify `READY_FOR_HACKATHON_PRODUCT_REVIEW` or `NOT_READY` after freeze.
+
+## Challenge 1 (this branch)
+
+Bounded isolation runner + result taxonomy + hostile probes + replay + UI contract.
+
+- Branch: `billy/fair-challenge1-bounded-runner-2026-09-16`
+- Isolation: `sandbox_exec` (Darwin Seatbelt) when verified; otherwise `curated_demo` with `verified: false`
+- A Node child_process alone is **not** a security sandbox
+- No arbitrary public code upload; no merge/deploy/npm publish in this handoff

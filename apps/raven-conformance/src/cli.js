@@ -4,15 +4,16 @@
  * Usage: node src/cli.js --target CONFORMANT_REFERENCE
  *        npm run conform -- --target BROKEN_SUBTLE
  */
-import { runConformance, humanView, loadTargets } from "./lib/runner.js";
+import { runConformance, humanView, loadDemoTargets, loadTargets } from "./lib/runner.js";
 
 function parseArgs(argv) {
-  const out = { target: null, json: false, list: false };
+  const out = { target: null, json: false, list: false, listAll: false };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--target" || a === "-t") out.target = argv[++i];
     else if (a === "--json") out.json = true;
     else if (a === "--list") out.list = true;
+    else if (a === "--list-all") out.listAll = true;
     else if (a === "--help" || a === "-h") out.help = true;
   }
   return out;
@@ -25,15 +26,21 @@ if (args.help) {
 Usage:
   npm run conform -- --target <ID>
   npm run conform -- --list
+  npm run conform -- --list-all
   npm run conform -- --target <ID> --json
+  npm run demo
+  npm run replay -- --report <path>
+  npm run probes
 
-Targets: CONFORMANT_REFERENCE | BROKEN_OBVIOUS | BROKEN_SUBTLE
+Demo targets: CONFORMANT_REFERENCE | BROKEN_OBVIOUS | BROKEN_SUBTLE
+Probe targets: use npm run probes (not counted as conformance demos)
 `);
   process.exit(0);
 }
 
-if (args.list) {
-  console.log(JSON.stringify(loadTargets(), null, 2));
+if (args.list || args.listAll) {
+  const t = args.listAll ? loadTargets() : loadDemoTargets();
+  console.log(JSON.stringify(t, null, 2));
   process.exit(0);
 }
 

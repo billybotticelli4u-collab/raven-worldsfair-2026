@@ -30,6 +30,11 @@ function kv(dl, pairs) {
   }
 }
 
+function statusBadgeClass(status) {
+  if (status === "PASS") return "pass";
+  return "div";
+}
+
 async function boot() {
   const [tRes, mRes] = await Promise.all([
     fetch("/api/targets").then((r) => r.json()),
@@ -51,6 +56,7 @@ async function boot() {
     ["Corpus", `${mRes.corpus.id} @ ${mRes.corpus.version}`],
     ["Corpus sha256", mRes.corpus.sha256],
     ["Vectors", String(mRes.corpus.vector_count)],
+    ["UI contract", mRes.ui_contract || "—"],
   ]);
 }
 
@@ -97,14 +103,24 @@ function renderReport(report) {
   const ok = report.summary.overall === "CONFORMANT";
   overall.textContent = report.summary.overall;
   overall.className = ok ? "outcome ok" : "outcome bad";
-  summaryLine.textContent = `${report.summary.pass} PASS · ${report.summary.divergence} DIVERGENCE · ${report.summary.test_count} vectors`;
-  corpusWatch.textContent = `Corpus ${report.corpus.id} executed. DIVERGENCE = observed ≠ expected only (not a security score).`;
+  const c = report.summary.counts || {};
+  const extra = [];
+  for (const k of ["TIMEOUT", "TARGET_CRASH", "INVALID_OUTPUT", "OUTPUT_FLOOD", "RUNNER_FAILURE"]) {
+    if (c[k]) extra.push(`${c[k]} ${k}`);
+  }
+  summaryLine.textContent = `${report.summary.pass} PASS · ${report.summary.divergence} BEHAVIORAL_DIVERGENCE · ${report.summary.test_count} vectors${extra.length ? " · " + extra.join(" · ") : ""}`;
+  const iso = report.isolation
+    ? `Isolation: ${report.isolation.mode} (verified=${report.isolation.verified}). Child process alone ≠ sandbox.`
+    : "";
+  corpusWatch.textContent = `Corpus ${report.corpus.id} executed. BEHAVIORAL_DIVERGENCE = observed ≠ expected only (not a security score). ${iso}`;
   kv(idKv, [
     ["Run ID", report.run_id],
     ["Target", report.target.id],
     ["Claimed profile", report.target.claimed_conformance_profile],
     ["Target sha256", report.target.entry_sha256],
     ["Report digest", report.report_content_digest_sha256],
+    ["Deterministic digest", report.deterministic_report_sha256 || "—"],
+    ["Isolation", report.isolation ? `${report.isolation.mode} / verified=${report.isolation.verified}` : "—"],
   ]);
 
   vectorList.innerHTML = "";
@@ -112,19 +128,17 @@ function renderReport(report) {
     const row = document.createElement("button");
     row.type = "button";
     row.className = "vec";
-    row.innerHTML = `<span class="badge ${r.status === "PASS" ? "pass" : "div"}">${r.status}</span>
+    row.innerHTML = `<span class="badge ${statusBadgeClass(r.status)}">${r.status}</span>
       <span><strong>${r.vector_id}</strong><br/><span class="muted">expected ${r.expected.decision} · observed ${r.observed.decision ?? "null"}</span></span>`;
     row.addEventListener("click", () => showEvidence(r, row));
     vectorList.appendChild(row);
   }
 
-  const firstDiv = report.results.find((r) => r.status === "DIVERGENCE");
-  if (firstDiv) {
-    const firstBtn = vectorList.querySelector(".vec");
-    // prefer divergence button
+  const firstBad = report.results.find((r) => r.status !== "PASS");
+  if (firstBad) {
     for (const btn of vectorList.querySelectorAll(".vec")) {
-      if (btn.textContent.includes(firstDiv.vector_id)) {
-        showEvidence(firstDiv, btn);
+      if (btn.textContent.includes(firstBad.vector_id)) {
+        showEvidence(firstBad, btn);
         break;
       }
     }
