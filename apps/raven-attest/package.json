@@ -1,0 +1,18 @@
+{
+  "name": "raven-attest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone artifact-substitution verifier for the Raven Conformance MVP. Does not import, edit, or depend on apps/raven-conformance.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "attest": "node src/attest.js",
+    "pins": "node src/attest.js --emit-pins --bundle ../..",
+    "pack": "node harness/substitution.js",
+    "pack:json": "node harness/substitution.js --json",
+    "build": "node --check src/attest.js && node --check src/lib/bundle.js && node --check src/lib/oracle.js && node --check src/lib/stable.js && node --check harness/substitution.js"
+  },
+  "license": "Apache-2.0"
+}

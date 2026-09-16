@@ -1,0 +1,44 @@
+{
+  "pins_schema": "raven-attest-pins/1",
+  "note": "Out-of-band anchor. The engine report is self-consistent with whatever bundle was present at run time; without an external pin, corpus/profile/target substitution is undetectable from the report alone.",
+  "profile_sha256": "914c2d5673ee9c5aaef00acac27440f6481f6397bdec81c2c835e088fe66bca4",
+  "profile_name": "raven-canonical-envelope/1",
+  "profile_version": "1.0.0",
+  "corpus_computed_sha256": "27d6c5adac941846141671fa79a059004c7188327510a45c6e6c69d27959f23d",
+  "corpus_file_sha256": "b799509d972bc295f679249b5fbfb097eb8034d9af470467fec0b93d6d30b7c2",
+  "corpus_id": "raven-canonical-envelope-demo-corpus/1",
+  "corpus_version": "1.0.0",
+  "corpus_vector_ids": [
+    "V01_valid_minimal",
+    "V02_valid_nested",
+    "V03_digest_mismatch",
+    "V04_schema_mismatch",
+    "V05_missing_digest",
+    "V06_empty_id",
+    "V07_unexpected_top_level_field",
+    "V08_unexpected_extension_key",
+    "V09_payload_not_object",
+    "V10_missing_schema"
+  ],
+  "manifests_sha256": "ebdebbef89a74021ae6575f80a184c1ed27aa0c3c48639316ef2a216ae479b10",
+  "targets": {
+    "CONFORMANT_REFERENCE": {
+      "entry": "CONFORMANT_REFERENCE.mjs",
+      "entry_sha256": "98616b015d9a9a3ba8c77734023acc4f5464072bb09679271d770017bc24f8f6",
+      "claimed_conformance_profile": "raven-canonical-envelope/1",
+      "version": "1.0.0"
+    },
+    "BROKEN_OBVIOUS": {
+      "entry": "BROKEN_OBVIOUS.mjs",
+      "entry_sha256": "060c02beaa602ff1abc0ffb6fbb5df9d9ae468d129953dc71a9668b685b394bf",
+      "claimed_conformance_profile": "raven-canonical-envelope/1",
+      "version": "1.0.0"
+    },
+    "BROKEN_SUBTLE": {
+      "entry": "BROKEN_SUBTLE.mjs",
+      "entry_sha256": "1deb1d444dad92e3f1069891ca3b14ccb396f3dfefde218a1a0201976df583a0",
+      "claimed_conformance_profile": "raven-canonical-envelope/1",
+      "version": "1.0.0"
+    }
+  }
+}

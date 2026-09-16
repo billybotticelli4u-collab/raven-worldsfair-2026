@@ -1,0 +1,1316 @@
+{
+  "summary": {
+    "harness": "raven-attest substitution pack",
+    "cases": 28,
+    "as_frozen": 28,
+    "off_expectation": 0,
+    "harness_errors": 0,
+    "untested_guards": []
+  },
+  "runs": [
+    {
+      "id": "P01",
+      "kind": "positive-control",
+      "title": "Valid replay of a CONFORMANT report succeeds",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "ACCEPTED",
+        "detected_by": []
+      },
+      "measured": {
+        "verdict": "ACCEPTED",
+        "failed_checks": [],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 20,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": []
+    },
+    {
+      "id": "P02",
+      "kind": "positive-control",
+      "title": "Valid replay of a DIVERGENT report also succeeds (integrity ≠ conformance)",
+      "note": "BROKEN_SUBTLE legitimately fails 2 vectors. The report is honest, so attest must ACCEPT it.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "ACCEPTED",
+        "detected_by": []
+      },
+      "measured": {
+        "verdict": "ACCEPTED",
+        "failed_checks": [],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 20,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": []
+    },
+    {
+      "id": "P03",
+      "kind": "positive-control",
+      "title": "Clean-room replay from an unrelated working directory succeeds",
+      "note": "Engine invoked with cwd=/ ; attest invoked with absolute paths only.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "ACCEPTED",
+        "detected_by": []
+      },
+      "measured": {
+        "verdict": "ACCEPTED",
+        "failed_checks": [],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 20,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": []
+    },
+    {
+      "id": "S01",
+      "kind": "target-substitution",
+      "title": "Target bytes swapped after the run (same id, same entry filename)",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A6",
+          "C1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A6",
+          "C1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 18,
+          "FAIL": 2,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "A6",
+          "detail": "report entry_sha256 != bundle target file bytes"
+        },
+        {
+          "id": "C1",
+          "detail": "1 pinned artifact(s) differ from this bundle"
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "kind": "target-substitution",
+      "title": "Manifest re-points CONFORMANT_REFERENCE at the broken implementation, then runs",
+      "note": "The engine never digests manifests.json, so the emitted report is fully self-consistent.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "C1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "C1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "C1",
+          "detail": "3 pinned artifact(s) differ from this bundle"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "kind": "corpus-substitution",
+      "title": "Corpus shrunk to hide the two vectors BROKEN_SUBTLE fails, digest resealed",
+      "note": "Yields a CONFORMANT verdict for a target that is known-broken. Self-consistent end to end.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "C1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "C1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "C1",
+          "detail": "1 pinned artifact(s) differ from this bundle"
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "kind": "corpus-substitution",
+      "title": "Corpus vector expectation flipped, self-declared digest NOT resealed",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A3",
+          "C1",
+          "D1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A3",
+          "C1",
+          "D1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 17,
+          "FAIL": 3,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": "Run 1 froze [A3,C1] and measured [A3,C1,D1]. D1 is correct: flipping a corpus expectation also makes that expectation un-derivable from the profile rules. The freeze was incomplete; the checker was not changed.",
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "A3",
+          "detail": "corpus file declares a content digest that does not match its own vectors — the engine never compares these at run time"
+        },
+        {
+          "id": "C1",
+          "detail": "1 pinned artifact(s) differ from this bundle"
+        },
+        {
+          "id": "D1",
+          "detail": "1 corpus expectation(s) are not implied by the profile rules"
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "kind": "profile-substitution",
+      "title": "Profile rules rewritten to permit unexpected fields; version bumped to 2.0.0",
+      "note": "Measured consequence: the run outcome is byte-identical. The profile is descriptive, not executed.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "C1",
+          "D1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "C1",
+          "D1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 18,
+          "FAIL": 2,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": "Run 1 froze [C1] and measured [C1,D1]. D1 is correct: after the rules are rewritten, the corpus expectations no longer follow from the profile. The freeze was incomplete; the checker was not changed.",
+      "side_evidence": {
+        "question": "Does rewriting the profile change any executed outcome?",
+        "summary_before": {
+          "test_count": 10,
+          "pass": 8,
+          "divergence": 2,
+          "overall": "DIVERGENT"
+        },
+        "summary_after": {
+          "test_count": 10,
+          "pass": 8,
+          "divergence": 2,
+          "overall": "DIVERGENT"
+        },
+        "outcomes_identical": true
+      },
+      "failure_detail": [
+        {
+          "id": "C1",
+          "detail": "1 pinned artifact(s) differ from this bundle"
+        },
+        {
+          "id": "D1",
+          "detail": "2 corpus expectation(s) are not implied by the profile rules"
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "kind": "report-tamper",
+      "title": "Expected results rewritten inside the report, report digest resealed",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "B6"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "B6"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "B6",
+          "detail": "2 row(s) carry an expectation the corpus does not specify"
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "kind": "report-tamper",
+      "title": "Observed decisions rewritten inside the report, status+summary+digest made self-consistent",
+      "note": "Only the retained raw stdout still disagrees.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "B4"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "B4"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "B4",
+          "detail": "2 row(s) summarise a decision their captured stdout does not contain"
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "kind": "report-tamper",
+      "title": "Summary inflated without touching rows, report digest resealed",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "B2"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "B2"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "B2",
+          "detail": "summary does not follow from results[]"
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "kind": "report-tamper",
+      "title": "Report edited but digest NOT resealed",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "B1",
+          "B2"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "B1",
+          "B2"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 18,
+          "FAIL": 2,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "B1",
+          "detail": "declared report digest does not cover the report as it now reads"
+        },
+        {
+          "id": "B2",
+          "detail": "summary does not follow from results[]"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "kind": "reordering",
+      "title": "Result rows reordered inside the report, digest resealed",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "B5"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "B5"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "B5",
+          "detail": "vector set or order differs from the bundle corpus"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "kind": "reordering",
+      "title": "Corpus vectors reordered in the bundle, corpus digest resealed, engine re-run",
+      "note": "Report is self-consistent with the reordered corpus; only the pin disagrees.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "C1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "C1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "C1",
+          "detail": "1 pinned artifact(s) differ from this bundle"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "kind": "path-traversal",
+      "title": "Replay reference escapes targets/ via ../ in the manifest entry",
+      "note": "Also measures whether the UNMODIFIED engine executes the escaped path.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A7",
+          "C1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A7",
+          "C1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 17,
+          "FAIL": 2,
+          "SKIPPED": 2,
+          "INFO": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": "Run 1 froze [A6,A7,C1] and measured [A7,C1]. A6 is SKIPPED by design: once A7 shows the reference escapes targets/, attest refuses to read the file to digest it. The freeze was wrong; the checker was not changed.",
+      "side_evidence": {
+        "question": "Did the unmodified engine spawn a file outside targets/ ?",
+        "engine_executed_escaped_path": true,
+        "reported_entry": "../src/traversal-probe.mjs"
+      },
+      "failure_detail": [
+        {
+          "id": "A7",
+          "detail": "entry escapes targets/ — replay reference is a traversal"
+        },
+        {
+          "id": "C1",
+          "detail": "3 pinned artifact(s) differ from this bundle"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "kind": "stale-reuse",
+      "title": "The same report presented twice against a run-id ledger",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "G1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "G1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 20,
+          "INFO": 1,
+          "FAIL": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": {
+        "first_presentation": "recorded in ledger"
+      },
+      "failure_detail": [
+        {
+          "id": "G1",
+          "detail": "stale report reuse: this exact report has already been presented under this run_id"
+        }
+      ]
+    },
+    {
+      "id": "S14",
+      "kind": "run-id-collision",
+      "title": "Two materially different reports forced to share one run_id",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "G1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "G1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 20,
+          "INFO": 1,
+          "FAIL": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "G1",
+          "detail": "run_id collision: two different reports claim the same run_id"
+        }
+      ]
+    },
+    {
+      "id": "S15",
+      "kind": "overclaim",
+      "title": "Report body edited to claim signer trust and successful on-chain execution",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "E1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "E1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "E1",
+          "detail": "1 unqualified claim string(s)"
+        }
+      ]
+    },
+    {
+      "id": "S16",
+      "kind": "corpus-substitution",
+      "title": "Same attack as S03, but attest run WITHOUT an out-of-band pin",
+      "note": "Establishes what the report alone can and cannot show. Expected to be ACCEPTED — that is the gap, not a bug in attest.",
+      "pins_used": false,
+      "frozen_expectation": {
+        "verdict": "ACCEPTED",
+        "detected_by": []
+      },
+      "measured": {
+        "verdict": "ACCEPTED",
+        "failed_checks": [],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "SKIPPED": 2,
+          "INFO": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": []
+    },
+    {
+      "id": "S17",
+      "kind": "profile-substitution",
+      "title": "Profile bytes swapped after the run (report keeps the old profile digest)",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A1",
+          "C1",
+          "D1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A1",
+          "C1",
+          "D1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "FAIL": 3,
+          "PASS": 17,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "A1",
+          "detail": "report profile sha256 != bundle profile file"
+        },
+        {
+          "id": "C1",
+          "detail": "1 pinned artifact(s) differ from this bundle"
+        },
+        {
+          "id": "D1",
+          "detail": "2 corpus expectation(s) are not implied by the profile rules"
+        }
+      ]
+    },
+    {
+      "id": "S18",
+      "kind": "report-tamper",
+      "title": "Corpus vector_count and carried declared digest rewritten in the report",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A3b",
+          "A4"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A3b",
+          "A4"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 18,
+          "FAIL": 2,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "A3b",
+          "detail": "report's carried declared digest differs from the corpus file"
+        },
+        {
+          "id": "A4",
+          "detail": "vector_count disagrees with bundle corpus"
+        }
+      ]
+    },
+    {
+      "id": "S19",
+      "kind": "report-tamper",
+      "title": "Target identity fields rewritten in the report (manifest still says otherwise)",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A5",
+          "E1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A5",
+          "E1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 18,
+          "FAIL": 2,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": "Run 2 froze [A5] and measured [A5,E1]. E1 is correct: the injected description string \"Audited and certified implementation.\" is an unqualified certification claim. The freeze was incomplete; the checker was not changed.",
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "A5",
+          "detail": "manifest disagrees on: version, description"
+        },
+        {
+          "id": "E1",
+          "detail": "1 unqualified claim string(s)"
+        }
+      ]
+    },
+    {
+      "id": "S20",
+      "kind": "report-tamper",
+      "title": "Row status flipped to PASS with summary made to agree; expected/observed left intact",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "B3"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "B3"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "B3",
+          "detail": "2 row(s) carry a status their own fields do not imply"
+        }
+      ]
+    },
+    {
+      "id": "S21",
+      "kind": "report-tamper",
+      "title": "Run timestamps inverted (finished before started)",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "B7"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "B7"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "B7",
+          "detail": "timestamps missing, unparseable, or inverted"
+        }
+      ]
+    },
+    {
+      "id": "S22",
+      "kind": "target-substitution",
+      "title": "Report references a target id that this bundle does not define",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A5",
+          "C1"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A5",
+          "C1"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 18,
+          "FAIL": 2,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "A5",
+          "detail": "report target id is not present in this bundle's manifests.json"
+        },
+        {
+          "id": "C1",
+          "detail": "1 pinned artifact(s) differ from this bundle"
+        }
+      ]
+    },
+    {
+      "id": "S23",
+      "kind": "profile-substitution",
+      "title": "Profile name/version restated in the report while the profile digest is left correct",
+      "note": "Shows that claimed_profile.sha256 does not cover the human-readable profile identity printed beside it.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A1b"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A1b"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "A1b",
+          "detail": "profile identity strings differ from bundle"
+        }
+      ]
+    },
+    {
+      "id": "S24",
+      "kind": "report-tamper",
+      "title": "Corpus digest rewritten in the report while the bundle corpus is untouched",
+      "note": null,
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "REJECTED",
+        "detected_by": [
+          "A2"
+        ]
+      },
+      "measured": {
+        "verdict": "REJECTED",
+        "failed_checks": [
+          "A2"
+        ],
+        "underspecified_checks": [],
+        "counts": {
+          "PASS": 19,
+          "FAIL": 1,
+          "INFO": 1,
+          "SKIPPED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": [
+        {
+          "id": "A2",
+          "detail": "report corpus sha256 != recomputed corpus content digest"
+        }
+      ]
+    },
+    {
+      "id": "S25",
+      "kind": "stale-reuse",
+      "title": "Report file renamed away from its run_id",
+      "note": "Classified UNDERSPECIFIED, not rejected: no contract in the MVP makes the filename authoritative.",
+      "pins_used": true,
+      "frozen_expectation": {
+        "verdict": "ACCEPTED",
+        "detected_by": []
+      },
+      "measured": {
+        "verdict": "ACCEPTED",
+        "failed_checks": [],
+        "underspecified_checks": [
+          "G2"
+        ],
+        "counts": {
+          "PASS": 19,
+          "INFO": 1,
+          "SKIPPED": 1,
+          "UNDERSPECIFIED": 1
+        }
+      },
+      "missing_detections": [],
+      "unexpected_detections": [],
+      "case_result": "AS_FROZEN",
+      "freeze_revision": null,
+      "side_evidence": null,
+      "failure_detail": []
+    }
+  ],
+  "determinism": {
+    "id": "D01",
+    "kind": "determinism",
+    "title": "Two honest runs of byte-identical inputs",
+    "measured": {
+      "engine_report_digest_equal": false,
+      "attest_conformance_core_digest_equal": true,
+      "conformance_core_digest": "48c492024b783de611406dd3c7ab0cdd7922f2a5a29d5dde344b9d40004e9629",
+      "top_level_keys_that_differ": [
+        "run_id",
+        "started_at",
+        "finished_at",
+        "results",
+        "report_content_digest_sha256"
+      ]
+    },
+    "conclusion": "The engine's report_content_digest_sha256 is NOT reproducible across runs — it covers run_id, timestamps and per-vector durations. It detects edits to one report file only. raven-attest's conformance_core_digest is reproducible and is the value two runs can be compared on. Neither promises identical runtime metadata across runs or hosts."
+  },
+  "detector_coverage": [
+    {
+      "check": "A1",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S17"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "A1b",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S23"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "A2",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S24"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "A3",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S04"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "A3b",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S18"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "A4",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S18"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "A7",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S12"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "A6",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S01"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "A5",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S19",
+        "S22"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "B1",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S09"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "B2",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S08",
+        "S09"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "B3",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S20"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "B4",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S07"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "B5",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S10"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "B6",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S06"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "B7",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S21"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "C1",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S11",
+        "S12",
+        "S17",
+        "S22"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "D1",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S04",
+        "S05",
+        "S17"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "E1",
+      "clean_report_verdict": "PASS",
+      "fired_in": [
+        "S15",
+        "S19"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "F1",
+      "clean_report_verdict": "INFO",
+      "fired_in": [],
+      "underspecified_in": [],
+      "status": "INFORMATIONAL — asserts nothing"
+    },
+    {
+      "check": "G1",
+      "clean_report_verdict": "SKIPPED",
+      "fired_in": [
+        "S13",
+        "S14"
+      ],
+      "underspecified_in": [],
+      "status": "EXERCISED — shown to fail on at least one attack"
+    },
+    {
+      "check": "G2",
+      "clean_report_verdict": "PASS",
+      "fired_in": [],
+      "underspecified_in": [
+        "S25"
+      ],
+      "status": "EXERCISED AS UNDERSPECIFIED — no contract to fail against; classified, not rejected"
+    }
+  ]
+}
