@@ -1,0 +1,244 @@
+{
+  "started_at": "2026-09-16T01:51:06.453Z",
+  "journeys": [
+    {
+      "targetId": "CONFORMANT_REFERENCE",
+      "overall": "CONFORMANT",
+      "progressEventCount": 11,
+      "elapsed_ms": 1451,
+      "actions": [
+        {
+          "action": "load_first_screen",
+          "t_ms": 1010
+        },
+        {
+          "action": "select_CONFORMANT_REFERENCE",
+          "t_ms": 1035
+        },
+        {
+          "action": "click_run",
+          "t_ms": 1067
+        },
+        {
+          "action": "result_visible",
+          "t_ms": 1364
+        },
+        {
+          "action": "progress_events_observed",
+          "t_ms": 1379
+        },
+        {
+          "action": "inspect_evidence",
+          "t_ms": 1401
+        },
+        {
+          "action": "download_click",
+          "t_ms": 1420
+        },
+        {
+          "action": "copy_repro",
+          "t_ms": 1449
+        }
+      ]
+    },
+    {
+      "targetId": "BROKEN_OBVIOUS",
+      "overall": "DIVERGENT",
+      "progressEventCount": 11,
+      "elapsed_ms": 1425,
+      "actions": [
+        {
+          "action": "load_first_screen",
+          "t_ms": 1012
+        },
+        {
+          "action": "select_BROKEN_OBVIOUS",
+          "t_ms": 1031
+        },
+        {
+          "action": "click_run",
+          "t_ms": 1054
+        },
+        {
+          "action": "result_visible",
+          "t_ms": 1337
+        },
+        {
+          "action": "progress_events_observed",
+          "t_ms": 1353
+        },
+        {
+          "action": "inspect_evidence",
+          "t_ms": 1371
+        },
+        {
+          "action": "download_click",
+          "t_ms": 1397
+        },
+        {
+          "action": "copy_repro",
+          "t_ms": 1421
+        }
+      ]
+    },
+    {
+      "targetId": "BROKEN_SUBTLE",
+      "overall": "DIVERGENT",
+      "progressEventCount": 11,
+      "elapsed_ms": 1386,
+      "actions": [
+        {
+          "action": "load_first_screen",
+          "t_ms": 1013
+        },
+        {
+          "action": "select_BROKEN_SUBTLE",
+          "t_ms": 1030
+        },
+        {
+          "action": "click_run",
+          "t_ms": 1047
+        },
+        {
+          "action": "result_visible",
+          "t_ms": 1328
+        },
+        {
+          "action": "progress_events_observed",
+          "t_ms": 1337
+        },
+        {
+          "action": "inspect_evidence",
+          "t_ms": 1349
+        },
+        {
+          "action": "download_click",
+          "t_ms": 1370
+        },
+        {
+          "action": "copy_repro",
+          "t_ms": 1384
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "desktop_first_screen_shot",
+      "status": "PASS"
+    },
+    {
+      "id": "xss_text_only_hostile_markup",
+      "status": "PASS",
+      "detail": {
+        "text": "<img src=x onerror=\"window.__xss=1\"><script>window.__xss=2</script>",
+        "html": "&lt;img src=x onerror=\"window.__xss=1\"&gt;&lt;script&gt;window.__xss=2&lt;/script&gt;",
+        "childElementCount": 0,
+        "windowFlag": null
+      }
+    },
+    {
+      "id": "journey_CONFORMANT_REFERENCE",
+      "status": "PASS",
+      "elapsed_ms": 1451,
+      "overall": "CONFORMANT",
+      "actions": 8
+    },
+    {
+      "id": "journey_BROKEN_OBVIOUS",
+      "status": "PASS",
+      "elapsed_ms": 1425,
+      "overall": "DIVERGENT",
+      "actions": 8
+    },
+    {
+      "id": "journey_BROKEN_SUBTLE",
+      "status": "PASS",
+      "elapsed_ms": 1386,
+      "overall": "DIVERGENT",
+      "actions": 8
+    },
+    {
+      "id": "missing_target_api",
+      "status": "PASS",
+      "detail": {
+        "status": 400,
+        "body": {
+          "error": "unknown_target",
+          "message": "Only allowlisted demo targets via /api/run. Use /api/run-probes for probes. No arbitrary upload."
+        }
+      }
+    },
+    {
+      "id": "recorded_fallback_labeled",
+      "status": "PASS",
+      "banner": "RECORDED DEMO REPORT — not a newly executed live run · file sample-report-BROKEN_SUBTLE.json · run_id run_2b52d34b26fe421f · digest 9cd956c62c7caa9159c01bdc5e3214317d61a0a3e51444879b5fe075729d35a9"
+    },
+    {
+      "id": "retry_after_recorded",
+      "status": "PASS"
+    },
+    {
+      "id": "keyboard_tab_executed",
+      "status": "PASS"
+    },
+    {
+      "id": "mobile_journey_BROKEN_SUBTLE",
+      "status": "PASS"
+    },
+    {
+      "id": "scripted_subtle_timing",
+      "status": "PASS",
+      "elapsed_ms": 1386,
+      "actions": [
+        {
+          "action": "load_first_screen",
+          "t_ms": 1013
+        },
+        {
+          "action": "select_BROKEN_SUBTLE",
+          "t_ms": 1030
+        },
+        {
+          "action": "click_run",
+          "t_ms": 1047
+        },
+        {
+          "action": "result_visible",
+          "t_ms": 1328
+        },
+        {
+          "action": "progress_events_observed",
+          "t_ms": 1337
+        },
+        {
+          "action": "inspect_evidence",
+          "t_ms": 1349
+        },
+        {
+          "action": "download_click",
+          "t_ms": 1370
+        },
+        {
+          "action": "copy_repro",
+          "t_ms": 1384
+        }
+      ],
+      "note": "Scripted first-time journey — not user research."
+    },
+    {
+      "id": "copied_command_cli_reproduction",
+      "status": "PASS",
+      "exit": 1,
+      "stdout_tail": "S] V09_payload_not_object  expected=REJECT  observed=REJECT\n[PASS] V10_missing_schema  expected=REJECT  observed=REJECT\n\nReproduction:\ncd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE\n\nNote: BEHAVIORAL_DIVERGENCE means observed ≠ specified expectation only — not a security score.\n\nWrote /workspace/raven-worldsfair-2026/apps/raven-conformance/reports/run_9a075f91e69e4fd6.json\n"
+    }
+  ],
+  "failed": [],
+  "unverified": [],
+  "finished_at": "2026-09-16T01:51:16.874Z",
+  "summary": {
+    "pass": 12,
+    "fail": 0,
+    "unverified": 0
+  }
+}

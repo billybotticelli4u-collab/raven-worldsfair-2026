@@ -127,3 +127,15 @@ is a separate product path under the same public Fair repo.
 ## Handoff
 
 See `CHALLENGE1_HANDOFF.md` on branch `billy/fair-challenge1-bounded-runner-2026-09-16`.
+
+## Challenge 2 — Judge UI
+
+Branch: `billy/fair-conformance-challenge2-judge-ui-2026-09-16`
+
+```bash
+cd apps/raven-conformance
+npm test
+npm start    # http://127.0.0.1:8791
+```
+
+Live SSE progress (`/api/run-stream`), display adapter over Challenge 1 taxonomy, recorded-report fallback, download/repro, a11y + XSS text-only rendering. UI does not recalculate verdicts or maintain a second runner.

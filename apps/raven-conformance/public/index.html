@@ -3,70 +3,88 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>World's Fair 2026 — Raven Conformance MVP</title>
+  <title>World's Fair 2026 — Raven Conformance Judge UI</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <header class="top">
+  <a class="skip-link" href="#main">Skip to results</a>
+  <header class="top" role="banner">
     <div>
-      <p class="eyebrow">Crypto World's Fair 2026 · Build Stage · Conformance</p>
-      <h1>Raven Conformance MVP</h1>
-      <p class="lede">
-        Select a Raven-owned demo target, run the deterministic corpus against its
-        claimed profile, then inspect PASS / DIVERGENCE evidence and copy the
-        reproduction command. Judge-usable in about 60 seconds.
+      <p class="eyebrow">Crypto World's Fair 2026 · Build Stage · Conformance · Challenge 2</p>
+      <h1>Raven Conformance — Judge UI</h1>
+      <p class="lede" id="taskSentence">
+        Pick one Raven-owned demo target and run the deterministic corpus against its claimed profile to see PASS / DIVERGENCE evidence in about 60 seconds.
       </p>
     </div>
-    <button type="button" id="aboutBtn" class="ghost">About / Build Info</button>
-  </header>
-
-  <section class="controls card">
-    <h2>1. Select demo target</h2>
-    <div class="btn-row" id="targetRow"></div>
-    <p class="muted" id="targetBlurb">Choose a target to load its claimed profile.</p>
-    <div class="btn-row">
-      <button type="button" id="runBtn" class="primary" disabled>2. Run Conformance</button>
+    <div class="header-actions">
+      <button type="button" id="aboutBtn" class="ghost">Disclosure / Build Info</button>
     </div>
+  </header>
+  <div id="liveRegion" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="alertRegion" class="sr-only" role="alert" aria-live="assertive"></div>
+  <section class="card disclosure" aria-label="Fair disclosure">
+    <p><strong>BUILT DURING FAIR:</strong> Conformance loop, runner, report, Judge UI, demo targets + corpus.</p>
+    <p><strong>PRE-EXISTING:</strong> Raven research lineage / private corpora / monorepo — referenced only, not imported.</p>
+    <p class="muted" id="corpusScopeNote">Corpus scope: Raven-owned Fair demo fixtures only — not private production corpora.</p>
   </section>
-
-  <section class="card meta">
-    <h2>Corpus / profile</h2>
-    <dl class="kv" id="metaKv"></dl>
-    <p class="muted" id="corpusWatch">Waiting to run…</p>
+  <section class="controls card" aria-labelledby="selectHeading">
+    <h2 id="selectHeading">1. Select a Raven-owned demo target</h2>
+    <div class="btn-row target-grid" id="targetRow" role="group" aria-label="Demo targets"></div>
+    <p class="muted" id="targetBlurb">Choose a target to load its claimed profile.</p>
+    <div class="scope card nested" aria-label="Claimed profile and corpus scope">
+      <h3 class="h3">Claimed profile &amp; corpus scope</h3>
+      <dl class="kv" id="metaKv"></dl>
+    </div>
+    <div class="btn-row run-row">
+      <button type="button" id="runBtn" class="primary" disabled>2. Run Conformance (live)</button>
+      <button type="button" id="recordedBtn" class="ghost">Load recorded BROKEN_SUBTLE report</button>
+    </div>
+    <p class="muted small" id="recordedHint">Recorded fallback is clearly labeled and immutable — it never masquerades as a newly executed run.</p>
   </section>
-
-  <main class="grid">
-    <article class="card">
-      <h2>Result <span class="tag">overall</span></h2>
-      <p class="outcome" id="overall">—</p>
+  <section class="card progress-card" aria-labelledby="progressHeading">
+    <h2 id="progressHeading">Run progress</h2>
+    <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar" style="width:0%"></div></div>
+    <p id="progressText" class="muted">No live run yet.</p>
+    <ul id="progressLog" class="progress-log" aria-label="Live vector events"></ul>
+  </section>
+  <div id="sourceBanner" class="banner hidden" role="status"></div>
+  <div id="errorBanner" class="banner error hidden" role="alert"></div>
+  <main id="main" class="grid" tabindex="-1">
+    <article class="card" aria-labelledby="resultHeading">
+      <h2 id="resultHeading">Result <span class="tag">overall</span></h2>
+      <p class="outcome" id="overall" aria-live="polite">—</p>
       <p class="muted" id="summaryLine">No run yet</p>
+      <dl class="kv" id="countKv"></dl>
       <dl class="kv" id="idKv"></dl>
     </article>
-    <article class="card wide">
-      <h2>Vectors <span class="tag">evidence</span></h2>
-      <div id="vectorList" class="vectors"></div>
+    <article class="card wide" aria-labelledby="issueHeading">
+      <h2 id="issueHeading">First meaningful issue</h2>
+      <div id="issuePanel" class="issue-panel"><p class="muted">Run a target to surface the first divergence, timeout, or error.</p></div>
     </article>
   </main>
-
-  <section class="card">
-    <h2>Exact failure evidence</h2>
-    <pre id="failurePre" class="tech">Select a DIVERGENCE row after a run.</pre>
+  <section class="card" aria-labelledby="vectorsHeading">
+    <h2 id="vectorsHeading">Vectors <span class="tag">statuses</span></h2>
+    <div id="vectorList" class="vectors" role="list"></div>
   </section>
-
-  <section class="card">
-    <h2>Reproduction command</h2>
-    <pre id="reproPre" class="tech">Run conformance to populate.</pre>
-    <button type="button" id="copyBtn" class="ghost" disabled>Copy reproduction command</button>
+  <section class="card" aria-labelledby="evidenceHeading">
+    <h2 id="evidenceHeading">Inspect evidence</h2>
+    <pre id="failurePre" class="tech" tabindex="0">Select a vector row after a run.</pre>
   </section>
-
-  <dialog id="aboutDialog">
+  <section class="card" aria-labelledby="reproHeading">
+    <h2 id="reproHeading">Download &amp; reproduce</h2>
+    <pre id="reproPre" class="tech" tabindex="0">Run conformance to populate.</pre>
+    <div class="btn-row">
+      <button type="button" id="copyBtn" class="ghost" disabled>Copy reproduction command</button>
+      <button type="button" id="downloadBtn" class="ghost" disabled>Download report JSON</button>
+    </div>
+  </section>
+  <dialog id="aboutDialog" aria-labelledby="aboutTitle">
     <form method="dialog" class="about">
-      <h2>About / Build Info</h2>
+      <h2 id="aboutTitle">Disclosure / Build Info</h2>
       <div id="aboutBody"></div>
       <button value="close" class="primary">Close</button>
     </form>
   </dialog>
-
   <script type="module" src="/app.js"></script>
 </body>
 </html>

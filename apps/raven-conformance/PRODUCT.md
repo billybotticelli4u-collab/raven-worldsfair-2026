@@ -52,3 +52,7 @@ Bounded isolation runner + result taxonomy + hostile probes + replay + UI contra
 - Isolation: `sandbox_exec` (Darwin Seatbelt) when verified; otherwise `curated_demo` with `verified: false`
 - A Node child_process alone is **not** a security sandbox
 - No arbitrary public code upload; no merge/deploy/npm publish in this handoff
+
+## Challenge 2 Judge UI (this branch)
+
+Author-lane Fair Build Stage UI for 60-second judge understanding: live progress from runner events, display-adapter status kinds, a11y, XSS text-only rendering, recorded-report fallback, download + reproduce. Does not rewrite engine verdicts; does not maintain a second runner. Consumes `interface/raven-conformance-ui-contract/1`.

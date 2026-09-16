@@ -2,7 +2,7 @@
   "name": "raven-conformance",
   "version": "0.1.1",
   "private": true,
-  "description": "Crypto World's Fair 2026 — Raven Conformance Challenge 1: bounded isolation runner + taxonomy + probes + replay.",
+  "description": "Crypto World's Fair 2026 \u2014 Raven Conformance Challenge 1: bounded isolation runner + taxonomy + probes + replay.",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -15,8 +15,14 @@
     "demo": "node src/bin/demo.js",
     "replay": "node src/bin/replay.js",
     "probes": "node src/bin/probes.js",
-    "build": "node --check src/server.js && node --check src/cli.js && node --check src/lib/runner.js && node --check src/lib/isolation.js && node --check src/lib/replay.js && node --check public/app.js"
+    "build": "node --check src/server.js && node --check src/cli.js && node --check src/lib/displayAdapter.js && node --check public/app.js",
+    "verify:browser": "node scripts/browser-verify.mjs"
   },
-  "keywords": ["raven", "conformance", "hackathon", "worldsfair"],
+  "keywords": [
+    "raven",
+    "conformance",
+    "hackathon",
+    "worldsfair"
+  ],
   "license": "Apache-2.0"
 }
