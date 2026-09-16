@@ -29,6 +29,7 @@ const REASON = {
   CONFIG_MASK: "config_mask_invalid",
   HEAP: "config_heap_out_of_range",
   SIZE: "size_cap_exceeded",
+  CAP: "constraint_cap_exceeded",
 };
 
 function reject(reason, detail) {
@@ -82,7 +83,9 @@ function need(buf, off, n, what) {
 }
 
 function checkHeader(numReqSig, numRoSigned, numRoUnsigned, accountCount) {
-  if (numRoSigned > numReqSig) throw reject(REASON.HEADER, "ro_signed_gt_req");
+  // SIMD-0385 / Agave sanitize: num_readonly_signed >= num_required_signatures
+  // fails (equality would make the fee payer readonly; implies numReqSig >= 1).
+  if (numRoSigned >= numReqSig) throw reject(REASON.HEADER, "ro_signed_gte_req");
   if (numReqSig > accountCount) throw reject(REASON.HEADER, "req_sig_gt_accounts");
   if (numReqSig - numRoSigned + numRoUnsigned > accountCount)
     throw reject(REASON.HEADER, "writable_unsigned_overflow");
@@ -157,7 +160,7 @@ function parseLegacyV0Message(buf, msgOff, sigCount, version) {
   if (off !== buf.length) throw reject(off < buf.length ? REASON.TRAILING : REASON.TRUNCATED);
 }
 
-/** v1 parse (SIMD-0385 layout as implemented by @solana/kit 8.3.0). */
+/** v1 parse (SIMD-0385 GROUPED layout: all InstructionHeaders, then all InstructionPayloads). */
 function parseV1(buf) {
   if (buf.length > 4096) throw reject(REASON.SIZE, "v1>4096");
   need(buf, 0, 1 + 3 + 4 + 32 + 1 + 1, "v1_head");
@@ -167,11 +170,15 @@ function parseV1(buf) {
   if ((mask & 3) === 1 || (mask & 3) === 2) throw reject(REASON.CONFIG_MASK, "partial_fee_bits");
   if (mask & ~0b11111) throw reject(REASON.CONFIG_MASK, "unknown_bits");
   let off = 8;
-  off += 32; // lifetimeToken
+  off += 32; // lifetimeSpecifier
   const numInstructions = buf[off];
   off += 1;
   const numStatic = buf[off];
   off += 1;
+  // SIMD-0385 Transaction Constraints (v1)
+  if (numReqSig > 12) throw reject(REASON.CAP, "signatures>12");
+  if (numStatic > 64) throw reject(REASON.CAP, "addresses>64");
+  if (numInstructions > 64) throw reject(REASON.CAP, "instructions>64");
   need(buf, off, numStatic * 32, "v1_static_accounts");
   const accounts = [];
   for (let i = 0; i < numStatic; i++) accounts.push(buf.subarray(off + i * 32, off + (i + 1) * 32));
@@ -199,18 +206,25 @@ function parseV1(buf) {
   }
   if (heap !== null && (heap < 32768 || heap > 262144 || heap % 1024 !== 0))
     throw reject(REASON.HEAP, String(heap));
+  // GROUPED: numInstructions headers first ...
+  need(buf, off, numInstructions * 4, "v1_ix_headers");
+  const headers = [];
   for (let i = 0; i < numInstructions; i++) {
-    need(buf, off, 4, "v1_ix_header");
-    const progIdx = buf[off];
-    const numAcct = buf[off + 1];
-    const numData = buf.readUInt16LE(off + 2);
+    headers.push({
+      progIdx: buf[off],
+      numAcct: buf[off + 1],
+      numData: buf.readUInt16LE(off + 2),
+    });
     off += 4;
-    need(buf, off, numAcct, "v1_ix_accounts");
-    const acctIdx = Array.from(buf.subarray(off, off + numAcct));
-    off += numAcct;
-    need(buf, off, numData, "v1_ix_data");
-    off += numData;
-    if (progIdx >= numStatic) throw reject(REASON.INDEX_OOB, "program");
+  }
+  // ... then numInstructions concatenated payloads
+  for (const h of headers) {
+    if (h.progIdx >= numStatic) throw reject(REASON.INDEX_OOB, "program");
+    need(buf, off, h.numAcct, "v1_ix_accounts");
+    const acctIdx = Array.from(buf.subarray(off, off + h.numAcct));
+    off += h.numAcct;
+    need(buf, off, h.numData, "v1_ix_data");
+    off += h.numData;
     for (const a of acctIdx) if (a >= numStatic) throw reject(REASON.INDEX_OOB, "account");
   }
   const sigs = { value: numReqSig }; // v1 tail: sig count is implicit = header.num_required_signatures

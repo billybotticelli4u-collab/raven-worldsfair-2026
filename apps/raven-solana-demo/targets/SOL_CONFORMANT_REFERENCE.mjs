@@ -68,21 +68,23 @@ function header(c, accountCount) {
   const numReq = c.u8("header");
   const numRoS = c.u8("header");
   const numRoU = c.u8("header");
-  if (numRoS > numReq) throw fail("header_inconsistent:ro_signed_gt_req");
+  // SIMD-0385 / Agave sanitize: num_readonly_signed >= num_required_signatures
+  // fails (equality would make the fee payer readonly).
+  if (numRoS >= numReq) throw fail("header_inconsistent:ro_signed_gte_req");
   if (numReq > accountCount) throw fail("header_inconsistent:req_sig_gt_accounts");
   if (numReq - numRoS + numRoU > accountCount) throw fail("header_inconsistent:writable_unsigned_overflow");
-  return numReq;
+  return { numReq, numRoS, numRoU };
 }
 
 function parseLegacyOrV0(buf, msgOff, sigCount, version) {
   const c = new Cursor(buf);
   c.off = msgOff;
-  const numReq = header(c, Infinity); // account count not yet known; checked below
+  const { numReq } = header(c, Infinity); // account count not yet known; checked below
   const accountCount = c.shortvec("accounts");
   const accounts = c.bytes(accountCount * 32, "accounts");
   // header consistency vs account count
   const [numReqSig, numRoS, numRoU] = [buf[msgOff], buf[msgOff + 1], buf[msgOff + 2]];
-  if (numRoS > numReqSig) throw fail("header_inconsistent:ro_signed_gt_req");
+  if (numRoS >= numReqSig) throw fail("header_inconsistent:ro_signed_gte_req");
   if (numReqSig > accountCount) throw fail("header_inconsistent:req_sig_gt_accounts");
   if (numReqSig - numRoS + numRoU > accountCount) throw fail("header_inconsistent:writable_unsigned_overflow");
   if (sigCount !== numReq) throw fail(`signature_count_mismatch:${sigCount}!=${numReq}`);
@@ -129,9 +131,13 @@ function parseV1(buf) {
   c.bytes(32, "lifetime_token");
   const numIx = c.u8("num_instructions");
   const numStatic = c.u8("num_static_accounts");
+  // SIMD-0385 Transaction Constraints (v1)
+  if (numReq > 12) throw fail("constraint_cap_exceeded:signatures>12");
+  if (numStatic > 64) throw fail("constraint_cap_exceeded:addresses>64");
+  if (numIx > 64) throw fail("constraint_cap_exceeded:instructions>64");
   const accounts = [];
   for (let i = 0; i < numStatic; i++) accounts.push(c.bytes(32, "static_accounts").toString("hex"));
-  if (numRoS > numReq) throw fail("header_inconsistent:ro_signed_gt_req");
+  if (numRoS >= numReq) throw fail("header_inconsistent:ro_signed_gte_req");
   if (numReq > numStatic) throw fail("header_inconsistent:req_sig_gt_accounts");
   if (numReq - numRoS + numRoU > numStatic) throw fail("header_inconsistent:writable_unsigned_overflow");
   if (new Set(accounts).size !== accounts.length) throw fail("duplicate_static_accounts");
@@ -142,13 +148,19 @@ function parseV1(buf) {
     const heap = c.u32le("config_heap");
     if (heap < 32768 || heap > 262144 || heap % 1024 !== 0) throw fail(`config_heap_out_of_range:${heap}`);
   }
+  // GROUPED layout (SIMD-0385): all InstructionHeaders first ...
+  const headers = [];
   for (let i = 0; i < numIx; i++) {
-    const prog = c.u8("ix_program");
-    const nA = c.u8("ix_num_accounts");
-    const nD = c.u16le("ix_num_data_bytes");
-    const accts = Array.from(c.bytes(nA, "ix_accounts"));
-    c.bytes(nD, "ix_data");
+    const prog = c.u8("ix_header_program");
+    const nA = c.u8("ix_header_num_accounts");
+    const nD = c.u16le("ix_header_num_data_bytes");
     if (prog >= numStatic) throw fail("account_index_out_of_bounds:program");
+    headers.push({ nA, nD });
+  }
+  // ... then all InstructionPayloads concatenated
+  for (const h of headers) {
+    const accts = Array.from(c.bytes(h.nA, "ix_accounts"));
+    c.bytes(h.nD, "ix_data");
     for (const a of accts) if (a >= numStatic) throw fail("account_index_out_of_bounds:account");
   }
   // signature tail: exactly numReq x 64 bytes, count implicit in header

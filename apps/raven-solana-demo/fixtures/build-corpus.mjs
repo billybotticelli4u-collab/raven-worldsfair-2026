@@ -19,10 +19,82 @@ const base = JSON.parse(readFileSync(new URL("./base-fixtures.json", import.meta
 const L = Buffer.from(base.fixtures.legacy_ok, "hex");
 const Z = Buffer.from(base.fixtures.v0_ok, "hex");
 const O = Buffer.from(base.fixtures.v1_ok, "hex");
+const T = Buffer.from(base.fixtures.v1_2ix_ok, "hex");
 
 // payer/dest raw bytes, from the v1 fixture's static account section (@42, 2x32)
 const PAYER = O.subarray(42, 74);
 const DEST = O.subarray(74, 106);
+
+// T (2-instruction v1) layout: mask=0, numStatic=3 → InstructionHeaders @ 42+3*32 = 138
+const T_HS = 138;
+if (T[0] !== 0x81 || T[40] !== 2 || T[41] !== 3) throw new Error("v1_2ix layout assumption broken");
+const T_h0 = T.subarray(T_HS, T_HS + 4);
+const T_h1 = T.subarray(T_HS + 4, T_HS + 8);
+const T_p0len = T_h0[1] + T_h0.readUInt16LE(2);
+const T_p1len = T_h1[1] + T_h1.readUInt16LE(2);
+const T_p0 = T.subarray(T_HS + 8, T_HS + 8 + T_p0len);
+const T_p1 = T.subarray(T_HS + 8 + T_p0len, T_HS + 8 + T_p0len + T_p1len);
+const T_sigs = T.subarray(T_HS + 8 + T_p0len + T_p1len);
+// INTERLEAVED reorder of T: same bytes, same multiset, header-then-payload per
+// instruction — the pre-SIMD-0385-read shape. NOT a valid v1 transaction.
+const v1Interleaved = Buffer.concat([T.subarray(0, T_HS), T_h0, T_p0, T_h1, T_p1, T_sigs]);
+if (v1Interleaved.length !== T.length) throw new Error("interleave reconstruction broken");
+const v1ReqGtAccounts = Buffer.from(T);
+v1ReqGtAccounts[1] = 4; // num_required_signatures 1 -> 4 (> num_addresses 3)
+const v1RoSEqReq = Buffer.from(T);
+v1RoSEqReq[2] = 1; // num_readonly_signed 0 -> 1 (== num_required_signatures)
+const v1IndexOob = Buffer.from(T);
+v1IndexOob[T_HS + 8] = 99; // first payload's first account index -> 99 (>= 3)
+const synthAddr = (i) => Buffer.alloc(32, i);
+const v1IxCap = Buffer.concat([
+  Buffer.from([0x81, 1, 0, 0]), Buffer.alloc(4, 0), Buffer.alloc(32, 0x42),
+  Buffer.from([65, 1]), PAYER, Buffer.alloc(65 * 4, 0), Buffer.alloc(64, 0x55),
+]); // numInstructions = 65 (> 64)
+const v1SigCap = Buffer.concat([
+  Buffer.from([0x81, 13, 0, 0]), Buffer.alloc(4, 0), Buffer.alloc(32, 0x42),
+  Buffer.from([1, 13]), PAYER, ...Array.from({ length: 12 }, (_, i) => synthAddr(i + 1)),
+  Buffer.from([1, 0, 0, 0]), Buffer.alloc(13 * 64, 0x55),
+]); // num_required_signatures = 13 (> 12)
+const v1AddrCap = Buffer.concat([
+  Buffer.from([0x81, 1, 0, 0]), Buffer.alloc(4, 0), Buffer.alloc(32, 0x42),
+  Buffer.from([1, 65]), PAYER, ...Array.from({ length: 64 }, (_, i) => synthAddr(i + 1)),
+  Buffer.from([1, 0, 0, 0]), Buffer.alloc(64, 0x55),
+]); // num_addresses = 65 (> 64)
+// legacy signature-count mismatch: count says 2, two signature slots present,
+// but message header num_required_signatures = 1 -> R7 (not truncation).
+const legacySigMismatch = Buffer.concat([
+  Buffer.from([0x02]), L.subarray(1, 65), L.subarray(1, 65), L.subarray(65),
+]);
+// VALID-but-oversized transactions: fully well-formed, only the size cap is
+// violated. (Zero-padding a valid tx is ALSO caught by R11 exact-consumption,
+// so it cannot kill a mutant that deletes the size cap — these can.)
+const v1Oversized = (() => {
+  // 2 static accounts (payer + program), 8 instructions x 500 data bytes:
+  // 42 + 64 + 8*4 + 8*500 + 64 = 4234 > 4096, otherwise fully valid.
+  const headers = [];
+  const payloads = [];
+  for (let i = 0; i < 8; i++) {
+    headers.push(Buffer.from([1, 0, 0xf4, 0x01])); // prog=1, 0 accounts, 500 data bytes
+    payloads.push(Buffer.alloc(500, i));
+  }
+  const buf = Buffer.concat([
+    Buffer.from([0x81, 1, 0, 0]), Buffer.alloc(4, 0), Buffer.alloc(32, 0x42),
+    Buffer.from([8, 2]), PAYER, synthAddr(0xee), ...headers, ...payloads, Buffer.alloc(64, 0x55),
+  ]);
+  if (buf.length <= 4096) throw new Error("v1Oversized construction under cap");
+  return buf;
+})();
+const legacyOversized = (() => {
+  // 36 accounts: 1 + 64 + 3 + 1 + 36*32 + 32 + 4 = 1257 > 1232, otherwise valid.
+  const accts = [PAYER, ...Array.from({ length: 35 }, (_, i) => synthAddr(i + 1))];
+  const ix = Buffer.from([35, 0, 0]); // prog index 35, 0 accounts, 0 data
+  const buf = Buffer.concat([
+    Buffer.from([1]), Buffer.alloc(64, 0x55), Buffer.from([1, 0, 0]),
+    Buffer.from([36]), ...accts, Buffer.alloc(32, 0x42), Buffer.from([1]), ix,
+  ]);
+  if (buf.length <= 1232) throw new Error("legacyOversized construction under cap");
+  return buf;
+})();
 
 function replaceOnce(buf, from, to, label) {
   const hex = buf.toString("hex");
@@ -81,7 +153,7 @@ const VECTORS = [
     input: { tx_base64: b64(O) },
     requirement: "R3/R9 v1 happy path",
     rationale:
-      "Valid real v1 transfer (version byte 0x81 at offset zero, SIMD-0385; mainnet since 2026-09-09 per Solana Compass) must ACCEPT as v1. A pre-v1 parser misreads 0x81 as a short-vec continuation byte.",
+      "Valid real v1 transfer (version byte 0x81 at offset zero, SIMD-0385) must ACCEPT as v1. A pre-v1 parser misreads 0x81 as a short-vec continuation byte. (The v1 feature gate activated on mainnet-beta at slot 447120000 = 2026-09-15T01:04:23Z — chain-measured; this synthetic fixture itself makes no mainnet-behavior claim.)",
     provenance: "real: kit-generated offline, synthetic keys",
     codec_check: "decode_ok",
   },
@@ -188,6 +260,100 @@ const VECTORS = [
     provenance: "synthetic",
     codec_check: "not_applicable",
   },
+  {
+    id: "V16_valid_v1_two_instructions",
+    input: { tx_base64: b64(T) },
+    requirement: "R9 v1 GROUPED instruction layout",
+    rationale:
+      "Real kit-generated v1 with TWO instructions. SIMD-0385 groups ALL InstructionHeaders then ALL InstructionPayloads; with 1 instruction the grouped and interleaved layouts are byte-identical, so only a 2+ instruction vector can catch a wrong-layout parser. Pre-repair (v0.1.0 profile) this vector was falsely REJECTed.",
+    provenance: "real: kit-generated offline, synthetic keys",
+    codec_check: "decode_ok",
+  },
+  {
+    id: "V17_v1_interleaved_layout",
+    input: { tx_base64: b64(v1Interleaved) },
+    requirement: "R9 v1 GROUPED instruction layout",
+    rationale:
+      "Byte-reorder of V16 into the interleaved header-then-payload-per-instruction shape: identical length, identical byte multiset, layout is the ONLY variable. Must REJECT. kit 8.3.0 decodes it structurally (payload byte sums are preserved) — codec decode success is not admission hygiene, again.",
+    provenance: "derived: documented header/payload reorder of the real V16 fixture",
+    codec_check: "decode_ok_but_profile_rejects",
+  },
+  {
+    id: "V18_v1_header_req_sig_gt_accounts",
+    input: { tx_base64: b64(v1ReqGtAccounts) },
+    requirement: "R6 header_consistency (v1)",
+    rationale: "v1 num_required_signatures (4) > num_addresses (3) must REJECT header_inconsistent. Kills mutants that delete the v1 header check.",
+    provenance: "derived: header byte surgery on real V16 fixture",
+    codec_check: "decode_fail",
+  },
+  {
+    id: "V19_legacy_signature_count_mismatch",
+    input: { tx_base64: b64(legacySigMismatch) },
+    requirement: "R7 signature_count_binding (legacy)",
+    rationale:
+      "Signature vector length (2) != header.num_required_signatures (1) with BOTH signatures present — parses cleanly to the binding check, unlike V11 which fails earlier as truncation. Kills mutants that delete the count binding.",
+    provenance: "derived: legacy fixture sig-count 1->2 with duplicated signature slot",
+    codec_check: "decode_fail",
+  },
+  {
+    id: "V20_v1_account_index_out_of_bounds",
+    input: { tx_base64: b64(v1IndexOob) },
+    requirement: "R9/R8 account index bounds (v1)",
+    rationale: "v1 instruction account index 99 >= num_addresses 3 must REJECT. kit decodes it structurally — bounds are sanitization, not decoding. Kills mutants that delete the bounds check.",
+    provenance: "derived: payload byte surgery on real V16 fixture",
+    codec_check: "decode_ok_but_profile_rejects",
+  },
+  {
+    id: "V21_v1_size_cap_exceeded",
+    input: { tx_base64: b64(v1Oversized) },
+    requirement: "R12 v1 size cap",
+    rationale:
+      "Fully well-formed v1 transaction of 4234 bytes (> 4096) must REJECT size_cap_exceeded. Valid-except-size construction: a padded vector would also be caught by R11 exact-consumption and could not detect a mutant that deletes only the size cap — this one can.",
+    provenance: "synthetic: programmatically constructed, fully-formed except total size",
+    codec_check: "decode_ok_but_profile_rejects",
+  },
+  {
+    id: "V22_legacy_size_cap_exceeded",
+    input: { tx_base64: b64(legacyOversized) },
+    requirement: "R12 legacy/v0 size cap",
+    rationale:
+      "Fully well-formed legacy transaction of 1257 bytes (> 1232) must REJECT size_cap_exceeded. Valid-except-size for the same mutant-detection reason as V21.",
+    provenance: "synthetic: programmatically constructed, fully-formed except total size",
+    codec_check: "decode_ok_but_profile_rejects",
+  },
+  {
+    id: "V23_v1_ro_signed_equals_req_sig",
+    input: { tx_base64: b64(v1RoSEqReq) },
+    requirement: "R6 header_consistency equality case (SIMD-0385)",
+    rationale:
+      "num_readonly_signed == num_required_signatures is a sanitization failure per SIMD-0385 ('As in prior formats... equality fails — it would imply the fee payer is readonly'). v0.1.0 of this profile allowed equality; 0.2.0 rejects it. Kills mutants that weaken the strict inequality.",
+    provenance: "derived: header byte surgery on real V16 fixture",
+    codec_check: "decode_ok_but_profile_rejects",
+  },
+  {
+    id: "V24_v1_instructions_cap",
+    input: { tx_base64: b64(v1IxCap) },
+    requirement: "R12b v1 count caps (instructions)",
+    rationale: "v1 num_instructions 65 > 64 is a sanitization failure per the SIMD-0385 Transaction Constraints table. Kills mutants that delete the instruction cap.",
+    provenance: "synthetic: programmatically constructed, fully-formed except the cap violation",
+    codec_check: "decode_ok_but_profile_rejects",
+  },
+  {
+    id: "V25_v1_signatures_cap",
+    input: { tx_base64: b64(v1SigCap) },
+    requirement: "R12b v1 count caps (signatures)",
+    rationale: "v1 num_required_signatures 13 > 12 is a sanitization failure per the SIMD-0385 Transaction Constraints table. Kills mutants that delete the signature cap.",
+    provenance: "synthetic: programmatically constructed, fully-formed except the cap violation",
+    codec_check: "decode_ok_but_profile_rejects",
+  },
+  {
+    id: "V26_v1_addresses_cap",
+    input: { tx_base64: b64(v1AddrCap) },
+    requirement: "R12b v1 count caps (addresses)",
+    rationale: "v1 num_addresses 65 > 64 is a sanitization failure per the SIMD-0385 Transaction Constraints table. Kills mutants that delete the address cap.",
+    provenance: "synthetic: programmatically constructed, fully-formed except the cap violation",
+    codec_check: "decode_ok_but_profile_rejects",
+  },
 ];
 
 // Freeze expected outcomes from the oracle (never from a target).
@@ -218,7 +384,7 @@ if (process.argv.includes("--kit-check")) {
 
 const corpus = {
   id: "raven-solana-txversion-demo-corpus/1",
-  version: "1.0.0",
+  version: "1.1.0",
   profile: "raven-solana-txversion-experimental/0",
   description:
     "Raven-owned EXPERIMENTAL demo corpus: envelope-level admission of serialized Solana transactions (legacy/v0/v1). Expected outcomes frozen by oracle/oracle.mjs before any target ran. Not an accepted Raven protocol; establishes no on-chain behavior.",

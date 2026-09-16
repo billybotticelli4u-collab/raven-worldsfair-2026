@@ -104,7 +104,10 @@ async function runTarget(targetId, runId) {
   const targets = JSON.parse(readFileSync(manifestsPath, "utf8")).targets;
   const target = targets.find((t) => t.id === targetId);
   if (!target) throw new Error(`unknown_target:${targetId}`);
-  const entryAbs = path.join(ROOT, "targets", target.entry);
+  const targetsDir = path.join(ROOT, "targets");
+  const entryAbs = path.resolve(targetsDir, target.entry);
+  if (!entryAbs.startsWith(targetsDir + path.sep))
+    throw new Error(`target_entry_escapes_targets_dir:${target.entry}`);
   if (!existsSync(entryAbs)) throw new Error(`missing_target_entry:${entryAbs}`);
 
   const results = [];
@@ -152,7 +155,7 @@ async function runTarget(targetId, runId) {
       arch: process.arch,
       os: `${os.type()} ${os.release()}`,
       isolation: "local_node_child_process_restricted_env_timeout_mvp_style_not_a_sandbox",
-      network_policy: "outbound_denied_by_default_proxies_unset",
+      network_policy: "no_network_enforcement: proxy env vars unset only; target process retains raw socket, filesystem, and child-process access (measured 2026-09-16: loopback TCP connect and local file reads succeed under this env)",
     },
     summary: { test_count: results.length, pass, divergence, overall: divergence === 0 ? "CONFORMANT" : "DIVERGENT" },
     results,

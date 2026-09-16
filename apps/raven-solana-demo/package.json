@@ -8,14 +8,16 @@
     "node": ">=22"
   },
   "scripts": {
+    "test": "node harness/selftest.js",
     "demo": "node harness/run.js --all",
     "conform": "node harness/run.js --target",
     "build-corpus": "node fixtures/build-corpus.mjs --kit-check",
     "oracle": "node oracle/oracle.mjs"
   },
   "devDependencies": {
+    "@solana-program/system": "^0.14.1",
     "@solana/kit": "8.3.0"
   },
-  "comment": "Harness, targets, and oracle are dependency-free Node. @solana/kit is needed ONLY to regenerate fixtures (fixtures/generate.mjs) or re-run the kit cross-check in build-corpus. The corpus JSON is committed; judges do not need npm install.",
+  "comment": "Harness, targets, and oracle are dependency-free Node. The devDependencies (@solana/kit, @solana-program/system) are needed ONLY to regenerate fixtures (fixtures/generate.mjs) or re-run the kit cross-check in build-corpus. The corpus JSON is committed; judges do not need npm install.",
   "license": "Apache-2.0"
 }

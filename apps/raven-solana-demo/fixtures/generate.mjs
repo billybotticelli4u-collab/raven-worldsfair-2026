@@ -122,6 +122,27 @@ const out = { meta: {}, fixtures: {} };
   out.fixtures.v1_ok = hex(bytes);
 }
 
+// ---------- v1, TWO instructions (layout discriminator) ----------
+// Grouped vs interleaved layouts are byte-identical for 1-instruction v1
+// transactions; two instructions make the layouts observably different.
+{
+  const transfer2 = getTransferSolInstruction({
+    amount: lamports(20_000_000n),
+    destination: dest,
+    source: payer,
+  });
+  const message = pipe(
+    createTransactionMessage({ version: 1 }),
+    (m) => setTransactionMessageFeePayerSigner(payer, m),
+    (m) => setTransactionMessageLifetimeUsingBlockhash({ blockhash: FAKE_BLOCKHASH, lastValidBlockHeight: 0n }, m),
+    (m) => appendTransactionMessageInstruction(transfer, m),
+    (m) => appendTransactionMessageInstruction(transfer2, m)
+  );
+  const tx = await signTransactionMessageWithSigners(message);
+  const bytes = getTransactionEncoder().encode(tx);
+  out.fixtures.v1_2ix_ok = hex(bytes);
+}
+
 // ---- cross-check: kit's own decoder round-trips each fixture ----
 const txDecoder = getTransactionDecoder();
 for (const [name, h] of Object.entries(out.fixtures)) {
