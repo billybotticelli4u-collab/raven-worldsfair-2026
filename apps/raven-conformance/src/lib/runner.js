@@ -26,6 +26,9 @@ import {
 const PROFILE_FILE = "raven-canonical-envelope-1.json";
 const CORPUS_FILE = "raven-canonical-envelope-demo-corpus-1.json";
 const BRANCH_NAME = "billy/fair-challenge1-bounded-runner-2026-09-16";
+const PROBE_TIMEOUT_MS = 800;
+const PROBE_FLOOD_MAX_STDOUT = 32 * 1024;
+const PROBE_FLOOD_MAX_STDERR = 8 * 1024;
 
 export { restrictedEnv, DEFAULT_TIMEOUT_MS };
 
@@ -317,7 +320,7 @@ export async function runConformance(targetId, opts = {}) {
         vector_id: vector.id,
         description: vector.description,
         expected: { decision: vector.expected.decision },
-        observed: exec.observed
+        observed: exec.observed && !exec.parseError
           ? { decision: exec.observed.decision, reason: exec.observed.reason ?? null }
           : {
               decision: null,
@@ -357,15 +360,6 @@ export async function runConformance(targetId, opts = {}) {
   const counts = tallyCounts(results);
   const passCount = counts.PASS;
   const divergenceCount = counts.BEHAVIORAL_DIVERGENCE;
-  // CONFORMANT only if every vector PASS (no crash/timeout/invalid masquerading)
-  const blocking =
-    counts.TARGET_CRASH +
-    counts.TIMEOUT +
-    counts.INVALID_OUTPUT +
-    counts.OUTPUT_FLOOD +
-    counts.RUNNER_FAILURE +
-    counts.INCOMPLETE +
-    counts.BEHAVIORAL_DIVERGENCE;
   let overall;
   if (incomplete || runnerFailure) overall = "INCOMPLETE";
   else if (passCount === results.length) overall = "CONFORMANT";
@@ -537,9 +531,9 @@ export async function runProbe(targetId, opts = {}) {
       inputObj: input,
       workDir,
       isolation,
-      timeoutMs: opts.timeoutMs || (target.probe_kind === "timeout" || target.id.includes("ENDLESS") ? 800 : DEFAULT_TIMEOUT_MS),
-      maxStdout: opts.maxStdout || (target.id.includes("FLOOD") ? 32 * 1024 : undefined),
-      maxStderr: opts.maxStderr || (target.id.includes("FLOOD") ? 8 * 1024 : undefined),
+      timeoutMs: opts.timeoutMs || (target.probe_kind === "timeout" || target.id.includes("ENDLESS") ? PROBE_TIMEOUT_MS : DEFAULT_TIMEOUT_MS),
+      maxStdout: opts.maxStdout || (target.id.includes("FLOOD") ? PROBE_FLOOD_MAX_STDOUT : undefined),
+      maxStderr: opts.maxStderr || (target.id.includes("FLOOD") ? PROBE_FLOOD_MAX_STDERR : undefined),
       injectCanary: false,
     });
 

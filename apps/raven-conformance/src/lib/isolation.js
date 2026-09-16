@@ -390,7 +390,6 @@ export function spawnIsolated({
           observed = JSON.parse(line);
           if (!observed || typeof observed.decision !== "string") {
             parseError = "missing_decision";
-            observed = null;
           }
         } catch {
           parseError = "unparseable_stdout";
