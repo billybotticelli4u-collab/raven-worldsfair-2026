@@ -75,6 +75,16 @@ describe("Challenge 2 judge server", () => {
     assert.equal(finished.payload.report.summary.overall, "CONFORMANT");
   });
 
+  it("streams structured error events for disallowed targets", async () => {
+    const response = await fetch(`${BASE}/api/run-stream?target=HOSTILE_ENDLESS`);
+    const text = await response.text();
+    const events = parseSse(text);
+    const failure = events.find((event) => event.type === "error");
+    assert.ok(failure);
+    assert.equal(failure.code, "unknown_target");
+    assert.equal(typeof failure.message, "string");
+  });
+
   it("enforces the demo allowlist for POST /api/run", async () => {
     const response = await fetch(`${BASE}/api/run`, {
       method: "POST",

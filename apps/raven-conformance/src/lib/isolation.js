@@ -258,6 +258,14 @@ export function resolveIsolation(workDir) {
 
 function killProcessGroup(pid) {
   if (!pid || pid <= 0) return;
+  if (process.platform === "win32") {
+    try {
+      spawnSync("taskkill", ["/T", "/F", "/PID", String(pid)], { stdio: "ignore" });
+      return;
+    } catch {
+      // fall through
+    }
+  }
   try {
     process.kill(-pid, "SIGKILL");
   } catch {
@@ -289,6 +297,7 @@ export function spawnIsolated({
     const boundedTimeoutMs = Number.isFinite(timeoutMs)
       ? Math.max(100, Math.min(MAX_TIMEOUT_MS, Math.trunc(timeoutMs)))
       : DEFAULT_TIMEOUT_MS;
+    const detached = process.platform !== "win32";
     const env = restrictedEnv(envExtra);
     // Optionally inject canary ONLY into parent test harness — never into target
     // unless injectCanary (should stay false for normal runs).
@@ -325,7 +334,7 @@ export function spawnIsolated({
       cwd: workDir,
       env,
       stdio: ["pipe", "pipe", "pipe"],
-      detached: true, // own process group for group kill
+      detached, // own process group where supported for group kill
       windowsHide: true,
     });
 

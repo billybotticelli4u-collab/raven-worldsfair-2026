@@ -531,197 +531,199 @@ export async function runProbe(targetId, opts = {}) {
   };
 
   let exec;
-  exec = await spawnIsolated({
-    entryAbs,
-    inputObj: input,
-    workDir,
-    isolation,
-    timeoutMs: opts.timeoutMs || (target.probe_kind === "timeout" || target.id.includes("ENDLESS") ? 800 : DEFAULT_TIMEOUT_MS),
-    maxStdout: opts.maxStdout || (target.id.includes("FLOOD") ? 32 * 1024 : undefined),
-    maxStderr: opts.maxStderr || (target.id.includes("FLOOD") ? 8 * 1024 : undefined),
-    injectCanary: false,
-  });
+  try {
+    exec = await spawnIsolated({
+      entryAbs,
+      inputObj: input,
+      workDir,
+      isolation,
+      timeoutMs: opts.timeoutMs || (target.probe_kind === "timeout" || target.id.includes("ENDLESS") ? 800 : DEFAULT_TIMEOUT_MS),
+      maxStdout: opts.maxStdout || (target.id.includes("FLOOD") ? 32 * 1024 : undefined),
+      maxStderr: opts.maxStderr || (target.id.includes("FLOOD") ? 8 * 1024 : undefined),
+      injectCanary: false,
+    });
 
-  const kind = target.probe_kind || target.id;
-  let status;
-  let evidence = {
-    stdout: exec.stdout,
-    stderr: exec.stderr,
-    exitCode: exec.exitCode,
-    durationMs: exec.durationMs,
-    timedOut: exec.timedOut,
-    flooded: exec.flooded,
-    isolation_mode: isolation.mode,
-    isolation_verified: isolation.verified,
-  };
+    const kind = target.probe_kind || target.id;
+    let status;
+    let evidence = {
+      stdout: exec.stdout,
+      stderr: exec.stderr,
+      exitCode: exec.exitCode,
+      durationMs: exec.durationMs,
+      timedOut: exec.timedOut,
+      flooded: exec.flooded,
+      isolation_mode: isolation.mode,
+      isolation_verified: isolation.verified,
+    };
 
-  // Interpret by probe kind
-  if (kind === "network" || target.id === "HOSTILE_NETWORK_ATTEMPT") {
-    const observed = exec.observed;
-    const blocked =
-      observed?.network_blocked === true ||
-      observed?.decision === "BOUNDARY_HOLD" ||
-      /ENOTFOUND|ECONNREFUSED|network|denied|EPERM|getaddrinfo/i.test(exec.stdout + exec.stderr);
-    // On curated_demo, network may succeed — that is BOUNDARY_ESCAPE for network claim
-    if (blocked || (observed?.ok === false && observed?.error)) {
-      status = "BOUNDARY_HOLD";
-      evidence.note = "network attempt failed or reported blocked";
-    } else if (observed?.network_ok === true || observed?.decision === "BOUNDARY_ESCAPE") {
-      status = "BOUNDARY_ESCAPE";
-      evidence.note = "network appeared to succeed — boundary did not hold";
-    } else {
-      // Ambiguous: treat crash/timeout as hold-ish for sandbox deny
-      status = exec.timedOut || exec.exitCode !== 0 ? "BOUNDARY_HOLD" : "BOUNDARY_ESCAPE";
-      evidence.note = "ambiguous network probe outcome; classified from exit/timeout";
-    }
-  } else if (kind === "env" || target.id === "HOSTILE_ENV_CANARY") {
-    const observed = exec.observed;
-    const leaked = observed?.canary_present === true;
-    status = leaked ? "BOUNDARY_ESCAPE" : "BOUNDARY_HOLD";
-    evidence.note = leaked ? "canary env visible to target" : "canary env absent from target (hold)";
-    evidence.canary_env_expected_absent = true;
-  } else if (kind === "write" || target.id === "HOSTILE_CORPUS_WRITE") {
-    const observed = exec.observed;
-    const wrote = observed?.write_succeeded === true;
-    const { unlinkSync } = await import("node:fs");
-    for (const a of observed?.attempts || []) {
-      if (a?.path && existsSync(a.path)) {
-        try { unlinkSync(a.path); } catch { /* */ }
+    // Interpret by probe kind
+    if (kind === "network" || target.id === "HOSTILE_NETWORK_ATTEMPT") {
+      const observed = exec.observed;
+      const blocked =
+        observed?.network_blocked === true ||
+        observed?.decision === "BOUNDARY_HOLD" ||
+        /ENOTFOUND|ECONNREFUSED|network|denied|EPERM|getaddrinfo/i.test(exec.stdout + exec.stderr);
+      // On curated_demo, network may succeed — that is BOUNDARY_ESCAPE for network claim
+      if (blocked || (observed?.ok === false && observed?.error)) {
+        status = "BOUNDARY_HOLD";
+        evidence.note = "network attempt failed or reported blocked";
+      } else if (observed?.network_ok === true || observed?.decision === "BOUNDARY_ESCAPE") {
+        status = "BOUNDARY_ESCAPE";
+        evidence.note = "network appeared to succeed — boundary did not hold";
+      } else {
+        // Ambiguous: treat crash/timeout as hold-ish for sandbox deny
+        status = exec.timedOut || exec.exitCode !== 0 ? "BOUNDARY_HOLD" : "BOUNDARY_ESCAPE";
+        evidence.note = "ambiguous network probe outcome; classified from exit/timeout";
       }
-    }
-    const probeFile = path.join(CORPUS_DIR, `.${writeMarker}`);
-    const reportProbe = path.join(REPORTS_DIR, `.${writeMarker}.txt`);
-    const exists = existsSync(probeFile) || existsSync(reportProbe);
-    for (const pth of [probeFile, reportProbe]) {
-      if (existsSync(pth)) {
-        try { unlinkSync(pth); } catch { /* */ }
+    } else if (kind === "env" || target.id === "HOSTILE_ENV_CANARY") {
+      const observed = exec.observed;
+      const leaked = observed?.canary_present === true;
+      status = leaked ? "BOUNDARY_ESCAPE" : "BOUNDARY_HOLD";
+      evidence.note = leaked ? "canary env visible to target" : "canary env absent from target (hold)";
+      evidence.canary_env_expected_absent = true;
+    } else if (kind === "write" || target.id === "HOSTILE_CORPUS_WRITE") {
+      const observed = exec.observed;
+      const wrote = observed?.write_succeeded === true;
+      const { unlinkSync } = await import("node:fs");
+      for (const a of observed?.attempts || []) {
+        if (a?.path && existsSync(a.path)) {
+          try { unlinkSync(a.path); } catch { /* */ }
+        }
       }
-    }
-    status = wrote || exists ? "BOUNDARY_ESCAPE" : "BOUNDARY_HOLD";
-    evidence.note = wrote || exists ? "corpus/report write succeeded (curated_demo may not confine FS)" : "write failed as expected";
-    evidence.write_succeeded = Boolean(wrote || exists);
-  } else if (kind === "timeout" || target.id === "HOSTILE_ENDLESS") {
-    status = exec.timedOut ? "TIMEOUT" : exec.flooded ? "OUTPUT_FLOOD" : "BOUNDARY_ESCAPE";
-    // Map to boundary: timeout is HOLD of runaway
-    if (exec.timedOut) {
-      evidence.boundary = "BOUNDARY_HOLD";
-      evidence.note = "endless loop killed by timeout (hold)";
-    } else {
-      evidence.boundary = "BOUNDARY_ESCAPE";
-      evidence.note = "endless loop did not timeout";
-    }
-  } else if (kind === "child" || target.id === "HOSTILE_CHILD_PERSIST") {
-    // Runner cleanup: kill process group already done in spawnIsolated;
-    // also explicitly reap any child_pid the probe reported.
-    const childPid = exec.observed?.child_pid;
-    if (childPid) {
-      try { process.kill(-childPid, "SIGKILL"); } catch { /* */ }
-      try { process.kill(childPid, "SIGKILL"); } catch { /* */ }
-    }
-    // Brief settle
-    await new Promise((r) => setTimeout(r, 50));
-    let alive = false;
-    if (childPid) {
-      try {
-        process.kill(childPid, 0);
-        alive = true;
-      } catch {
-        alive = false;
+      const probeFile = path.join(CORPUS_DIR, `.${writeMarker}`);
+      const reportProbe = path.join(REPORTS_DIR, `.${writeMarker}.txt`);
+      const exists = existsSync(probeFile) || existsSync(reportProbe);
+      for (const pth of [probeFile, reportProbe]) {
+        if (existsSync(pth)) {
+          try { unlinkSync(pth); } catch { /* */ }
+        }
       }
-    }
-    // Final kill attempt if still alive (evidence of escape before kill)
-    if (alive && childPid) {
-      try { process.kill(childPid, "SIGKILL"); } catch { /* */ }
-      try { process.kill(-childPid, "SIGKILL"); } catch { /* */ }
+      status = wrote || exists ? "BOUNDARY_ESCAPE" : "BOUNDARY_HOLD";
+      evidence.note = wrote || exists ? "corpus/report write succeeded (curated_demo may not confine FS)" : "write failed as expected";
+      evidence.write_succeeded = Boolean(wrote || exists);
+    } else if (kind === "timeout" || target.id === "HOSTILE_ENDLESS") {
+      status = exec.timedOut ? "TIMEOUT" : exec.flooded ? "OUTPUT_FLOOD" : "BOUNDARY_ESCAPE";
+      // Map to boundary: timeout is HOLD of runaway
+      if (exec.timedOut) {
+        evidence.boundary = "BOUNDARY_HOLD";
+        evidence.note = "endless loop killed by timeout (hold)";
+      } else {
+        evidence.boundary = "BOUNDARY_ESCAPE";
+        evidence.note = "endless loop did not timeout";
+      }
+    } else if (kind === "child" || target.id === "HOSTILE_CHILD_PERSIST") {
+      // Runner cleanup: kill process group already done in spawnIsolated;
+      // also explicitly reap any child_pid the probe reported.
+      const childPid = exec.observed?.child_pid;
+      if (childPid) {
+        try { process.kill(-childPid, "SIGKILL"); } catch { /* */ }
+        try { process.kill(childPid, "SIGKILL"); } catch { /* */ }
+      }
+      // Brief settle
       await new Promise((r) => setTimeout(r, 50));
-      try {
-        process.kill(childPid, 0);
-        alive = true;
-      } catch {
-        alive = false;
+      let alive = false;
+      if (childPid) {
+        try {
+          process.kill(childPid, 0);
+          alive = true;
+        } catch {
+          alive = false;
+        }
       }
-      // If we had to specially kill outside process-group, still HOLD if now dead —
-      // but record that group-kill alone was insufficient (curated_demo disclosure).
-      evidence.required_explicit_child_kill = true;
-    }
-    // Classification: if group+explicit kill left it dead → HOLD; if immortal → ESCAPE
-    let stillAlive = false;
-    if (childPid) {
-      try {
-        process.kill(childPid, 0);
-        stillAlive = true;
-      } catch {
-        stillAlive = false;
+      // Final kill attempt if still alive (evidence of escape before kill)
+      if (alive && childPid) {
+        try { process.kill(childPid, "SIGKILL"); } catch { /* */ }
+        try { process.kill(-childPid, "SIGKILL"); } catch { /* */ }
+        await new Promise((r) => setTimeout(r, 50));
+        try {
+          process.kill(childPid, 0);
+          alive = true;
+        } catch {
+          alive = false;
+        }
+        // If we had to specially kill outside process-group, still HOLD if now dead —
+        // but record that group-kill alone was insufficient (curated_demo disclosure).
+        evidence.required_explicit_child_kill = true;
       }
+      // Classification: if group+explicit kill left it dead → HOLD; if immortal → ESCAPE
+      let stillAlive = false;
+      if (childPid) {
+        try {
+          process.kill(childPid, 0);
+          stillAlive = true;
+        } catch {
+          stillAlive = false;
+        }
+      }
+      status = stillAlive ? "BOUNDARY_ESCAPE" : "BOUNDARY_HOLD";
+      evidence.note = stillAlive
+        ? "child still alive after runner cleanup"
+        : "child reaped by runner cleanup (hold)";
+      evidence.child_pid = childPid ?? null;
+      evidence.child_alive_after_cleanup = stillAlive;
+    } else if (kind === "flood" || target.id === "HOSTILE_OUTPUT_FLOOD") {
+      status = exec.flooded ? "OUTPUT_FLOOD" : "BOUNDARY_ESCAPE";
+      evidence.boundary = exec.flooded ? "BOUNDARY_HOLD" : "BOUNDARY_ESCAPE";
+      evidence.note = exec.flooded ? "output flood capped by runner" : "flood not detected";
+    } else if (kind === "malformed" || target.id === "HOSTILE_MALFORMED_OUTPUT") {
+      const { status: st } = classifyResult(exec, "ACCEPT");
+      status = st === "INVALID_OUTPUT" ? "INVALID_OUTPUT" : st;
+      evidence.boundary = status === "INVALID_OUTPUT" ? "BOUNDARY_HOLD" : "BOUNDARY_ESCAPE";
+      evidence.note = "malformed stdout classification";
+    } else if (kind === "crash" || target.id === "HOSTILE_EXIT_CRASH") {
+      const { status: st } = classifyResult(exec, "ACCEPT");
+      status = st === "TARGET_CRASH" ? "TARGET_CRASH" : st === "PASS" ? "BOUNDARY_ESCAPE" : st;
+      evidence.boundary = status === "TARGET_CRASH" ? "BOUNDARY_HOLD" : "BOUNDARY_ESCAPE";
+      evidence.note = "crash must not classify as PASS";
+    } else {
+      status = "RUNNER_FAILURE";
+      evidence.note = `unknown_probe_kind:${kind}`;
     }
-    status = stillAlive ? "BOUNDARY_ESCAPE" : "BOUNDARY_HOLD";
-    evidence.note = stillAlive
-      ? "child still alive after runner cleanup"
-      : "child reaped by runner cleanup (hold)";
-    evidence.child_pid = childPid ?? null;
-    evidence.child_alive_after_cleanup = stillAlive;
-  } else if (kind === "flood" || target.id === "HOSTILE_OUTPUT_FLOOD") {
-    status = exec.flooded ? "OUTPUT_FLOOD" : "BOUNDARY_ESCAPE";
-    evidence.boundary = exec.flooded ? "BOUNDARY_HOLD" : "BOUNDARY_ESCAPE";
-    evidence.note = exec.flooded ? "output flood capped by runner" : "flood not detected";
-  } else if (kind === "malformed" || target.id === "HOSTILE_MALFORMED_OUTPUT") {
-    const { status: st } = classifyResult(exec, "ACCEPT");
-    status = st === "INVALID_OUTPUT" ? "INVALID_OUTPUT" : st;
-    evidence.boundary = status === "INVALID_OUTPUT" ? "BOUNDARY_HOLD" : "BOUNDARY_ESCAPE";
-    evidence.note = "malformed stdout classification";
-  } else if (kind === "crash" || target.id === "HOSTILE_EXIT_CRASH") {
-    const { status: st } = classifyResult(exec, "ACCEPT");
-    status = st === "TARGET_CRASH" ? "TARGET_CRASH" : st === "PASS" ? "BOUNDARY_ESCAPE" : st;
-    evidence.boundary = status === "TARGET_CRASH" ? "BOUNDARY_HOLD" : "BOUNDARY_ESCAPE";
-    evidence.note = "crash must not classify as PASS";
-  } else {
-    status = "RUNNER_FAILURE";
-    evidence.note = `unknown_probe_kind:${kind}`;
+
+    const report = {
+      schema: "raven-conformance-probe-report/1",
+      run_id: runId,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      probe: true,
+      target: {
+        id: target.id,
+        name: target.name,
+        entry: target.entry,
+        probe_kind: target.probe_kind,
+        entry_sha256: fileSha256(entryAbs),
+      },
+      isolation: {
+        mode: isolation.mode,
+        verified: isolation.verified,
+        platform: isolation.platform,
+        details: isolation.details,
+        verified_controls: isolation.verified_controls,
+        assumed_controls: isolation.assumed_controls,
+        disclosure: "Child process alone is not a security sandbox.",
+      },
+      status,
+      boundary:
+        evidence.boundary ||
+        (status === "BOUNDARY_HOLD" || status === "TIMEOUT" || status === "OUTPUT_FLOOD" || status === "INVALID_OUTPUT" || status === "TARGET_CRASH"
+          ? "BOUNDARY_HOLD"
+          : status === "BOUNDARY_ESCAPE"
+            ? "BOUNDARY_ESCAPE"
+            : null),
+      evidence,
+      child_process_is_not_sandbox: true,
+    };
+
+    if (opts.write !== false) {
+      mkdirSync(REPORTS_DIR, { recursive: true });
+      const outPath = path.join(REPORTS_DIR, `${runId}.json`);
+      writeFileSync(outPath, JSON.stringify(report, null, 2) + "\n");
+      report._written_path = outPath;
+    }
+    return report;
+  } finally {
+    cleanupWorkdir(workDir);
   }
-
-  cleanupWorkdir(workDir);
-
-  const report = {
-    schema: "raven-conformance-probe-report/1",
-    run_id: runId,
-    started_at: startedAt,
-    finished_at: new Date().toISOString(),
-    probe: true,
-    target: {
-      id: target.id,
-      name: target.name,
-      entry: target.entry,
-      probe_kind: target.probe_kind,
-      entry_sha256: fileSha256(entryAbs),
-    },
-    isolation: {
-      mode: isolation.mode,
-      verified: isolation.verified,
-      platform: isolation.platform,
-      details: isolation.details,
-      verified_controls: isolation.verified_controls,
-      assumed_controls: isolation.assumed_controls,
-      disclosure: "Child process alone is not a security sandbox.",
-    },
-    status,
-    boundary:
-      evidence.boundary ||
-      (status === "BOUNDARY_HOLD" || status === "TIMEOUT" || status === "OUTPUT_FLOOD" || status === "INVALID_OUTPUT" || status === "TARGET_CRASH"
-        ? "BOUNDARY_HOLD"
-        : status === "BOUNDARY_ESCAPE"
-          ? "BOUNDARY_ESCAPE"
-          : null),
-    evidence,
-    child_process_is_not_sandbox: true,
-  };
-
-  if (opts.write !== false) {
-    mkdirSync(REPORTS_DIR, { recursive: true });
-    const outPath = path.join(REPORTS_DIR, `${runId}.json`);
-    writeFileSync(outPath, JSON.stringify(report, null, 2) + "\n");
-    report._written_path = outPath;
-  }
-  return report;
 }
 
 export async function runAllProbes(opts = {}) {
