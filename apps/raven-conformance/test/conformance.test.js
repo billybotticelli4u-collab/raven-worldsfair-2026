@@ -33,15 +33,18 @@ describe("raven-conformance Challenge 1 demos", () => {
     assert.ok(report.report_content_digest_sha256);
     assert.ok(report.deterministic_report_sha256);
     assert.ok(report.isolation);
-    assert.ok(["sandbox_exec", "curated_demo"].includes(report.isolation.mode));
+    assert.ok(["sandbox_exec", "node_permissions", "unavailable"].includes(report.isolation.mode));
     assert.equal(typeof report.isolation.verified, "boolean");
     assert.ok(report.reproduction.one_liner.includes("CONFORMANT_REFERENCE"));
-    // Never claim verified isolation without sandbox_exec success
     if (report.isolation.mode === "curated_demo") {
       assert.equal(report.isolation.verified, false);
     }
-    if (report.isolation.mode === "sandbox_exec") {
+    if (report.isolation.mode === "sandbox_exec" || report.isolation.mode === "node_permissions") {
       assert.equal(report.isolation.verified, true);
+    }
+    if (report.isolation.mode === "node_permissions") {
+      assert.ok(report.isolation.verified_controls.includes("deny_fs_write_via_node_permission"));
+      assert.match(report.allowed_resources.network, /not_restricted_by_node_permission/i);
     }
   });
 

@@ -188,6 +188,13 @@ export function deterministicReportBody(report) {
       counts: report.summary.counts,
       overall: report.summary.overall,
       incomplete: report.summary.incomplete || false,
+      execution_error_vector_ids: report.summary.execution_error_vector_ids || [],
+      behavioral_divergence_vector_ids: report.summary.behavioral_divergence_vector_ids || [],
+      skipped_vector_ids: report.summary.skipped_vector_ids || [],
+      all_execution_errors: Boolean(report.summary.all_execution_errors),
+      mixed_execution_and_behavioral: Boolean(report.summary.mixed_execution_and_behavioral),
+      empty_result_set: Boolean(report.summary.empty_result_set),
+      presentation_hint: report.summary.presentation_hint ?? null,
     },
     results,
     divergence_definition: report.divergence_definition,
@@ -210,7 +217,9 @@ function environmentIdentity(isolation) {
     network_policy:
       isolation.mode === "sandbox_exec" && isolation.verified
         ? "deny_network_via_sandbox_exec"
-        : "outbound_denied_by_proxy_unset_only_not_kernel_boundary",
+        : isolation.mode === "node_permissions"
+          ? "network_not_restricted_by_node_permission_measure_separately"
+          : "outbound_denied_by_proxy_unset_only_not_kernel_boundary",
     credentials_policy: "no_raven_credentials_in_target_env",
     timeout_ms_default: DEFAULT_TIMEOUT_MS,
     isolation_mode: isolation.mode,
@@ -365,6 +374,32 @@ export async function runConformance(targetId, opts = {}) {
   const counts = tallyCounts(results);
   const passCount = counts.PASS;
   const divergenceCount = counts.BEHAVIORAL_DIVERGENCE;
+  // Execution failures (not behavioral mismatches). Keep C2 taxonomy — do NOT remap to MVP HARNESS_ERROR.
+  const EXECUTION_ERROR_STATUSES = new Set([
+    "TARGET_CRASH",
+    "TIMEOUT",
+    "INVALID_OUTPUT",
+    "OUTPUT_FLOOD",
+    "RUNNER_FAILURE",
+    "INCOMPLETE",
+  ]);
+  const execution_error_vector_ids = results
+    .filter((r) => EXECUTION_ERROR_STATUSES.has(r.status))
+    .map((r) => r.vector_id);
+  const behavioral_divergence_vector_ids = results
+    .filter((r) => r.status === "BEHAVIORAL_DIVERGENCE")
+    .map((r) => r.vector_id);
+  const skipped_vector_ids = results
+    .filter((r) => r.status === "SKIPPED_VECTOR")
+    .map((r) => r.vector_id);
+  const nonSkipped = results.filter((r) => r.status !== "SKIPPED_VECTOR");
+  const all_execution_errors =
+    nonSkipped.length > 0 &&
+    passCount === 0 &&
+    divergenceCount === 0 &&
+    nonSkipped.every((r) => EXECUTION_ERROR_STATUSES.has(r.status));
+  const mixed_execution_and_behavioral =
+    execution_error_vector_ids.length > 0 && behavioral_divergence_vector_ids.length > 0;
   // CONFORMANT only if every vector PASS (no crash/timeout/invalid masquerading)
   const blocking =
     counts.TARGET_CRASH +
@@ -378,7 +413,7 @@ export async function runConformance(targetId, opts = {}) {
   if (incomplete || runnerFailure) overall = "INCOMPLETE";
   else if (blocking === 0 && counts.SKIPPED_VECTOR + passCount === results.length) overall = "CONFORMANT";
   else if (passCount === results.length) overall = "CONFORMANT";
-  else overall = "DIVERGENT";
+  else overall = "DIVERGENT"; // includes all-execution-error runs — not remapped to HARNESS_ERROR
 
   const binding = {
     profile_sha256: profile.digest,
@@ -435,11 +470,15 @@ export async function runConformance(targetId, opts = {}) {
       filesystem:
         isolation.mode === "sandbox_exec"
           ? "Seatbelt permits broad file reads; writes allowed to ephemeral workdir, /dev, /private/tmp, /tmp, /private/var/folders; writes to app/corpus/profile/report roots denied. Ordinary OS permissions still apply."
-          : "runner-intended: target script + stdin; writes not kernel-confined in curated_demo",
+          : isolation.mode === "node_permissions"
+            ? "Node --permission: allow-fs-read limited to realpath(entry); fs-write denied by Node permission model (not an OS sandbox). Ordinary OS permissions still apply for allowed reads."
+            : "runner-intended: target script + stdin; writes not kernel-confined when isolation unavailable",
       network:
         isolation.mode === "sandbox_exec" && isolation.verified
           ? "denied_via_sandbox_exec"
-          : "denied_by_default_proxy_unset_only",
+          : isolation.mode === "node_permissions"
+            ? "not_restricted_by_node_permission_model_measure_separately"
+            : "denied_by_default_proxy_unset_only",
       credentials: "none_injected",
       corpus_mutation: "forbidden_runner_owns_corpus",
       report_signer: "runner_owns_report_hash_target_cannot_mutate",
@@ -461,16 +500,33 @@ export async function runConformance(targetId, opts = {}) {
       counts,
       overall,
       incomplete,
+      execution_error_vector_ids,
+      behavioral_divergence_vector_ids,
+      skipped_vector_ids,
+      all_execution_errors,
+      mixed_execution_and_behavioral,
+      empty_result_set: results.length === 0,
+      presentation_hint: all_execution_errors
+        ? "ALL_EXECUTION_ERRORS: every non-skipped vector is crash/timeout/invalid/flood/runner-failure/incomplete — not a behavioral mismatch and never PASS."
+        : mixed_execution_and_behavioral
+          ? "MIXED: execution errors and behavioral mismatches both present — distinguish by status and vector id lists."
+          : results.length === 0
+            ? "EMPTY: no vector rows — not labeled PASS."
+            : null,
     },
     results,
     divergence_definition:
       "BEHAVIORAL_DIVERGENCE = observed decision ≠ specified corpus expectation only. Not automatically exploitable, unsafe, or malicious. No generic security score. Crashes/timeouts/invalid/flood are separate statuses and never PASS.",
     limitations: [
-      isolation.verified
+      isolation.mode === "sandbox_exec" && isolation.verified
         ? "Isolation mode sandbox_exec: Seatbelt profile applied; still not a general multi-tenant production sandbox."
-        : "Isolation mode curated_demo: NOT a verified security sandbox. Timeout, env allowlist, output caps, and process-group kill are enforced by the runner; network/filesystem are not kernel-confined.",
+        : isolation.mode === "node_permissions" && isolation.verified
+          ? "Isolation mode node_permissions: Node --permission denies fs-write/child/worker with realpath allow-fs-read of entry; NOT an OS/kernel sandbox. Network is not denied by these flags."
+          : "Isolation unavailable or fail-closed: refusing unrestricted spawn. Timeout/env/output caps alone are not claimed as a sandbox.",
       "A Node child_process alone is not a security sandbox.",
-      "Outbound network in curated_demo is denied only by unsetting proxies — not a kernel network namespace.",
+      isolation.mode === "node_permissions"
+        ? "Outbound network is NOT restricted by the Node permission model — measure separately; do not treat permission flags as hostile network containment."
+        : "Outbound network in non-Seatbelt modes is not kernel-denied; proxy unset alone is not a network namespace.",
       "Memory/process soft limits are documented as unverified unless separately measured.",
       "Demo targets and corpus are Raven-owned Fair self-contained fixtures — not private production corpora.",
       "Does not include token, marketplace, cert authority, pentest scanner, accounts, registry, billing, or governance architecture.",

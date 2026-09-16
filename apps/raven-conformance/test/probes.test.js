@@ -50,9 +50,12 @@ describe("hostile probes", () => {
     const r = await runProbe("HOSTILE_NETWORK_ATTEMPT", { write: false });
     assert.ok(["BOUNDARY_HOLD", "BOUNDARY_ESCAPE"].includes(r.status));
     assert.ok(r.evidence);
-    // On curated_demo without kernel net deny, escape is honest disclosure
+    // Without Seatbelt network deny, escape is honest disclosure (incl. node_permissions).
     if (r.isolation.mode === "curated_demo" && r.status === "BOUNDARY_ESCAPE") {
       assert.equal(r.isolation.verified, false);
+    }
+    if (r.isolation.mode === "node_permissions") {
+      assert.ok(r.isolation.assumed_controls.includes("network_not_restricted_by_node_permission_model"));
     }
   });
 

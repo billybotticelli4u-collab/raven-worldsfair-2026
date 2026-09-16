@@ -3,9 +3,11 @@
  *
  * Darwin: prefer sandbox-exec (Seatbelt) with deny-network, broad file reads,
  * and writes allowed to workdir + temp/dev, with explicit app-root denials.
- * Linux/other: curated_demo — runner still
- * enforces timeout, output caps, env allowlist, process-group kill, but
- * MUST NOT claim verified sandbox enforcement.
+ * Linux (and non-Seatbelt hosts): Node --permission with realpath allow-fs-read
+ * of the entry only; fs-write, child-process, and worker denied. Fail closed if
+ * the permission model cannot be applied — never silently broaden permissions.
+ * Network is measured separately; Node permission flags do NOT prove hostile
+ * network containment.
  *
  * A Node child_process alone is NOT a security sandbox.
  */
@@ -18,6 +20,7 @@ import {
   existsSync,
   readFileSync,
   chmodSync,
+  realpathSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -191,6 +194,131 @@ export function probeSandboxExec(workDir) {
 }
 
 /**
+ * Probe whether Node's permission model can deny fs-write / child / worker
+ * while still allowing a realpath-scoped fs-read of the entry. Fail closed
+ * if any intended denial does not hold, or if the runtime cannot apply flags.
+ */
+export function probeNodePermissions(workDir) {
+  if (process.platform === "win32") {
+    return { available: false, reason: "unsupported_platform_win32" };
+  }
+  const major = Number.parseInt(process.versions.node.split(".")[0], 10);
+  if (!Number.isFinite(major) || major < 22) {
+    return { available: false, reason: `node_permission_unsupported_version:${process.versions.node}` };
+  }
+  const probeDir = path.join(workDir, "perm-probe");
+  try {
+    mkdirSync(probeDir, { recursive: true });
+  } catch (err) {
+    return { available: false, reason: `probe_workdir_failed:${err}` };
+  }
+  const entry = path.join(probeDir, "entry.mjs");
+  const outside = path.join(probeDir, "outside.txt");
+  const marker = path.join(probeDir, "child-marker.txt");
+  writeFileSync(
+    entry,
+    `import { writeFileSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { Worker } from "node:worker_threads";
+const out = process.argv[1];
+const marker = process.argv[2];
+const result = { write: null, child: null, worker: null };
+try { writeFileSync(out, "x"); result.write = "ok"; } catch (e) { result.write = e.code || String(e); }
+try { spawn(process.execPath, ["-e", "require('fs').writeFileSync(process.argv[1],'c')", marker], { stdio: "ignore" }); result.child = "ok"; }
+catch (e) { result.child = e.code || String(e); }
+try { new Worker("require('fs').writeFileSync(require('worker_threads').workerData,'w')", { eval: true, workerData: marker + ".w" }); result.worker = "ok"; }
+catch (e) { result.worker = e.code || String(e); }
+process.stdout.write(JSON.stringify(result));
+`,
+  );
+  let realEntry;
+  try {
+    realEntry = realpathSync(entry);
+  } catch (err) {
+    return { available: false, reason: `realpath_failed:${err}` };
+  }
+  const r = spawnSync(
+    process.execPath,
+    ["--permission", `--allow-fs-read=${realEntry}`, realEntry, outside, marker],
+    { encoding: "utf8", timeout: 5000, cwd: probeDir },
+  );
+  if (r.error) {
+    return { available: false, reason: `spawn_error:${r.error.message || r.error}` };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse((r.stdout || "").trim().split(/\r?\n/).filter(Boolean).pop() || "");
+  } catch {
+    return {
+      available: false,
+      reason: `probe_unparseable:status=${r.status}:stderr=${(r.stderr || "").slice(0, 200)}`,
+    };
+  }
+  const denied = (v) => v === "ERR_ACCESS_DENIED";
+  if (!denied(parsed.write) || !denied(parsed.child) || !denied(parsed.worker)) {
+    return {
+      available: false,
+      reason: `probe_denials_incomplete:${JSON.stringify(parsed)}`,
+      probe: parsed,
+    };
+  }
+  if (existsSync(outside) || existsSync(marker)) {
+    return { available: false, reason: "probe_side_effects_present", probe: parsed };
+  }
+  // Positive control: same ops succeed without --permission.
+  const pos = spawnSync(process.execPath, [realEntry, outside, marker], {
+    encoding: "utf8",
+    timeout: 5000,
+    cwd: probeDir,
+  });
+  let posParsed;
+  try {
+    posParsed = JSON.parse((pos.stdout || "").trim().split(/\r?\n/).filter(Boolean).pop() || "");
+  } catch {
+    return { available: false, reason: "positive_control_unparseable", stderr: (pos.stderr || "").slice(0, 200) };
+  }
+  if (posParsed.write !== "ok") {
+    return { available: false, reason: `positive_control_write_failed:${JSON.stringify(posParsed)}` };
+  }
+  // Cleanup positive-control artifacts
+  try { rmSync(outside, { force: true }); } catch { /* */ }
+  try { rmSync(marker, { force: true }); } catch { /* */ }
+  try { rmSync(marker + ".w", { force: true }); } catch { /* */ }
+  return {
+    available: true,
+    reason: "node_permission_probe_ok",
+    probe: parsed,
+    positive: { write: posParsed.write },
+    realpath_entry: realEntry,
+  };
+}
+
+/**
+ * Build Node argv applying --permission with realpath-scoped allow-fs-read.
+ * Throws if realpath cannot be resolved (fail closed).
+ */
+export function buildNodePermissionArgs(entryAbs) {
+  let realEntry;
+  try {
+    realEntry = realpathSync(entryAbs);
+  } catch (err) {
+    const e = new Error(`permission_realpath_failed:${err.message || err}`);
+    e.code = "PERMISSION_REALPATH_FAILED";
+    throw e;
+  }
+  if (!existsSync(realEntry)) {
+    const e = new Error(`permission_entry_missing:${realEntry}`);
+    e.code = "PERMISSION_ENTRY_MISSING";
+    throw e;
+  }
+  return {
+    nodeBin: process.execPath,
+    args: ["--permission", `--allow-fs-read=${realEntry}`, realEntry],
+    realEntry,
+  };
+}
+
+/**
  * Resolve isolation mode for this host + run.
  */
 export function resolveIsolation(workDir) {
@@ -217,41 +345,51 @@ export function resolveIsolation(workDir) {
         probe_reason: probe.reason,
       };
     }
+    // Seatbelt unavailable: fall through to Node --permission (same as Linux),
+    // never silently run unrestricted. Seatbelt policy bytes remain unchanged.
+  }
+  // Non-Seatbelt path (Linux, and Darwin when sandbox-exec probe failed).
+  const probe = probeNodePermissions(workDir);
+  if (!probe.available) {
     return {
-      mode: "curated_demo",
+      mode: "unavailable",
       verified: false,
+      fail_closed: true,
       platform,
-      details: `sandbox-exec unavailable or probe failed (${probe.reason}); runner enforces timeout/env/output caps only`,
-      verified_controls: [
-        "env_allowlist",
-        "timeout_process_group_kill",
-        "stdout_stderr_byte_caps",
-        "ephemeral_workdir_cleanup",
-      ],
+      details:
+        `Node --permission model unavailable or probe failed (${probe.reason}). Refusing to spawn targets without permission flags — no silent fallback to broader permissions. Network is not claimed contained.`,
+      verified_controls: [],
       assumed_controls: [
-        "network_denied_only_via_proxy_unset_not_kernel",
-        "filesystem_writes_not_kernel_confined",
+        "network_not_restricted_by_node_permission_model",
+        "not_os_kernel_sandbox",
       ],
       probe_reason: probe.reason,
     };
   }
   return {
-    mode: "curated_demo",
-    verified: false,
+    mode: "node_permissions",
+    verified: true,
+    fail_closed: false,
     platform,
     details:
-      "Non-Darwin host: sandbox-exec (Seatbelt) not available. Runner enforces timeout, process-group kill, env allowlist, output byte caps, ephemeral workdirs. NOT a verified security sandbox.",
+      "Node --permission applied: allow-fs-read limited to realpath(entry); fs-write, child-process, and worker denied. Timeout, process-group kill, env allowlist, output caps, ephemeral workdirs also enforced. NOT an OS/kernel sandbox. Network is NOT denied by the Node permission model — measure separately.",
     verified_controls: [
+      "node_permission_flag_applied",
+      "allow_fs_read_entry_realpath_only",
+      "deny_fs_write_via_node_permission",
+      "deny_child_process_via_node_permission",
+      "deny_worker_via_node_permission",
       "env_allowlist",
       "timeout_process_group_kill",
       "stdout_stderr_byte_caps",
       "ephemeral_workdir_cleanup",
     ],
     assumed_controls: [
-      "network_denied_only_via_proxy_unset_not_kernel",
-      "filesystem_writes_not_kernel_confined",
+      "network_not_restricted_by_node_permission_model",
+      "not_os_kernel_sandbox",
+      "memory_ulimit_soft_not_kernel_enforced_unless_wrapper_applied",
     ],
-    probe_reason: "non_darwin",
+    probe_reason: probe.reason,
   };
 }
 
@@ -301,6 +439,26 @@ export function spawnIsolated({
     let args = [entryAbs];
     let profilePath = null;
 
+    // Fail closed: never spawn without the intended restriction when isolation
+    // declares fail_closed / unavailable (unsupported permission runtime).
+    if (isolation.fail_closed || isolation.mode === "unavailable") {
+      resolve({
+        timedOut: false,
+        flooded: false,
+        exitCode: null,
+        signal: null,
+        stdout: "",
+        stderr: `isolation_fail_closed:${isolation.probe_reason || isolation.details || "unavailable"}`,
+        durationMs: Date.now() - started,
+        observed: null,
+        parseError: "spawn_error",
+        pid: null,
+        isolation_mode_used: isolation.mode,
+        spawn_error: `isolation_fail_closed:${isolation.probe_reason || "unavailable"}`,
+      });
+      return;
+    }
+
     if (isolation.mode === "sandbox_exec" && isolation.verified) {
       profilePath = path.join(workDir, "seatbelt.sb");
       writeFileSync(
@@ -309,6 +467,47 @@ export function spawnIsolated({
       );
       cmd = "sandbox-exec";
       args = ["-f", profilePath, nodeBin, entryAbs];
+    } else if (isolation.mode === "node_permissions") {
+      // Linux / non-Seatbelt: apply Node permission model with realpath allow.
+      // Do not silently omit --permission.
+      try {
+        const built = buildNodePermissionArgs(entryAbs);
+        cmd = built.nodeBin;
+        args = built.args;
+      } catch (err) {
+        resolve({
+          timedOut: false,
+          flooded: false,
+          exitCode: null,
+          signal: null,
+          stdout: "",
+          stderr: String(err),
+          durationMs: Date.now() - started,
+          observed: null,
+          parseError: "spawn_error",
+          pid: null,
+          isolation_mode_used: isolation.mode,
+          spawn_error: String(err.message || err),
+        });
+        return;
+      }
+    } else {
+      // Unknown mode — fail closed rather than unrestricted spawn.
+      resolve({
+        timedOut: false,
+        flooded: false,
+        exitCode: null,
+        signal: null,
+        stdout: "",
+        stderr: `isolation_unknown_mode:${isolation.mode}`,
+        durationMs: Date.now() - started,
+        observed: null,
+        parseError: "spawn_error",
+        pid: null,
+        isolation_mode_used: isolation.mode,
+        spawn_error: `isolation_unknown_mode:${isolation.mode}`,
+      });
+      return;
     }
 
     let stdout = Buffer.alloc(0);
