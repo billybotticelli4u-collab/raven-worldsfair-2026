@@ -9,6 +9,91 @@ import { isDeepStrictEqual } from "node:util";
 import { fileSha256, sha256Hex } from "./digest.js";
 import { TARGETS_DIR } from "./paths.js";
 
+/**
+ * Escaped-transcript size accounting (beside replay).
+ *
+ * Bounds the UTF-8 byte length of the JSON-serialized evidence string
+ * (JSON.stringify), which expands under escaping — not only raw stream bytes.
+ * Encoding: UTF-8. Thresholds intentionally allow modest expansion over the
+ * runner's raw caps but reject pathological escaping blow-ups.
+ *
+ * Self-hashes / digests are consistency checks, not authentication of
+ * attacker-controlled evidence.
+ */
+export const ESCAPED_STDOUT_LIMIT_BYTES = 3 * 256 * 1024; // 3× DEFAULT_MAX_STDOUT_BYTES
+export const ESCAPED_STDERR_LIMIT_BYTES = 3 * 64 * 1024;  // 3× DEFAULT_MAX_STDERR_BYTES
+
+/** UTF-8 byte length of JSON.stringify(value) — measures escaping expansion. */
+export function serializedEvidenceBytes(value) {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+/**
+ * Verify evidence transcripts are present, well-typed, and within escaped-size
+ * limits. Does not claim digests authenticate evidence.
+ */
+export function checkEscapedTranscriptSizes(report) {
+  const diffs = [];
+  if (!report || typeof report !== "object") {
+    return { ok: false, diffs: [{ field: "report", error: "invalid_report_structure" }] };
+  }
+  if (!Array.isArray(report.results)) {
+    return { ok: false, diffs: [{ field: "results", error: "missing_results" }] };
+  }
+  for (let i = 0; i < report.results.length; i++) {
+    const r = report.results[i];
+    const e = r?.evidence;
+    if (!e || typeof e !== "object") {
+      diffs.push({ field: `results[${i}].evidence`, error: "malformed_evidence", vector_id: r?.vector_id });
+      continue;
+    }
+    if (typeof e.stdout !== "string" || typeof e.stderr !== "string") {
+      diffs.push({
+        field: `results[${i}].evidence.transcript`,
+        error: "transcript_not_string",
+        vector_id: r?.vector_id,
+      });
+      continue;
+    }
+    const outBytes = serializedEvidenceBytes(e.stdout);
+    const errBytes = serializedEvidenceBytes(e.stderr);
+    if (outBytes > ESCAPED_STDOUT_LIMIT_BYTES) {
+      diffs.push({
+        field: `results[${i}].evidence.stdout`,
+        error: "escaped_transcript_limit",
+        vector_id: r?.vector_id,
+        serialized_utf8_bytes: outBytes,
+        limit: ESCAPED_STDOUT_LIMIT_BYTES,
+        encoding: "utf8",
+        representation: "JSON.stringify(stdout)",
+      });
+    }
+    if (errBytes > ESCAPED_STDERR_LIMIT_BYTES) {
+      diffs.push({
+        field: `results[${i}].evidence.stderr`,
+        error: "escaped_transcript_limit",
+        vector_id: r?.vector_id,
+        serialized_utf8_bytes: errBytes,
+        limit: ESCAPED_STDERR_LIMIT_BYTES,
+        encoding: "utf8",
+        representation: "JSON.stringify(stderr)",
+      });
+    }
+  }
+  return {
+    ok: diffs.length === 0,
+    diffs,
+    limits: {
+      stdout_escaped_utf8_bytes: ESCAPED_STDOUT_LIMIT_BYTES,
+      stderr_escaped_utf8_bytes: ESCAPED_STDERR_LIMIT_BYTES,
+      encoding: "utf8",
+      representation: "JSON.stringify(transcript)",
+      note: "Bounds serialized evidence size (escaping expansion). Digest self-consistency is not attestation.",
+    },
+  };
+}
+
+
 export function loadReport(reportPath) {
   const abs = path.resolve(reportPath);
   if (!existsSync(abs)) throw new Error(`report_not_found:${abs}`);
@@ -121,6 +206,19 @@ export async function replayReport(reportPath, opts = {}) {
     error: "report_integrity_mismatch", diffs: integrity.diffs,
   };
 
+  const transcripts = checkEscapedTranscriptSizes(original);
+  if (!transcripts.ok) return {
+    schema: "raven-conformance-replay/1",
+    ok: false,
+    bundle_match: false,
+    semantic_match: false,
+    error: "escaped_transcript_limit",
+    diffs: transcripts.diffs,
+    transcript_limits: transcripts.limits,
+    attestation: false,
+    note: "Escaped-transcript size check failed. Digests do not authenticate attacker-controlled evidence.",
+  };
+
   const bundle = checkBundleIdentities(original);
   if (!bundle.ok) {
     return {
@@ -145,6 +243,8 @@ export async function replayReport(reportPath, opts = {}) {
     ok: bundle.ok && sem.ok,
     bundle_match: bundle.ok,
     semantic_match: sem.ok,
+    escaped_transcript_ok: true,
+    attestation: false,
     original_binding: original.binding || {
       profile_sha256: original.claimed_profile?.sha256,
       corpus_sha256: original.corpus?.sha256,
