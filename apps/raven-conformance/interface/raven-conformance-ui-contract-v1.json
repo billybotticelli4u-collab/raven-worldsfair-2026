@@ -1,0 +1,99 @@
+{
+  "schema": "raven-conformance-ui-contract/1",
+  "version": "1.0.0",
+  "report_schema": "raven-conformance-report/1",
+  "compatibility": {
+    "mvp_ui": "public/app.js",
+    "mvp_server_routes": ["GET /api/build-info", "GET /api/targets", "GET /api/meta", "POST /api/run"],
+    "notes": [
+      "Additive report fields only; do not remove summary.pass, summary.divergence, summary.overall",
+      "summary.divergence counts BEHAVIORAL_DIVERGENCE for UI compatibility",
+      "Vector status BEHAVIORAL_DIVERGENCE replaces silent DIVERGENCE; UI may treat any non-PASS as not-pass",
+      "No public arbitrary code upload"
+    ]
+  },
+  "target_manifest": {
+    "type": "object",
+    "required": ["id", "name", "version", "entry", "invocation_interface", "description"],
+    "properties": {
+      "id": { "type": "string" },
+      "name": { "type": "string" },
+      "version": { "type": "string" },
+      "entry": { "type": "string" },
+      "claimed_conformance_profile": { "type": "string" },
+      "invocation_interface": { "enum": ["stdin_json_line"] },
+      "description": { "type": "string" },
+      "expected_outcome": { "type": "string" },
+      "probe": { "type": "boolean", "default": false },
+      "probe_kind": { "type": "string" }
+    }
+  },
+  "run_request": {
+    "type": "object",
+    "required": ["target"],
+    "properties": {
+      "target": { "type": "string" },
+      "timeout_ms": { "type": "integer", "minimum": 100, "default": 3000 },
+      "run_id": { "type": "string" }
+    }
+  },
+  "progress_events": [
+    { "type": "run_started", "fields": ["run_id", "target"] },
+    { "type": "vector_started", "fields": ["run_id", "vector_id"] },
+    { "type": "vector_finished", "fields": ["run_id", "vector_id", "status"] },
+    { "type": "run_finished", "fields": ["run_id", "overall"] },
+    { "type": "error", "fields": ["run_id", "code", "message"] }
+  ],
+  "vector_statuses": [
+    "PASS",
+    "BEHAVIORAL_DIVERGENCE",
+    "TARGET_CRASH",
+    "TIMEOUT",
+    "INVALID_OUTPUT",
+    "OUTPUT_FLOOD",
+    "SKIPPED_VECTOR",
+    "RUNNER_FAILURE",
+    "BOUNDARY_ESCAPE",
+    "BOUNDARY_HOLD",
+    "INCOMPLETE"
+  ],
+  "error_codes": [
+    "unknown_target",
+    "missing_target_entry",
+    "invalid_json",
+    "RUNNER_FAILURE",
+    "OUTPUT_FLOOD",
+    "TIMEOUT",
+    "INVALID_OUTPUT",
+    "INCOMPLETE"
+  ],
+  "replay_request": {
+    "type": "object",
+    "required": ["report_path"],
+    "properties": {
+      "report_path": { "type": "string" }
+    }
+  },
+  "replay_response": {
+    "type": "object",
+    "required": ["schema", "ok", "bundle_match", "semantic_match"],
+    "properties": {
+      "schema": { "const": "raven-conformance-replay/1" },
+      "ok": { "type": "boolean" },
+      "bundle_match": { "type": "boolean" },
+      "semantic_match": { "type": "boolean" },
+      "original_overall": { "type": "string" },
+      "replay_overall": { "type": "string" },
+      "diffs": { "type": "array" }
+    }
+  },
+  "deterministic_digest_excludes": [
+    "run_id",
+    "started_at",
+    "finished_at",
+    "results[].evidence.durationMs",
+    "results[].evidence.stdout_truncated_at",
+    "_written_path"
+  ],
+  "isolation_modes": ["sandbox_exec", "curated_demo"]
+}
