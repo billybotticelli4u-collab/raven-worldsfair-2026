@@ -112,14 +112,41 @@ export function adaptReport(report, profile = null) {
   const { counts, classified } = summarizeDisplay(report.results, report.summary?.counts || null);
   const issue = firstMeaningfulIssue(classified);
   const withReq = classified.map((r) => ({ ...r, related_requirement: relatedRequirement(profile, r) }));
+  const executionErrorKinds = new Set(["TIMEOUT","TARGET_CRASH","INVALID_OUTPUT","OUTPUT_FLOOD","RUNNER_FAILURE","INCOMPLETE"]);
+  const execution_error_vector_ids = report.summary?.execution_error_vector_ids
+    || withReq.filter((r) => executionErrorKinds.has(r.display?.kind)).map((r) => r.vector_id);
+  const behavioral_divergence_vector_ids = report.summary?.behavioral_divergence_vector_ids
+    || withReq.filter((r) => r.display?.kind === "BEHAVIORAL_DIVERGENCE").map((r) => r.vector_id);
+  const skipped_vector_ids = report.summary?.skipped_vector_ids
+    || withReq.filter((r) => r.display?.kind === "SKIPPED_VECTOR").map((r) => r.vector_id);
   const nonPass = counts.behavioral_divergence + counts.timeout + counts.target_crash + counts.invalid_output + counts.output_flood + counts.runner_failure + counts.incomplete;
+  const all_error = Boolean(report.summary?.all_execution_errors)
+    || (nonPass > 0 && counts.pass === 0 && counts.behavioral_divergence === 0 && nonPass === report.results.length - counts.skipped);
+  const mixed = Boolean(report.summary?.mixed_execution_and_behavioral)
+    || (execution_error_vector_ids.length > 0 && behavioral_divergence_vector_ids.length > 0);
+  let presentation_banner = null;
+  if (report.results.length === 0 || report.summary?.empty_result_set) {
+    presentation_banner = "EMPTY RESULT SET — not labeled PASS.";
+  } else if (all_error) {
+    presentation_banner = `ALL EXECUTION FAILURES — affected vectors: ${execution_error_vector_ids.join(", ") || "(none listed)"}. Not behavioral mismatches; never PASS.`;
+  } else if (mixed) {
+    presentation_banner = `MIXED run — execution errors [${execution_error_vector_ids.join(", ")}] vs behavioral mismatches [${behavioral_divergence_vector_ids.join(", ")}].`;
+  } else if (skipped_vector_ids.length && counts.pass + counts.skipped === report.results.length) {
+    presentation_banner = `Skipped vectors present: ${skipped_vector_ids.join(", ")} — skips are not behavioral PASS credit beyond remaining PASS rows.`;
+  }
   return {
     ok: true, reason: null, engine: report,
     display: {
       counts, engine_counts: report.summary?.counts || null, results: withReq,
       first_issue: issue ? { ...issue, related_requirement: relatedRequirement(profile, issue) } : null,
       empty: report.results.length === 0,
-      all_error: report.results.length > 0 && counts.pass === 0 && counts.behavioral_divergence === 0 && nonPass === report.results.length,
+      all_error,
+      mixed_execution_and_behavioral: mixed,
+      execution_error_vector_ids,
+      behavioral_divergence_vector_ids,
+      skipped_vector_ids,
+      presentation_banner,
+      overall_engine: report.summary?.overall || null,
       isolation: report.isolation || null,
     },
   };

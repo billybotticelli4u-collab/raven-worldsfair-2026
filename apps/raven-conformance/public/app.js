@@ -205,6 +205,8 @@ function renderPayload(data, opts = {}) {
     ["Crash / invalid / flood", String((c.target_crash || 0) + (c.invalid_output || 0) + (c.output_flood || 0))],
     ["Skipped", String(c.skipped ?? "—")],
     ["Runner failure / incomplete", String((c.runner_failure || 0) + (c.incomplete || 0))],
+    ["Execution-error vector IDs", (ui?.execution_error_vector_ids || []).join(", ") || "—"],
+    ["Behavioral vector IDs", (ui?.behavioral_divergence_vector_ids || []).join(", ") || "—"],
   ]);
   kv(els.idKv, [
     ["Run ID", report.run_id || "—"],
@@ -218,7 +220,22 @@ function renderPayload(data, opts = {}) {
   renderIssue(ui?.first_issue || null);
   renderVectors(ui?.results || report.results || []);
   if (ui?.empty) showError("Empty result set — not labeled PASS.");
-  if (ui?.all_error) announce("All vectors timed out/errored/crashed — none treated as behavioral PASS.", true);
+  if (ui?.presentation_banner) {
+    if (ui.all_error || ui.empty) showError(ui.presentation_banner);
+    else announce(ui.presentation_banner, true);
+  } else if (ui?.all_error) {
+    const ids = (ui.execution_error_vector_ids || []).join(", ") || "(unlisted)";
+    showError("ALL EXECUTION FAILURES — affected vectors: " + ids + ". Not behavioral mismatches; never PASS.");
+  }
+  if (ui?.mixed_execution_and_behavioral && !ui?.all_error) {
+    announce(
+      "Mixed run — execution errors: " +
+        (ui.execution_error_vector_ids || []).join(", ") +
+        " · behavioral: " +
+        (ui.behavioral_divergence_vector_ids || []).join(", "),
+      true,
+    );
+  }
   if (report.reproduction?.clean_clone) textOnly(els.reproPre, report.reproduction.clean_clone);
   else if (data.replay_command) textOnly(els.reproPre, data.replay_command);
   else textOnly(els.reproPre, lastRepro || "No reproduction command in report.");

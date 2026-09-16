@@ -82,6 +82,11 @@ function publicize(report) {
           first_issue: adapted.display.first_issue,
           empty: adapted.display.empty,
           all_error: adapted.display.all_error,
+          mixed_execution_and_behavioral: adapted.display.mixed_execution_and_behavioral,
+          execution_error_vector_ids: adapted.display.execution_error_vector_ids,
+          behavioral_divergence_vector_ids: adapted.display.behavioral_divergence_vector_ids,
+          skipped_vector_ids: adapted.display.skipped_vector_ids,
+          presentation_banner: adapted.display.presentation_banner,
           isolation: adapted.display.isolation,
           results: adapted.display.results,
         }
@@ -177,6 +182,11 @@ const server = http.createServer(async (req, res) => {
               first_issue: adapted.display.first_issue,
               empty: adapted.display.empty,
               all_error: adapted.display.all_error,
+              mixed_execution_and_behavioral: adapted.display.mixed_execution_and_behavioral,
+              execution_error_vector_ids: adapted.display.execution_error_vector_ids,
+              behavioral_divergence_vector_ids: adapted.display.behavioral_divergence_vector_ids,
+              skipped_vector_ids: adapted.display.skipped_vector_ids,
+              presentation_banner: adapted.display.presentation_banner,
               results: adapted.display.results,
             }
           : { error: adapted.reason },
