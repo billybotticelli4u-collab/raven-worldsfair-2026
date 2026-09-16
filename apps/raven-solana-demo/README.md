@@ -46,6 +46,13 @@ node fixtures/build-corpus.mjs --kit-check
 
 Independent review (Claude, GROK — `RESEARCH/RAVEN_FAIR_SOLANA_DEMO_INDEPENDENT_REVIEW_CLAUDE_2026_09_16.md`) found that v0.1.0 implemented an **interleaved** v1 instruction layout; SIMD-0385 and the @solana/kit 8.3.0 encoder both specify **grouped** (all headers, then all payloads). Every v1 vector had exactly one instruction, where the two layouts are byte-identical — so the defect was invisible to the corpus. This repair: corrected R9 + both parsers to grouped, added the 2-instruction ACCEPT/REJECT layout pair (V16/V17, identical byte multisets), tightened R6 to the SIMD-0385 strict inequality (V23), added the SIMD-0385 count caps as R12b (V24–V26), added valid-except-size vectors that actually kill size-cap-deletion mutants (V21/V22), added header/sigcount/index-bounds killers (V18–V20), corrected the mainnet activation date (was 2026-09-09 from a secondary source; chain-measured 2026-09-15T01:04:23Z), fixed fixture regeneration from the committed manifest, corrected the network-policy wording, and added `npm test` as a corpus-shrink guard.
 
+### Errata from the repair re-review (2026-09-16, at corpus 1.1.0 / profile 0.2.0)
+
+Corpus bytes are frozen at digest `c463a23b…` (the digest the independent GO reviews are bound to), so these two items are recorded here rather than edited into the digested corpus:
+
+- **V18's rationale overclaims.** V18 (`v1_header_req_sig_gt_accounts`) carries 4 declared signatures but only one 64-byte signature tail, so with the v1 header check deleted the reference still REJECTs it as `truncated:v1_signatures` — and the harness compares decision + version, not reason. A header-check-deletion mutant therefore survives V18 (measured by GROK; independently reproduced by the author). The actual header-check killer is **V23** (mutation matrix: HEADER → V23). The header check is load-bearing in the corpus; only V18's stated rationale is wrong.
+- **One SIMD-0385 NumAddresses clause is unvectored.** `num_addresses < num_required_signatures + num_readonly_unsigned_accounts` with `num_readonly_signed > 0` is not enforced by the profile, oracle, or reference (GROK probe: ACCEPT on both). The existing R6 checks cover `numRoS >= numReq` (V23) and `numReq - numRoS + numRoU > num_addresses`, but not this clause. This is inside the standing profile-not-SIMD binding above — the corpus tests the named profile rules, not SIMD-0385 sanitization as a whole.
+
 ## What this demo does NOT establish
 
 - No Ed25519 signature verification, account existence, blockhash freshness, simulation, or execution — envelope-level byte-structure admission only.
