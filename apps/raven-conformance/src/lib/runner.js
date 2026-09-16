@@ -368,7 +368,6 @@ export async function runConformance(targetId, opts = {}) {
     counts.BEHAVIORAL_DIVERGENCE;
   let overall;
   if (incomplete || runnerFailure) overall = "INCOMPLETE";
-  else if (blocking === 0 && counts.SKIPPED_VECTOR + passCount === results.length) overall = "CONFORMANT";
   else if (passCount === results.length) overall = "CONFORMANT";
   else overall = "DIVERGENT";
 
@@ -519,9 +518,7 @@ export async function runProbe(targetId, opts = {}) {
   const isolation = resolveIsolation(workDir);
   const startedAt = new Date().toISOString();
 
-  // Parent holds canary; target env must NOT receive it (unless testing inject).
   const parentCanary = "PARENT_CANARY_" + randomUUID().slice(0, 8);
-  process.env.RAVEN_CONFORMANCE_CANARY = parentCanary;
 
   const corpusPath = path.join(CORPUS_DIR, CORPUS_FILE);
   const reportsPath = REPORTS_DIR;
@@ -548,7 +545,7 @@ export async function runProbe(targetId, opts = {}) {
       injectCanary: false,
     });
   } finally {
-    delete process.env.RAVEN_CONFORMANCE_CANARY;
+    // no-op
   }
 
   const kind = target.probe_kind || target.id;

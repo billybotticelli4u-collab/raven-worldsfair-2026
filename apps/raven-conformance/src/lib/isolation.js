@@ -25,6 +25,7 @@ import { APP_ROOT, CORPUS_DIR, PROFILES_DIR, REPORTS_DIR, TARGETS_DIR } from "./
 export const DEFAULT_TIMEOUT_MS = 3000;
 export const DEFAULT_MAX_STDOUT_BYTES = 256 * 1024;
 export const DEFAULT_MAX_STDERR_BYTES = 64 * 1024;
+export const MAX_TIMEOUT_MS = 30000;
 
 /** Env keys allowed into the target process (explicit allowlist). */
 export const ENV_ALLOWLIST = [
@@ -284,6 +285,9 @@ export function spawnIsolated({
 }) {
   return new Promise((resolve) => {
     const started = Date.now();
+    const boundedTimeoutMs = Number.isFinite(timeoutMs)
+      ? Math.max(100, Math.min(MAX_TIMEOUT_MS, Math.trunc(timeoutMs)))
+      : DEFAULT_TIMEOUT_MS;
     const env = restrictedEnv(envExtra);
     // Optionally inject canary ONLY into parent test harness — never into target
     // unless injectCanary (should stay false for normal runs).
@@ -327,7 +331,7 @@ export function spawnIsolated({
     const timer = setTimeout(() => {
       killed = true;
       killProcessGroup(child.pid);
-    }, timeoutMs);
+    }, boundedTimeoutMs);
 
     child.stdout.on("data", (d) => {
       if (flooded) return;

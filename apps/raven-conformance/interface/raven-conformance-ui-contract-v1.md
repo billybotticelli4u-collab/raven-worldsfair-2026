@@ -42,21 +42,20 @@ UI **must not** offer arbitrary public code upload. Only allowlisted manifest ta
 | `timeout_ms` | number | runner default (3000) |
 | `run_id` | string | server-generated `run_<hex>` |
 
-Probe suite: `POST /api/run-probes` (optional) or CLI `npm run probes`.
+Probe suite: `GET /api/probes` or CLI `npm run probes`.
 
-## 3. Progress events (optional SSE / polled)
+## 3. Progress events (`GET /api/run-stream`)
 
-When streaming is added later, events:
+The Challenge 2 Judge UI opens `EventSource("/api/run-stream?target=<ID>")` and receives newline-delimited SSE `data:` JSON payloads:
 
 ```json
 { "type": "run_started", "run_id": "...", "target": "..." }
-{ "type": "vector_started", "run_id": "...", "vector_id": "V01_..." }
 { "type": "vector_finished", "run_id": "...", "vector_id": "...", "status": "PASS" }
-{ "type": "run_finished", "run_id": "...", "overall": "CONFORMANT" }
+{ "type": "run_finished", "run_id": "...", "overall": "CONFORMANT", "payload": { "report": { }, "ui": { } } }
 { "type": "error", "run_id": "...", "code": "RUNNER_FAILURE", "message": "..." }
 ```
 
-MVP HTTP path returns the full report in one response (no SSE required). UI may synthesize “RUNNING” locally.
+`POST /api/run` remains available as the one-shot fallback response for environments that cannot hold an SSE connection.
 
 ## 4. Report schema (`raven-conformance-report/1` extended)
 
@@ -67,7 +66,7 @@ MVP HTTP path returns the full report in one response (no SSE required). UI may 
 - `claimed_profile{name,version,file,sha256}`
 - `corpus{id,version,file,sha256,declared_content_digest_sha256,vector_count}`
 - `environment`, `allowed_resources`, `results[]`, `divergence_definition`, `limitations`, `reproduction`
-- `report_content_digest_sha256` — digest of **deterministic body** (see §5)
+- `report_content_digest_sha256` — digest of the full serialized report body (volatile fields included)
 - `summary.test_count`, `summary.pass`, `summary.divergence`, `summary.overall`
 
 ### Additive fields
@@ -97,7 +96,7 @@ MVP HTTP path returns the full report in one response (no SSE required). UI may 
 | `BOUNDARY_HOLD` | Probe: boundary held (expected block/fail) |
 | `INCOMPLETE` | Interrupted run partial row |
 
-**Conformance claim rule:** For profile demos, `overall: CONFORMANT` only if every corpus vector is `PASS`. Crashes / timeouts / invalid / flood **must not** become `PASS` and **must** appear in `summary.counts`. `summary.divergence` counts `BEHAVIORAL_DIVERGENCE` only (UI compatibility).
+**Conformance claim rule:** For profile demos, `overall: CONFORMANT` only if every corpus vector is `PASS`. Crashes / timeouts / invalid / flood / skipped vectors **must not** become `PASS` and **must** appear in `summary.counts`. `summary.divergence` counts `BEHAVIORAL_DIVERGENCE` only (UI compatibility).
 
 ## 5. Deterministic digest vs volatile metadata
 

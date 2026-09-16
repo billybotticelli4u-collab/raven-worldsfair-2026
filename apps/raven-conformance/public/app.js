@@ -364,6 +364,23 @@ function closeStream() {
   }
 }
 
+async function handleStreamFailure(message, allowFallback = true) {
+  closeStream();
+  if (allowFallback && !state.fallbackUsed) {
+    state.fallbackUsed = true;
+    try {
+      await runViaPost(message || "Live progress connection closed; showing completed live report.");
+      return;
+    } catch (err) {
+      message = String(err);
+    }
+  }
+  showBanner(errorBanner, message || "Live run failed.", "error");
+  setOutcome("ERROR", "bad");
+  summaryLine.textContent = message || "Live run failed.";
+  announce(`Run failed: ${message || "Live run failed."}`, true);
+}
+
 async function runLive() {
   if (!state.selectedId) return;
   closeStream();
@@ -426,24 +443,20 @@ async function runLive() {
     }
 
     if (payload.type === "error") {
-      throw new Error(payload.message || payload.code || "stream_error");
+      finished = true;
+      await handleStreamFailure(payload.message || payload.code || "stream_error", false);
+      setRunningState(false);
     }
   };
 
   stream.onerror = async () => {
-    closeStream();
     if (finished || state.fallbackUsed) {
+      closeStream();
       setRunningState(false);
       return;
     }
-    state.fallbackUsed = true;
     try {
-      await runViaPost("Live progress connection closed; showing completed live report.");
-    } catch (err) {
-      showBanner(errorBanner, String(err), "error");
-      setOutcome("ERROR", "bad");
-      summaryLine.textContent = String(err);
-      announce(`Run failed: ${err}`, true);
+      await handleStreamFailure("Live progress connection closed; showing completed live report.");
     } finally {
       setRunningState(false);
     }

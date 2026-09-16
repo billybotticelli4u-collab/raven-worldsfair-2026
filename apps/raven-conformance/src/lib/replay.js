@@ -23,7 +23,13 @@ export function checkBundleIdentities(report) {
     diffs.push({ field: "target.id", error: "missing" });
     return { ok: false, diffs };
   }
-  const target = getTarget(targetId);
+  let target;
+  try {
+    target = getTarget(targetId);
+  } catch {
+    diffs.push({ field: "target.id", expected: targetId, error: "unknown_target" });
+    return { ok: false, diffs };
+  }
   const entryAbs = path.join(TARGETS_DIR, target.entry);
   const entryDigest = fileSha256(entryAbs);
 

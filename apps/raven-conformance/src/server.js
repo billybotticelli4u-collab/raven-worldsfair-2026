@@ -49,6 +49,23 @@ function sendJson(res, status, body) {
   res.end(payload);
 }
 
+function publicErrorMessage(code) {
+  switch (code) {
+    case "unknown_target":
+      return "Unknown or disallowed demo target.";
+    case "invalid_json":
+      return "Invalid JSON request body.";
+    case "run_in_progress":
+      return "Another run is already active.";
+    case "recorded_not_found":
+      return "Recorded report not found.";
+    case "report_not_found":
+      return "Saved report not found.";
+    default:
+      return "Internal server error.";
+  }
+}
+
 function serveStatic(req, res) {
   let urlPath = new URL(req.url || "/", `http://${HOST}`).pathname;
   if (urlPath === "/") urlPath = "/index.html";
@@ -182,7 +199,7 @@ function parseTargetId(candidate) {
 async function executeLiveRun({ targetId, timeoutMs, suppliedRunId, signal, onProgress }) {
   const lockRunId = suppliedRunId || runId("run");
   if (activeRun) {
-    const err = new Error("run_in_progress");
+    const err = new Error(publicErrorMessage("run_in_progress"));
     err.code = "run_in_progress";
     err.status = 409;
     err.active_run_id = activeRun.runId;
@@ -190,7 +207,7 @@ async function executeLiveRun({ targetId, timeoutMs, suppliedRunId, signal, onPr
   }
   const { target } = parseTargetId(targetId);
   if (!target) {
-    const err = new Error(`unknown_target:${targetId}`);
+    const err = new Error(publicErrorMessage("unknown_target"));
     err.code = "unknown_target";
     err.status = 400;
     throw err;
@@ -305,7 +322,7 @@ const server = http.createServer(async (req, res) => {
       req.on("close", () => controller.abort());
 
       if (!target) {
-        sendSse(res, { type: "error", run_id: suppliedRunId, code: "unknown_target", message: `unknown_target:${targetId}` });
+        sendSse(res, { type: "error", run_id: suppliedRunId, code: "unknown_target", message: publicErrorMessage("unknown_target") });
         return res.end();
       }
       if (activeRun) {
@@ -313,7 +330,7 @@ const server = http.createServer(async (req, res) => {
           type: "error",
           run_id: suppliedRunId,
           code: "run_in_progress",
-          message: "another run is already active",
+          message: publicErrorMessage("run_in_progress"),
           active_run_id: activeRun.runId,
         });
         return res.end();
@@ -345,7 +362,7 @@ const server = http.createServer(async (req, res) => {
           type: "error",
           run_id: suppliedRunId,
           code: err?.code || "server_error",
-          message: err instanceof Error ? err.message : String(err),
+          message: err?.code ? publicErrorMessage(err.code) : publicErrorMessage("server_error"),
           status: err?.status || 500,
         });
       }
@@ -360,11 +377,11 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { error: "invalid_json" });
       }
       const { targetId, target } = parseTargetId(body.target);
-      if (!target) return sendJson(res, 400, { error: "unknown_target", message: `unknown_target:${targetId}` });
+      if (!target) return sendJson(res, 400, { error: "unknown_target", message: publicErrorMessage("unknown_target") });
       if (activeRun) {
         return sendJson(res, 409, {
           error: "run_in_progress",
-          message: "another run is already active",
+          message: publicErrorMessage("run_in_progress"),
           active_run_id: activeRun.runId,
         });
       }
@@ -379,7 +396,7 @@ const server = http.createServer(async (req, res) => {
       } catch (err) {
         return sendJson(res, err?.status || 500, {
           error: err?.code || "server_error",
-          message: err instanceof Error ? err.message : String(err),
+          message: err?.code ? publicErrorMessage(err.code) : publicErrorMessage("server_error"),
         });
       }
     }
@@ -390,8 +407,8 @@ const server = http.createServer(async (req, res) => {
 
     res.writeHead(405).end("Method not allowed");
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    sendJson(res, 500, { error: "server_error", message });
+    console.error("raven-conformance server error", err);
+    sendJson(res, 500, { error: "server_error", message: publicErrorMessage("server_error") });
   }
 });
 
