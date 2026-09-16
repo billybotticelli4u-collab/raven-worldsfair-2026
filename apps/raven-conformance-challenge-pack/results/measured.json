@@ -1,0 +1,4533 @@
+{
+  "schema": "raven-conformance-challenge-result/1",
+  "generated_at": "2026-09-16T01:48:41.258Z",
+  "pack": {
+    "corpus_id": "raven-canonical-envelope-challenge-corpus/1",
+    "corpus_version": "1.0.0",
+    "corpus_file_sha256": "14253cf131025a23c90b459639d1e25626596e477c0e96954ce4537a1fa43b07",
+    "corpus_content_sha256": "6c2e34151a0e87ff05470a60209140f25aedcaa653ed7a30c8b4be470a2bee44",
+    "target_manifest_file_sha256": "91eebed35d61718448eb16cc9b40970071ddc0a10c7ed4fc95bc038a3793304f",
+    "source_profile_file_sha256": "914c2d5673ee9c5aaef00acac27440f6481f6397bdec81c2c835e088fe66bca4",
+    "source_baseline_corpus_file_sha256": "b799509d972bc295f679249b5fbfb097eb8034d9af470467fec0b93d6d30b7c2",
+    "source_reference_entry_sha256": "98616b015d9a9a3ba8c77734023acc4f5464072bb09679271d770017bc24f8f6",
+    "source_mvp_head": "53360df071872a29447993e879add2be9406b7b5",
+    "source_mvp_tree": "468b0397c89165160337a53597e8b6533f1f1dec",
+    "vector_count": 33,
+    "added_vector_count": 23,
+    "scored_vector_count": 29,
+    "underspecified_vector_count": 4,
+    "mutant_count": 9
+  },
+  "vectors": [
+    {
+      "id": "V01_valid_minimal",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-valid-minimal",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoidmVjLTAxIiwicGF5bG9hZCI6eyJhbW91bnQiOjEwLCJhc3NldCI6IkRFTU8iLCJub3RlIjoib2sifSwiZGlnZXN0IjoiNDMwNjZmNjg2NDQyNWRiNzMxY2M3NDlkYzBiMjNkNDc2OWU4NDk1ZTFjNTZlYTg5M2M2ZDdlZDkwZTZmYTU0MSJ9",
+      "input_byte_length": 180,
+      "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "ACCEPT"
+      },
+      "requirement": {
+        "id": "REQ-ACCEPT-VALID",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/6",
+        "text": "ACCEPT only when all rules pass."
+      },
+      "rationale": "Positive control proving the oracle can accept a fully valid envelope."
+    },
+    {
+      "id": "V02_valid_nested",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-valid-nested",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoidmVjLTAyIiwicGF5bG9hZCI6eyJuZXN0ZWQiOnsiYiI6MiwiYSI6MX0sImxpc3QiOlszLDEsMl19LCJkaWdlc3QiOiJkYzQzNTE0ODc5YWJjOWFkZDU3NDQwN2RmNDViZmM4Nzc4OWE4ZTAyNjZmNmFjYTBhYzIyYTdmNjAwN2ZmYjNkIn0=",
+      "input_byte_length": 179,
+      "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "ACCEPT"
+      },
+      "requirement": {
+        "id": "REQ-DIGEST-CANONICALIZATION",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/5",
+        "text": "Digest is SHA-256 hex of sorted-key canonical JSON(payload)."
+      },
+      "rationale": "Positive control for recursive key sorting while array order remains stable."
+    },
+    {
+      "id": "V03_digest_mismatch",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-digest-mismatch",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoidmVjLTAzIiwicGF5bG9hZCI6eyJhbW91bnQiOjEwLCJhc3NldCI6IkRFTU8iLCJub3RlIjoib2sifSwiZGlnZXN0IjoiMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCJ9",
+      "input_byte_length": 180,
+      "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-DIGEST-EQUALITY",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/5",
+        "text": "Reject when digest is not the exact canonical payload SHA-256 hex."
+      },
+      "rationale": "Direct negative control for payload-digest equality."
+    },
+    {
+      "id": "V04_schema_mismatch",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-schema-mismatch",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJvdGhlci1zY2hlbWEvOSIsImlkIjoidmVjLTA0IiwicGF5bG9hZCI6eyJhbW91bnQiOjEwLCJhc3NldCI6IkRFTU8iLCJub3RlIjoib2sifSwiZGlnZXN0IjoiNDMwNjZmNjg2NDQyNWRiNzMxY2M3NDlkYzBiMjNkNDc2OWU4NDk1ZTFjNTZlYTg5M2M2ZDdlZDkwZTZmYTU0MSJ9",
+      "input_byte_length": 168,
+      "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-SCHEMA",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/2",
+        "text": "schema must equal raven-canonical-envelope/1."
+      },
+      "rationale": "Direct negative control for exact profile selection."
+    },
+    {
+      "id": "V05_missing_digest",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-missing-digest",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoidmVjLTA1IiwicGF5bG9hZCI6eyJhbW91bnQiOjEwLCJhc3NldCI6IkRFTU8iLCJub3RlIjoib2sifX0=",
+      "input_byte_length": 104,
+      "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-REQUIRED-KEYS",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/1",
+        "text": "Every required top-level key must be present."
+      },
+      "rationale": "Proves digest presence is independently required."
+    },
+    {
+      "id": "V06_empty_id",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-empty-id",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoiIiwicGF5bG9hZCI6eyJhbW91bnQiOjEwLCJhc3NldCI6IkRFTU8iLCJub3RlIjoib2sifSwiZGlnZXN0IjoiNDMwNjZmNjg2NDQyNWRiNzMxY2M3NDlkYzBiMjNkNDc2OWU4NDk1ZTFjNTZlYTg5M2M2ZDdlZDkwZTZmYTU0MSJ9",
+      "input_byte_length": 174,
+      "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-ID",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/3",
+        "text": "id must be a non-empty string."
+      },
+      "rationale": "Direct boundary check for the empty-string case."
+    },
+    {
+      "id": "V07_unexpected_top_level_field",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-extra-field",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoidmVjLTA3IiwicGF5bG9hZCI6eyJhbW91bnQiOjEwLCJhc3NldCI6IkRFTU8iLCJub3RlIjoib2sifSwiZGlnZXN0IjoiNDMwNjZmNjg2NDQyNWRiNzMxY2M3NDlkYzBiMjNkNDc2OWU4NDk1ZTFjNTZlYTg5M2M2ZDdlZDkwZTZmYTU0MSIsImV4dHJhIjoic2hvdWxkLXJlamVjdCJ9",
+      "input_byte_length": 204,
+      "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-NO-UNEXPECTED",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/0",
+        "text": "No top-level key may fall outside allowed_top_level_keys."
+      },
+      "rationale": "Direct negative control for closed top-level shape."
+    },
+    {
+      "id": "V08_unexpected_extension_key",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-extension-field",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoidmVjLTA4IiwicGF5bG9hZCI6eyJhbW91bnQiOjEwLCJhc3NldCI6IkRFTU8iLCJub3RlIjoib2sifSwiZGlnZXN0IjoiNDMwNjZmNjg2NDQyNWRiNzMxY2M3NDlkYzBiMjNkNDc2OWU4NDk1ZTFjNTZlYTg5M2M2ZDdlZDkwZTZmYTU0MSIsInhfZXh0ZW5zaW9uIjp0cnVlfQ==",
+      "input_byte_length": 199,
+      "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-NO-UNEXPECTED",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/0",
+        "text": "No top-level key may fall outside allowed_top_level_keys."
+      },
+      "rationale": "Confirms extension naming does not bypass the closed shape."
+    },
+    {
+      "id": "V09_payload_not_object",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-payload-string",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoidmVjLTA5IiwicGF5bG9hZCI6Im5vcGUiLCJkaWdlc3QiOiI5YjRlN2E4MDJiMGJkN2U1ZTg0YmI5ODc2YTQ1NGNmY2Q0ZjY5NzEyMGU1NTNmZDdhMzBlY2I4YWRlMDk0ODUyIn0=",
+      "input_byte_length": 146,
+      "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-PAYLOAD",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/4",
+        "text": "payload must be a plain object."
+      },
+      "rationale": "Direct negative control for a scalar payload."
+    },
+    {
+      "id": "V10_missing_schema",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-missing-schema",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJpZCI6InZlYy0xMCIsInBheWxvYWQiOnsiYW1vdW50IjoxMCwiYXNzZXQiOiJERU1PIiwibm90ZSI6Im9rIn0sImRpZ2VzdCI6IjQzMDY2ZjY4NjQ0MjVkYjczMWNjNzQ5ZGMwYjIzZDQ3NjllODQ5NWUxYzU2ZWE4OTNjNmQ3ZWQ5MGU2ZmE1NDEifQ==",
+      "input_byte_length": 142,
+      "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-REQUIRED-KEYS",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/1",
+        "text": "Every required top-level key must be present."
+      },
+      "rationale": "Proves schema presence is independently required."
+    },
+    {
+      "id": "C01_valid_empty_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "valid-empty-plain-object",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoiZW1wdHktcGF5bG9hZCIsInBheWxvYWQiOnt9LCJkaWdlc3QiOiI0NDEzNmZhMzU1YjM2NzhhMTE0NmFkMTZmN2U4NjQ5ZTk0ZmI0ZmMyMWZlNzdlODMxMGMwNjBmNjFjYWFmZjhhIn0=",
+      "input_byte_length": 149,
+      "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "ACCEPT"
+      },
+      "requirement": {
+        "id": "REQ-ACCEPT-VALID",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/4-6",
+        "text": "An empty plain object satisfies the payload rule and must be accepted when all other rules pass."
+      },
+      "rationale": "Catches refuse-everything and targets that invent a non-empty payload requirement."
+    },
+    {
+      "id": "C02_valid_recursive_key_sort",
+      "provenance": "challenge-pack",
+      "failure_class": "recursive-key-order-control",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoic29ydGVkLWVkZ2UiLCJwYXlsb2FkIjp7InoiOjEsImEiOnsiZCI6NCwiYyI6M319LCJkaWdlc3QiOiI5NjA5Mzk4YTc5OGZmZDVkMjViZjJhZDUzYmIwNWQzMTIwOTQyMzdjN2M4MThkZDk5OTUxZTYwMDM5NmZjYzY0In0=",
+      "input_byte_length": 170,
+      "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "ACCEPT"
+      },
+      "requirement": {
+        "id": "REQ-DIGEST-CANONICALIZATION",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/5",
+        "text": "Canonical JSON sorts object keys recursively."
+      },
+      "rationale": "Kills an insertion-order hash mutant using a valid nested counterexample."
+    },
+    {
+      "id": "C03_valid_whitespace_id",
+      "provenance": "challenge-pack",
+      "failure_class": "nonempty-whitespace-id-control",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoiICIsInBheWxvYWQiOnsia2luZCI6IndoaXRlc3BhY2UtaWQifSwiZGlnZXN0IjoiYzEzZmFlZTRjNTdjYTA2N2VlYzJiYzY0ZjBhMGNhZjU5MzI1OWExZThlODBhODI0MzhjZWUxMWZiMzUxMjE5MyJ9",
+      "input_byte_length": 159,
+      "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "ACCEPT"
+      },
+      "requirement": {
+        "id": "REQ-ID",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/3",
+        "text": "id must be a non-empty string; trimming is not required."
+      },
+      "rationale": "Prevents the corpus from silently expanding the profile to require a trimmed semantic identifier."
+    },
+    {
+      "id": "C04_valid_unicode_id_and_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "unicode-string-control",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoiz4At8J+qtiIsInBheWxvYWQiOnsibGFiZWwiOiLPgCIsImVtb2ppIjoi8J+qtiJ9LCJkaWdlc3QiOiJkMjkwMWZjNjNjMTAxMzM5YTUwM2ZhNWI5MGNiYjk2MWE1NWM3NjRlZGUxN2I0M2JhYmJhMzI3NzI2NzU3NGYxIn0=",
+      "input_byte_length": 170,
+      "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "ACCEPT"
+      },
+      "requirement": {
+        "id": "REQ-ACCEPT-VALID",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/3-6",
+        "text": "The profile permits non-empty Unicode strings and canonical JSON payload strings."
+      },
+      "rationale": "Catches ASCII-only behavior not authorized by the profile."
+    },
+    {
+      "id": "C05_valid_nested_unexpected_name",
+      "provenance": "challenge-pack",
+      "failure_class": "nested-field-scope-control",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoibmVzdGVkLWZpZWxkIiwicGF5bG9hZCI6eyJtZXRhZGF0YSI6eyJ1bmV4cGVjdGVkIjoiYWxsb3dlZC1pbnNpZGUtcGF5bG9hZCJ9LCJ2YWx1ZSI6MX0sImRpZ2VzdCI6IjEyNTlhMjFlNWE3ZTNhNzk5NzY4ZjUyMzhjYzkzM2M0YTRiMDI1MGVhOGE1N2ViMzNhMmU2NGU1NzhhMzQ3MjUifQ==",
+      "input_byte_length": 208,
+      "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "ACCEPT"
+      },
+      "requirement": {
+        "id": "REQ-NO-UNEXPECTED",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/0",
+        "text": "Only unexpected top-level keys are prohibited."
+      },
+      "rationale": "Catches over-broad field-name filtering inside payload objects."
+    },
+    {
+      "id": "C06_null_envelope",
+      "provenance": "challenge-pack",
+      "failure_class": "null-envelope-shape",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "bnVsbA==",
+      "input_byte_length": 4,
+      "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-ENVELOPE-OBJECT",
+        "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+        "text": "Input is one JSON envelope object."
+      },
+      "rationale": "Exercises the outer object boundary rather than an individual field rule."
+    },
+    {
+      "id": "C07_array_envelope",
+      "provenance": "challenge-pack",
+      "failure_class": "array-envelope-shape",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "W10=",
+      "input_byte_length": 2,
+      "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-ENVELOPE-OBJECT",
+        "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+        "text": "Input is one JSON envelope object."
+      },
+      "rationale": "Separates arrays from plain envelope objects."
+    },
+    {
+      "id": "C08_missing_id",
+      "provenance": "challenge-pack",
+      "failure_class": "missing-id-required-key",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsInBheWxvYWQiOnsib2siOnRydWV9LCJkaWdlc3QiOiI0MDYyZWRhZjc1MGZiODA3NGU3ZTgzZTBjOTAyOGM5NGUzMjQ2OGE4YjZmMTYxNDc3NDMyOGVmMDQ1MTUwZjkzIn0=",
+      "input_byte_length": 137,
+      "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-REQUIRED-KEYS",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/1",
+        "text": "Every required top-level key must be present."
+      },
+      "rationale": "Completes the required-key matrix for id."
+    },
+    {
+      "id": "C09_missing_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "missing-payload-required-key",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoibWlzc2luZy1wYXlsb2FkIiwiZGlnZXN0IjoiNDA2MmVkYWY3NTBmYjgwNzRlN2U4M2UwYzkwMjhjOTRlMzI0NjhhOGI2ZjE2MTQ3NzQzMjhlZjA0NTE1MGY5MyJ9",
+      "input_byte_length": 138,
+      "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-REQUIRED-KEYS",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/1",
+        "text": "Every required top-level key must be present."
+      },
+      "rationale": "Completes the required-key matrix for payload."
+    },
+    {
+      "id": "C10_numeric_id",
+      "provenance": "challenge-pack",
+      "failure_class": "numeric-id-type",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjo3LCJwYXlsb2FkIjp7Im9rIjp0cnVlfSwiZGlnZXN0IjoiNDA2MmVkYWY3NTBmYjgwNzRlN2U4M2UwYzkwMjhjOTRlMzI0NjhhOGI2ZjE2MTQ3NzQzMjhlZjA0NTE1MGY5MyJ9",
+      "input_byte_length": 144,
+      "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-ID",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/3",
+        "text": "id must be a non-empty string."
+      },
+      "rationale": "Separates non-empty truthy values from strings."
+    },
+    {
+      "id": "C11_boolean_id",
+      "provenance": "challenge-pack",
+      "failure_class": "boolean-id-type",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjp0cnVlLCJwYXlsb2FkIjp7Im9rIjp0cnVlfSwiZGlnZXN0IjoiNDA2MmVkYWY3NTBmYjgwNzRlN2U4M2UwYzkwMjhjOTRlMzI0NjhhOGI2ZjE2MTQ3NzQzMjhlZjA0NTE1MGY5MyJ9",
+      "input_byte_length": 147,
+      "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-ID",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/3",
+        "text": "id must be a non-empty string."
+      },
+      "rationale": "Catches coercive id checks that accept truthy booleans."
+    },
+    {
+      "id": "C12_array_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "array-payload-shape",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoiYXJyYXktcGF5bG9hZCIsInBheWxvYWQiOlsxLDJdLCJkaWdlc3QiOiI0OWE2NDcxN2Q1ZDRjYjE5OTUyZTZlYWMyOTQ2NDE1Y2Y2ODc5YWRhY2Y5OTA4ZTdkODcyMzMyZDMyYzZlNjg0In0=",
+      "input_byte_length": 152,
+      "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-PAYLOAD",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/4",
+        "text": "payload must be a plain object."
+      },
+      "rationale": "Kills targets that use typeof object without excluding arrays."
+    },
+    {
+      "id": "C13_null_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "null-payload-shape",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoibnVsbC1wYXlsb2FkIiwicGF5bG9hZCI6bnVsbCwiZGlnZXN0IjoiNzQyMzRlOThhZmU3NDk4ZmI1ZGFmMWYzNmFjMmQ3OGFjYzMzOTQ2NGY5NTA3MDNiOGMwMTk4OTJmOTgyYjkwYiJ9",
+      "input_byte_length": 150,
+      "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-PAYLOAD",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/4",
+        "text": "payload must be a plain object."
+      },
+      "rationale": "Kills JavaScript null-is-object mistakes."
+    },
+    {
+      "id": "C14_uppercase_digest",
+      "provenance": "challenge-pack",
+      "failure_class": "uppercase-digest-representation",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoidXBwZXJjYXNlLWRpZ2VzdCIsInBheWxvYWQiOnsib2siOnRydWV9LCJkaWdlc3QiOiI0MDYyRURBRjc1MEZCODA3NEU3RTgzRTBDOTAyOEM5NEUzMjQ2OEE4QjZGMTYxNDc3NDMyOEVGMDQ1MTUwRjkzIn0=",
+      "input_byte_length": 161,
+      "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-DIGEST-EQUALITY",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/5",
+        "text": "digest must equal the algorithm's exact SHA-256 hex output."
+      },
+      "rationale": "Exercises representation equality rather than only wrong digest bytes."
+    },
+    {
+      "id": "C15_numeric_digest",
+      "provenance": "challenge-pack",
+      "failure_class": "numeric-digest-representation",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoibnVtZXJpYy1kaWdlc3QiLCJwYXlsb2FkIjp7Im9rIjp0cnVlfSwiZGlnZXN0IjoxMjN9",
+      "input_byte_length": 96,
+      "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-DIGEST-EQUALITY",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/5",
+        "text": "digest must equal the SHA-256 hex string."
+      },
+      "rationale": "Catches coercive or presence-only digest validation."
+    },
+    {
+      "id": "C16_insertion_order_digest",
+      "provenance": "challenge-pack",
+      "failure_class": "noncanonical-insertion-order-digest",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoid3Jvbmctb3JkZXItaGFzaCIsInBheWxvYWQiOnsieiI6MSwiYSI6eyJkIjo0LCJjIjozfX0sImRpZ2VzdCI6ImMxYjgzMmY5ZjdhYTI4NTI2MjE1MTZjMDg4OWJhY2QwYjcxMWIxMTc1ZGM0MjA5ODhiOGEzMzY4NTQyZjZkOWYifQ==",
+      "input_byte_length": 175,
+      "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-DIGEST-CANONICALIZATION",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/5",
+        "text": "Digest input is sorted-key canonical JSON, not input insertion order."
+      },
+      "rationale": "Negative counterpart to C02 and a direct oracle for canonicalization."
+    },
+    {
+      "id": "C17_proto_named_top_level_field",
+      "provenance": "challenge-pack",
+      "failure_class": "dangerous-name-top-level-field",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoicHJvdG8ta2V5IiwicGF5bG9hZCI6eyJzYWZlIjp0cnVlfSwiZGlnZXN0IjoiMTNmNTEzZmUzMmE4OTkxNTU3ZWJmMjg5NDFiNzU1OTc2NDFlOTQ3MTdjMDg1NjliNzcyM2Q5OThjNzQyODQyMyIsIl9fcHJvdG9fXyI6eyJwb2xsdXRlZCI6dHJ1ZX19",
+      "input_byte_length": 186,
+      "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-NO-UNEXPECTED",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/0",
+        "text": "Every unexpected top-level key is rejected, regardless of its name."
+      },
+      "rationale": "Exercises a representation edge that can disappear under unsafe object copying."
+    },
+    {
+      "id": "C18_null_schema",
+      "provenance": "challenge-pack",
+      "failure_class": "null-schema-representation",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOm51bGwsImlkIjoibnVsbC1zY2hlbWEiLCJwYXlsb2FkIjp7Im9rIjp0cnVlfSwiZGlnZXN0IjoiNDA2MmVkYWY3NTBmYjgwNzRlN2U4M2UwYzkwMjhjOTRlMzI0NjhhOGI2ZjE2MTQ3NzQzMjhlZjA0NTE1MGY5MyJ9",
+      "input_byte_length": 132,
+      "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-SCHEMA",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/2",
+        "text": "schema must strictly equal the declared schema value."
+      },
+      "rationale": "Catches truthiness or missing-only schema validation."
+    },
+    {
+      "id": "C19_schema_case_mismatch",
+      "provenance": "challenge-pack",
+      "failure_class": "schema-case-representation",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJSQVZFTi1DQU5PTklDQUwtRU5WRUxPUEUvMSIsImlkIjoic2NoZW1hLWNhc2UiLCJwYXlsb2FkIjp7Im9rIjp0cnVlfSwiZGlnZXN0IjoiNDA2MmVkYWY3NTBmYjgwNzRlN2U4M2UwYzkwMjhjOTRlMzI0NjhhOGI2ZjE2MTQ3NzQzMjhlZjA0NTE1MGY5MyJ9",
+      "input_byte_length": 156,
+      "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+      "expected": {
+        "classification": "SPECIFIED",
+        "decision": "REJECT"
+      },
+      "requirement": {
+        "id": "REQ-SCHEMA",
+        "citation": "profiles/raven-canonical-envelope-1.json#/rules/2",
+        "text": "schema must strictly equal the declared schema value."
+      },
+      "rationale": "Catches case-folded profile selection."
+    },
+    {
+      "id": "C20_truncated_json",
+      "provenance": "challenge-pack",
+      "failure_class": "malformed-truncated-json",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOg==",
+      "input_byte_length": 10,
+      "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+      "expected": {
+        "classification": "UNDERSPECIFIED",
+        "allowed_observations": [
+          "REJECT",
+          "PROCESS_ERROR"
+        ]
+      },
+      "requirement": {
+        "id": "REQ-MALFORMED-UNSPECIFIED",
+        "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+        "text": "The profile specifies a JSON object input but does not normatively choose refusal versus process error for malformed JSON bytes."
+      },
+      "rationale": "Records malformed-input behavior without promoting the reference target's choice into the profile."
+    },
+    {
+      "id": "C21_duplicate_id_key",
+      "provenance": "challenge-pack",
+      "failure_class": "duplicate-json-member",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoiZmlyc3QiLCJpZCI6InNlY29uZCIsInBheWxvYWQiOnt9LCJkaWdlc3QiOiI0NDEzNmZhMzU1YjM2NzhhMTE0NmFkMTZmN2U4NjQ5ZTk0ZmI0ZmMyMWZlNzdlODMxMGMwNjBmNjFjYWFmZjhhIn0=",
+      "input_byte_length": 155,
+      "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+      "expected": {
+        "classification": "UNDERSPECIFIED",
+        "allowed_observations": [
+          "ACCEPT",
+          "REJECT",
+          "PROCESS_ERROR"
+        ]
+      },
+      "requirement": {
+        "id": "REQ-DUPLICATE-UNSPECIFIED",
+        "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+        "text": "The profile does not define duplicate JSON member semantics before object construction."
+      },
+      "rationale": "Prevents JSON.parse last-wins behavior from being mislabeled as an implementation violation."
+    },
+    {
+      "id": "C22_trailing_json_value",
+      "provenance": "challenge-pack",
+      "failure_class": "trailing-json-value",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSJ9IHRydWU=",
+      "input_byte_length": 44,
+      "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+      "expected": {
+        "classification": "UNDERSPECIFIED",
+        "allowed_observations": [
+          "REJECT",
+          "PROCESS_ERROR"
+        ]
+      },
+      "requirement": {
+        "id": "REQ-MALFORMED-UNSPECIFIED",
+        "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+        "text": "The profile does not define malformed JSON process behavior."
+      },
+      "rationale": "Distinguishes structured refusal from parser/process failure without scoring either."
+    },
+    {
+      "id": "C23_whitespace_only_input",
+      "provenance": "challenge-pack",
+      "failure_class": "whitespace-only-input",
+      "input_encoding": "utf8_base64",
+      "input_utf8_base64": "IA==",
+      "input_byte_length": 1,
+      "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+      "expected": {
+        "classification": "UNDERSPECIFIED",
+        "allowed_observations": [
+          "REJECT",
+          "PROCESS_ERROR"
+        ]
+      },
+      "requirement": {
+        "id": "REQ-MALFORMED-UNSPECIFIED",
+        "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+        "text": "The profile does not define empty or whitespace-only process behavior."
+      },
+      "rationale": "Makes error-versus-refusal behavior visible but non-normative."
+    }
+  ],
+  "reference": {
+    "id": "MVP_CONFORMANT_REFERENCE",
+    "role": "reference",
+    "violated_requirement": null,
+    "entry_sha256": "98616b015d9a9a3ba8c77734023acc4f5464072bb09679271d770017bc24f8f6",
+    "support_file_sha256": null,
+    "infrastructure_failure": null,
+    "status": "REFERENCE_SATISFIES_SPECIFIED_VECTORS",
+    "scored_vector_count": 29,
+    "scored_accept_count": 7,
+    "scored_reject_count": 22,
+    "scored_divergence_count": 0,
+    "killed_by": [],
+    "observations": [
+      {
+        "vector_id": "V01_valid_minimal",
+        "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "ACCEPT",
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V02_valid_nested",
+        "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "ACCEPT",
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V03_digest_mismatch",
+        "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "digest_mismatch",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V04_schema_mismatch",
+        "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "schema_mismatch",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V05_missing_digest",
+        "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "missing_required:digest",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V06_empty_id",
+        "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "id_invalid",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V07_unexpected_top_level_field",
+        "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "unexpected_top_level_field:extra",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V08_unexpected_extension_key",
+        "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "unexpected_top_level_field:x_extension",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V09_payload_not_object",
+        "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "payload_not_object",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "V10_missing_schema",
+        "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "missing_required:schema",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C01_valid_empty_payload",
+        "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "ACCEPT",
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C02_valid_recursive_key_sort",
+        "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "ACCEPT",
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C03_valid_whitespace_id",
+        "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "ACCEPT",
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C04_valid_unicode_id_and_payload",
+        "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "ACCEPT",
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C05_valid_nested_unexpected_name",
+        "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "ACCEPT",
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C06_null_envelope",
+        "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "envelope_not_object",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C07_array_envelope",
+        "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "envelope_not_object",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C08_missing_id",
+        "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "missing_required:id",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C09_missing_payload",
+        "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "missing_required:payload",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C10_numeric_id",
+        "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "id_invalid",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C11_boolean_id",
+        "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "id_invalid",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C12_array_payload",
+        "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "payload_not_object",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C13_null_payload",
+        "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "payload_not_object",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C14_uppercase_digest",
+        "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "digest_mismatch",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C15_numeric_digest",
+        "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "digest_mismatch",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C16_insertion_order_digest",
+        "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "digest_mismatch",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C17_proto_named_top_level_field",
+        "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "unexpected_top_level_field:__proto__",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C18_null_schema",
+        "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "schema_mismatch",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C19_schema_case_mismatch",
+        "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+        "expectation_classification": "SPECIFIED",
+        "expected_decision": "REJECT",
+        "observed_decision": "REJECT",
+        "observed_reason": "schema_mismatch",
+        "process_error": null,
+        "status": "PASS"
+      },
+      {
+        "vector_id": "C20_truncated_json",
+        "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+        "expectation_classification": "UNDERSPECIFIED",
+        "expected_decision": null,
+        "observed_decision": "REJECT",
+        "observed_reason": "invalid_json",
+        "process_error": null,
+        "status": "UNSCORED_UNDERSPECIFIED"
+      },
+      {
+        "vector_id": "C21_duplicate_id_key",
+        "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+        "expectation_classification": "UNDERSPECIFIED",
+        "expected_decision": null,
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "UNSCORED_UNDERSPECIFIED"
+      },
+      {
+        "vector_id": "C22_trailing_json_value",
+        "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+        "expectation_classification": "UNDERSPECIFIED",
+        "expected_decision": null,
+        "observed_decision": "REJECT",
+        "observed_reason": "invalid_json",
+        "process_error": null,
+        "status": "UNSCORED_UNDERSPECIFIED"
+      },
+      {
+        "vector_id": "C23_whitespace_only_input",
+        "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+        "expectation_classification": "UNDERSPECIFIED",
+        "expected_decision": null,
+        "observed_decision": "REJECT",
+        "observed_reason": "invalid_json",
+        "process_error": null,
+        "status": "UNSCORED_UNDERSPECIFIED"
+      }
+    ]
+  },
+  "mutants": [
+    {
+      "id": "MUTANT_ACCEPT_EVERYTHING",
+      "role": "mutant",
+      "violated_requirement": "REQ-ACCEPT-ONLY-ALL",
+      "entry_sha256": "678f955cf9a94d0f3cfe9987f5c446142483503adf66e12f8919a3f7b165210c",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 22,
+      "killed_by": [
+        "V03_digest_mismatch",
+        "V04_schema_mismatch",
+        "V05_missing_digest",
+        "V06_empty_id",
+        "V07_unexpected_top_level_field",
+        "V08_unexpected_extension_key",
+        "V09_payload_not_object",
+        "V10_missing_schema",
+        "C06_null_envelope",
+        "C07_array_envelope",
+        "C08_missing_id",
+        "C09_missing_payload",
+        "C10_numeric_id",
+        "C11_boolean_id",
+        "C12_array_payload",
+        "C13_null_payload",
+        "C14_uppercase_digest",
+        "C15_numeric_digest",
+        "C16_insertion_order_digest",
+        "C17_proto_named_top_level_field",
+        "C18_null_schema",
+        "C19_schema_case_mismatch"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_accept_all",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    },
+    {
+      "id": "MUTANT_REFUSE_EVERYTHING",
+      "role": "mutant",
+      "violated_requirement": "REQ-ACCEPT-VALID",
+      "entry_sha256": "6cb547b2eaeba3934269e75d9d8b02478140474e763151ca3473e7c5fd60fc62",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 7,
+      "killed_by": [
+        "V01_valid_minimal",
+        "V02_valid_nested",
+        "C01_valid_empty_payload",
+        "C02_valid_recursive_key_sort",
+        "C03_valid_whitespace_id",
+        "C04_valid_unicode_id_and_payload",
+        "C05_valid_nested_unexpected_name"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "mutant_refuse_all",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    },
+    {
+      "id": "MUTANT_ALLOW_EXTRA_FIELDS",
+      "role": "mutant",
+      "violated_requirement": "REQ-NO-UNEXPECTED",
+      "entry_sha256": "8d25e1a8aac118de6518b03f3f6d68ee48464a74880790f2cb1f0a146738d9dc",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 3,
+      "killed_by": [
+        "V07_unexpected_top_level_field",
+        "V08_unexpected_extension_key",
+        "C17_proto_named_top_level_field"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_extra_fields",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    },
+    {
+      "id": "MUTANT_ALLOW_MISSING_DIGEST",
+      "role": "mutant",
+      "violated_requirement": "REQ-REQUIRED-KEYS",
+      "entry_sha256": "0297f2fe1b2ac3fb3b6b2535b1d55b5dca243c8f843d1a7e488576d2ce379831",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 1,
+      "killed_by": [
+        "V05_missing_digest"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_missing_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_missing_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_missing_digest_allowed",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:extra",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:x_extension",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_missing_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_missing_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_missing_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_missing_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_missing_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:__proto__",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_missing_digest",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    },
+    {
+      "id": "MUTANT_IGNORE_SCHEMA",
+      "role": "mutant",
+      "violated_requirement": "REQ-SCHEMA",
+      "entry_sha256": "57d030cf40814554e09464069f048dc42519140b037aa12c4297ef7789a2692a",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 3,
+      "killed_by": [
+        "V04_schema_mismatch",
+        "C18_null_schema",
+        "C19_schema_case_mismatch"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:extra",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:x_extension",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:__proto__",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_schema",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    },
+    {
+      "id": "MUTANT_ALLOW_INVALID_ID",
+      "role": "mutant",
+      "violated_requirement": "REQ-ID",
+      "entry_sha256": "a7e0bca5f3d7bb94c92f03c2c84393591aee26d575c38b6f956807dde0ad6941",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 3,
+      "killed_by": [
+        "V06_empty_id",
+        "C10_numeric_id",
+        "C11_boolean_id"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:extra",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:x_extension",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:__proto__",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_invalid_id",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    },
+    {
+      "id": "MUTANT_ALLOW_ARRAY_PAYLOAD",
+      "role": "mutant",
+      "violated_requirement": "REQ-PAYLOAD",
+      "entry_sha256": "1d1d1b94a4242c9cd86aef0d085d6aa64b0216c307da30e08d7f218bbcf57f0d",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 1,
+      "killed_by": [
+        "C12_array_payload"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:extra",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:x_extension",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:__proto__",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_allow_array_payload",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    },
+    {
+      "id": "MUTANT_IGNORE_DIGEST",
+      "role": "mutant",
+      "violated_requirement": "REQ-DIGEST-EQUALITY",
+      "entry_sha256": "c4a06b09d972c4c6bb9f526529a120e9f9184cd045275e4a7368652a940fef19",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 4,
+      "killed_by": [
+        "V03_digest_mismatch",
+        "C14_uppercase_digest",
+        "C15_numeric_digest",
+        "C16_insertion_order_digest"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:extra",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:x_extension",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:__proto__",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_ignore_digest",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    },
+    {
+      "id": "MUTANT_HASH_INSERTION_ORDER",
+      "role": "mutant",
+      "violated_requirement": "REQ-DIGEST-CANONICALIZATION",
+      "entry_sha256": "eb598b06677c3e49c8376856911c3eb21aa917644c282d7178b24c06d6401312",
+      "support_file_sha256": "59e78d58b4de1fe977242b6bf1fc0adf69f6a8221591927a6db40a9a98e120b5",
+      "infrastructure_failure": null,
+      "status": "KILLED",
+      "scored_vector_count": 29,
+      "scored_accept_count": 7,
+      "scored_reject_count": 22,
+      "scored_divergence_count": 4,
+      "killed_by": [
+        "V02_valid_nested",
+        "C02_valid_recursive_key_sort",
+        "C04_valid_unicode_id_and_payload",
+        "C16_insertion_order_digest"
+      ],
+      "observations": [
+        {
+          "vector_id": "V01_valid_minimal",
+          "input_sha256": "640ed3b8620a34dfba4cecd4d9717852c70b78c0b8f9c0933f9bbff5c1404a03",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_hash_insertion_order",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V02_valid_nested",
+          "input_sha256": "98b6e771ca619aefd1216b21f17ac0d14d6a7811e464ce61a643f29f18747444",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "V03_digest_mismatch",
+          "input_sha256": "cba16c088c696093740173ecdce083b98fc7a7366b3eb1ec457949346e5e8133",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V04_schema_mismatch",
+          "input_sha256": "292a6216ad4441a43ddbdc634708a391a088ba4b0515111e3b289b332936153d",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V05_missing_digest",
+          "input_sha256": "140d0ec812604854712eeb0bebeb191d2fa6fd6716abb34e72ea035701716d99",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:digest",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V06_empty_id",
+          "input_sha256": "12d6337cc5fa7c3e019a500feaec7c9bea59b3f9c2c8a6751b31ef1152523d40",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V07_unexpected_top_level_field",
+          "input_sha256": "6b37ebb66ae74b4ad5d3c6ad30a0e2d3fefb7174058ae58579366847b7e30b79",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:extra",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V08_unexpected_extension_key",
+          "input_sha256": "b53750f4828f46adb352ee9e295cb6a763180eda02ce06efaebdc302c67b319f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:x_extension",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V09_payload_not_object",
+          "input_sha256": "61c9e463e664e1cd5e1ad98c06ae470366d2496ca4b968c1bd9a57789771948f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "V10_missing_schema",
+          "input_sha256": "2bb9a8a00c0b0d2cbb1be1e112ac92e6969b56d1a31651b71ef87321232df386",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:schema",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C01_valid_empty_payload",
+          "input_sha256": "b88ea48f6a14f1ba14b4a7aca8910ef0922adb688e1fcf53863e234e08cd3c2c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_hash_insertion_order",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C02_valid_recursive_key_sort",
+          "input_sha256": "0e063bac9c6eb90be33b1dd315f1d53d00d99da5586a74d3a9eae5fd5a233457",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C03_valid_whitespace_id",
+          "input_sha256": "2619f092f22f30bf41d1b25eb89a9e763ee9849f977770040860a6843b05d008",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_hash_insertion_order",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C04_valid_unicode_id_and_payload",
+          "input_sha256": "49b6c6c2b1e919f2aefe068a8da636315642dc7bd7a79f96d10c72fdf314b5e3",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C05_valid_nested_unexpected_name",
+          "input_sha256": "e9bb3e8bb16696aa4228ae12ed64386a09816dd7d8a8329180e6c6b06efa8fbd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "ACCEPT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_hash_insertion_order",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C06_null_envelope",
+          "input_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C07_array_envelope",
+          "input_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "envelope_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C08_missing_id",
+          "input_sha256": "f6209a46cb6f55a795c81990fe27ac25382bed602e8349c56494b8739d4db9cd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:id",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C09_missing_payload",
+          "input_sha256": "bac9322f63892125bcbdf01b3f5e2a5978341da5d44347cbd1c2e9044db7095c",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "missing_required:payload",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C10_numeric_id",
+          "input_sha256": "c25a33e25fc7b99aac683c07cd1f9a89522c338b1e0df1d629679a762bb0f747",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C11_boolean_id",
+          "input_sha256": "cfeb1d738220db866481987363b0b32977e3511b9ed98cedf01aac724f6c76f5",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "id_invalid",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C12_array_payload",
+          "input_sha256": "b60e80f15c74c4552c9d3969139671a165c96a9a04c104af744dbc6cb37f2631",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C13_null_payload",
+          "input_sha256": "010ce952c98f2ea92bc765c64ead960dacd7388ea0dd6318bde7c5efc142a2a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "payload_not_object",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C14_uppercase_digest",
+          "input_sha256": "d17b21bc7352cbeea758e9aecda69530ae4f67cbc7817679f8d1ac6c220bb259",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C15_numeric_digest",
+          "input_sha256": "d906c85667c77985cdeabb954081ed0f2d4997a027e0cb17595219aeae55d60f",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "digest_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C16_insertion_order_digest",
+          "input_sha256": "58d5d5463146c1635035886ad8815efb3c85bfc3aa9c247a4c948a89cc8bca97",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_hash_insertion_order",
+          "process_error": null,
+          "status": "DIVERGENCE"
+        },
+        {
+          "vector_id": "C17_proto_named_top_level_field",
+          "input_sha256": "959520d42832752573a4793ca957677e43a19aacbcaa546525b65adfbcb1d7a8",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "unexpected_top_level_field:__proto__",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C18_null_schema",
+          "input_sha256": "91afdea97f441d713465068a8878a9d217d445196be6eab734b5aa4c8b9111fd",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C19_schema_case_mismatch",
+          "input_sha256": "23c3678c7c5608fe3bacc2fa6efc543a2e419c84a81f3c178978afd67744ef76",
+          "expectation_classification": "SPECIFIED",
+          "expected_decision": "REJECT",
+          "observed_decision": "REJECT",
+          "observed_reason": "schema_mismatch",
+          "process_error": null,
+          "status": "PASS"
+        },
+        {
+          "vector_id": "C20_truncated_json",
+          "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C21_duplicate_id_key",
+          "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "ACCEPT",
+          "observed_reason": "mutant_hash_insertion_order",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C22_trailing_json_value",
+          "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        },
+        {
+          "vector_id": "C23_whitespace_only_input",
+          "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+          "expectation_classification": "UNDERSPECIFIED",
+          "expected_decision": null,
+          "observed_decision": "REJECT",
+          "observed_reason": "invalid_json",
+          "process_error": null,
+          "status": "UNSCORED_UNDERSPECIFIED"
+        }
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "requirement_id": "REQ-ACCEPT-ONLY-ALL",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/6",
+      "vector_ids": [
+        "V03_digest_mismatch",
+        "V04_schema_mismatch",
+        "V05_missing_digest",
+        "V06_empty_id",
+        "V07_unexpected_top_level_field",
+        "V08_unexpected_extension_key",
+        "V09_payload_not_object",
+        "V10_missing_schema",
+        "C06_null_envelope",
+        "C07_array_envelope",
+        "C08_missing_id",
+        "C09_missing_payload",
+        "C10_numeric_id",
+        "C11_boolean_id",
+        "C12_array_payload",
+        "C13_null_payload",
+        "C14_uppercase_digest",
+        "C15_numeric_digest",
+        "C16_insertion_order_digest",
+        "C17_proto_named_top_level_field",
+        "C18_null_schema",
+        "C19_schema_case_mismatch"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_ACCEPT_EVERYTHING",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "V03_digest_mismatch",
+            "V04_schema_mismatch",
+            "V05_missing_digest",
+            "V06_empty_id",
+            "V07_unexpected_top_level_field",
+            "V08_unexpected_extension_key",
+            "V09_payload_not_object",
+            "V10_missing_schema",
+            "C06_null_envelope",
+            "C07_array_envelope",
+            "C08_missing_id",
+            "C09_missing_payload",
+            "C10_numeric_id",
+            "C11_boolean_id",
+            "C12_array_payload",
+            "C13_null_payload",
+            "C14_uppercase_digest",
+            "C15_numeric_digest",
+            "C16_insertion_order_digest",
+            "C17_proto_named_top_level_field",
+            "C18_null_schema",
+            "C19_schema_case_mismatch"
+          ]
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-ACCEPT-VALID",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/6",
+      "vector_ids": [
+        "V01_valid_minimal",
+        "C01_valid_empty_payload",
+        "C04_valid_unicode_id_and_payload"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_REFUSE_EVERYTHING",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "V01_valid_minimal",
+            "C01_valid_empty_payload",
+            "C04_valid_unicode_id_and_payload"
+          ]
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-DIGEST-CANONICALIZATION",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/5",
+      "vector_ids": [
+        "V02_valid_nested",
+        "C02_valid_recursive_key_sort",
+        "C16_insertion_order_digest"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_HASH_INSERTION_ORDER",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "V02_valid_nested",
+            "C02_valid_recursive_key_sort",
+            "C16_insertion_order_digest"
+          ]
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-DIGEST-EQUALITY",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/5",
+      "vector_ids": [
+        "V03_digest_mismatch",
+        "C14_uppercase_digest",
+        "C15_numeric_digest"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_IGNORE_DIGEST",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "V03_digest_mismatch",
+            "C14_uppercase_digest",
+            "C15_numeric_digest"
+          ]
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-ENVELOPE-OBJECT",
+      "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+      "vector_ids": [
+        "C06_null_envelope",
+        "C07_array_envelope"
+      ],
+      "mutant_outcomes": []
+    },
+    {
+      "requirement_id": "REQ-ID",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/3",
+      "vector_ids": [
+        "V06_empty_id",
+        "C03_valid_whitespace_id",
+        "C10_numeric_id",
+        "C11_boolean_id"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_ALLOW_INVALID_ID",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "V06_empty_id",
+            "C10_numeric_id",
+            "C11_boolean_id"
+          ]
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-NO-UNEXPECTED",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/0",
+      "vector_ids": [
+        "V07_unexpected_top_level_field",
+        "V08_unexpected_extension_key",
+        "C05_valid_nested_unexpected_name",
+        "C17_proto_named_top_level_field"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_ALLOW_EXTRA_FIELDS",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "V07_unexpected_top_level_field",
+            "V08_unexpected_extension_key",
+            "C17_proto_named_top_level_field"
+          ]
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-PAYLOAD",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/4",
+      "vector_ids": [
+        "V09_payload_not_object",
+        "C12_array_payload",
+        "C13_null_payload"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_ALLOW_ARRAY_PAYLOAD",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "C12_array_payload"
+          ]
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-REQUIRED-KEYS",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/1",
+      "vector_ids": [
+        "V05_missing_digest",
+        "V10_missing_schema",
+        "C08_missing_id",
+        "C09_missing_payload"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_ALLOW_MISSING_DIGEST",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "V05_missing_digest"
+          ]
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-SCHEMA",
+      "citation": "profiles/raven-canonical-envelope-1.json#/rules/2",
+      "vector_ids": [
+        "V04_schema_mismatch",
+        "C18_null_schema",
+        "C19_schema_case_mismatch"
+      ],
+      "mutant_outcomes": [
+        {
+          "mutant_id": "MUTANT_IGNORE_SCHEMA",
+          "measured_outcome": "KILLED",
+          "killed_by_applicable_vectors": [
+            "V04_schema_mismatch",
+            "C18_null_schema",
+            "C19_schema_case_mismatch"
+          ]
+        }
+      ]
+    }
+  ],
+  "surviving_mutants": [],
+  "infrastructure_failures": [],
+  "underspecified_cases": [
+    {
+      "vector_id": "C20_truncated_json",
+      "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+      "reason": "The profile specifies a JSON object input but does not normatively choose refusal versus process error for malformed JSON bytes.",
+      "reference_observation": {
+        "vector_id": "C20_truncated_json",
+        "input_sha256": "7e3eb5fc8da3096692ed52e9ff2a99e4f5bcb43640259131f8ab783a7723862a",
+        "expectation_classification": "UNDERSPECIFIED",
+        "expected_decision": null,
+        "observed_decision": "REJECT",
+        "observed_reason": "invalid_json",
+        "process_error": null,
+        "status": "UNSCORED_UNDERSPECIFIED"
+      }
+    },
+    {
+      "vector_id": "C21_duplicate_id_key",
+      "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+      "reason": "The profile does not define duplicate JSON member semantics before object construction.",
+      "reference_observation": {
+        "vector_id": "C21_duplicate_id_key",
+        "input_sha256": "b8340988b93c67a4b012f5644186b7f2204461f30908f18b0801851ba63edbd6",
+        "expectation_classification": "UNDERSPECIFIED",
+        "expected_decision": null,
+        "observed_decision": "ACCEPT",
+        "observed_reason": "canonical_envelope_ok",
+        "process_error": null,
+        "status": "UNSCORED_UNDERSPECIFIED"
+      }
+    },
+    {
+      "vector_id": "C22_trailing_json_value",
+      "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+      "reason": "The profile does not define malformed JSON process behavior.",
+      "reference_observation": {
+        "vector_id": "C22_trailing_json_value",
+        "input_sha256": "d526136628821fc62d32be401b7539bcd41613e6d6d1c17dd38ade38ab767de5",
+        "expectation_classification": "UNDERSPECIFIED",
+        "expected_decision": null,
+        "observed_decision": "REJECT",
+        "observed_reason": "invalid_json",
+        "process_error": null,
+        "status": "UNSCORED_UNDERSPECIFIED"
+      }
+    },
+    {
+      "vector_id": "C23_whitespace_only_input",
+      "citation": "profiles/raven-canonical-envelope-1.json#/invocation/input",
+      "reason": "The profile does not define empty or whitespace-only process behavior.",
+      "reference_observation": {
+        "vector_id": "C23_whitespace_only_input",
+        "input_sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+        "expectation_classification": "UNDERSPECIFIED",
+        "expected_decision": null,
+        "observed_decision": "REJECT",
+        "observed_reason": "invalid_json",
+        "process_error": null,
+        "status": "UNSCORED_UNDERSPECIFIED"
+      }
+    }
+  ],
+  "judge_visible_divergences": [
+    {
+      "title": "Accept-everything is caught",
+      "target": "MUTANT_ACCEPT_EVERYTHING",
+      "evidence": [
+        "V03_digest_mismatch",
+        "V04_schema_mismatch",
+        "V05_missing_digest",
+        "V06_empty_id",
+        "V07_unexpected_top_level_field",
+        "V08_unexpected_extension_key",
+        "V09_payload_not_object",
+        "V10_missing_schema",
+        "C06_null_envelope",
+        "C07_array_envelope",
+        "C08_missing_id",
+        "C09_missing_payload",
+        "C10_numeric_id",
+        "C11_boolean_id",
+        "C12_array_payload",
+        "C13_null_payload",
+        "C14_uppercase_digest",
+        "C15_numeric_digest",
+        "C16_insertion_order_digest",
+        "C17_proto_named_top_level_field",
+        "C18_null_schema",
+        "C19_schema_case_mismatch"
+      ]
+    },
+    {
+      "title": "Refuse-everything is caught by valid controls",
+      "target": "MUTANT_REFUSE_EVERYTHING",
+      "evidence": [
+        "V01_valid_minimal",
+        "V02_valid_nested",
+        "C01_valid_empty_payload",
+        "C02_valid_recursive_key_sort",
+        "C03_valid_whitespace_id",
+        "C04_valid_unicode_id_and_payload",
+        "C05_valid_nested_unexpected_name"
+      ]
+    },
+    {
+      "title": "Insertion-order hashing diverges from recursive sorted-key canonicalization",
+      "target": "MUTANT_HASH_INSERTION_ORDER",
+      "evidence": [
+        "V02_valid_nested",
+        "C02_valid_recursive_key_sort",
+        "C04_valid_unicode_id_and_payload",
+        "C16_insertion_order_digest"
+      ]
+    }
+  ],
+  "claim_limitations": [
+    "A passing target matches the specified decisions in this named frozen corpus only.",
+    "This result does not establish full profile completeness, security, authorization, signer trust, provenance, deployment, or successful on-chain execution.",
+    "Malformed-input and duplicate-member observations are descriptive because the current profile leaves them underspecified.",
+    "No signer/key representation vectors exist because the named profile has no signer or key field."
+  ]
+}

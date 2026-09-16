@@ -1,0 +1,342 @@
+{
+  "id": "raven-canonical-envelope-challenge-corpus/1",
+  "version": "1.0.0",
+  "profile": "raven-canonical-envelope/1",
+  "source_mvp_head": "53360df071872a29447993e879add2be9406b7b5",
+  "source_mvp_tree": "468b0397c89165160337a53597e8b6533f1f1dec",
+  "description": "Independent frozen expectations for the Raven-owned canonical-envelope demo profile. Expectations were selected from the written profile, not copied from target output.",
+  "input_serialization": "For vectors with input, exact stdin bytes are UTF-8 JSON.stringify(input) with no trailing newline. Raw probes use input_utf8_base64.",
+  "vectors": [
+    {
+      "id": "V01_valid_minimal",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-valid-minimal",
+      "description": "Valid canonical envelope must ACCEPT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"vec-01","payload":{"amount":10,"asset":"DEMO","note":"ok"},"digest":"43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541"},
+      "expected": {"classification":"SPECIFIED","decision":"ACCEPT"},
+      "requirement": {"id":"REQ-ACCEPT-VALID","citation":"profiles/raven-canonical-envelope-1.json#/rules/6","text":"ACCEPT only when all rules pass."},
+      "rationale": "Positive control proving the oracle can accept a fully valid envelope."
+    },
+    {
+      "id": "V02_valid_nested",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-valid-nested",
+      "description": "Valid nested payload must ACCEPT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"vec-02","payload":{"nested":{"b":2,"a":1},"list":[3,1,2]},"digest":"dc43514879abc9add574407df45bfc87789a8e0266f6aca0ac22a7f6007ffb3d"},
+      "expected": {"classification":"SPECIFIED","decision":"ACCEPT"},
+      "requirement": {"id":"REQ-DIGEST-CANONICALIZATION","citation":"profiles/raven-canonical-envelope-1.json#/rules/5","text":"Digest is SHA-256 hex of sorted-key canonical JSON(payload)."},
+      "rationale": "Positive control for recursive key sorting while array order remains stable."
+    },
+    {
+      "id": "V03_digest_mismatch",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-digest-mismatch",
+      "description": "Wrong digest must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"vec-03","payload":{"amount":10,"asset":"DEMO","note":"ok"},"digest":"0000000000000000000000000000000000000000000000000000000000000000"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-DIGEST-EQUALITY","citation":"profiles/raven-canonical-envelope-1.json#/rules/5","text":"Reject when digest is not the exact canonical payload SHA-256 hex."},
+      "rationale": "Direct negative control for payload-digest equality."
+    },
+    {
+      "id": "V04_schema_mismatch",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-schema-mismatch",
+      "description": "Wrong schema must REJECT",
+      "input": {"schema":"other-schema/9","id":"vec-04","payload":{"amount":10,"asset":"DEMO","note":"ok"},"digest":"43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-SCHEMA","citation":"profiles/raven-canonical-envelope-1.json#/rules/2","text":"schema must equal raven-canonical-envelope/1."},
+      "rationale": "Direct negative control for exact profile selection."
+    },
+    {
+      "id": "V05_missing_digest",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-missing-digest",
+      "description": "Missing required digest must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"vec-05","payload":{"amount":10,"asset":"DEMO","note":"ok"}},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-REQUIRED-KEYS","citation":"profiles/raven-canonical-envelope-1.json#/rules/1","text":"Every required top-level key must be present."},
+      "rationale": "Proves digest presence is independently required."
+    },
+    {
+      "id": "V06_empty_id",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-empty-id",
+      "description": "Empty id must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"","payload":{"amount":10,"asset":"DEMO","note":"ok"},"digest":"43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-ID","citation":"profiles/raven-canonical-envelope-1.json#/rules/3","text":"id must be a non-empty string."},
+      "rationale": "Direct boundary check for the empty-string case."
+    },
+    {
+      "id": "V07_unexpected_top_level_field",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-extra-field",
+      "description": "Unexpected top-level field must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"vec-07","payload":{"amount":10,"asset":"DEMO","note":"ok"},"digest":"43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541","extra":"should-reject"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-NO-UNEXPECTED","citation":"profiles/raven-canonical-envelope-1.json#/rules/0","text":"No top-level key may fall outside allowed_top_level_keys."},
+      "rationale": "Direct negative control for closed top-level shape."
+    },
+    {
+      "id": "V08_unexpected_extension_key",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-extension-field",
+      "description": "Extension-like top-level key must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"vec-08","payload":{"amount":10,"asset":"DEMO","note":"ok"},"digest":"43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541","x_extension":true},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-NO-UNEXPECTED","citation":"profiles/raven-canonical-envelope-1.json#/rules/0","text":"No top-level key may fall outside allowed_top_level_keys."},
+      "rationale": "Confirms extension naming does not bypass the closed shape."
+    },
+    {
+      "id": "V09_payload_not_object",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-payload-string",
+      "description": "String payload must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"vec-09","payload":"nope","digest":"9b4e7a802b0bd7e5e84bb9876a454cfcd4f697120e553fd7a30ecb8ade094852"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-PAYLOAD","citation":"profiles/raven-canonical-envelope-1.json#/rules/4","text":"payload must be a plain object."},
+      "rationale": "Direct negative control for a scalar payload."
+    },
+    {
+      "id": "V10_missing_schema",
+      "provenance": "mvp-baseline",
+      "failure_class": "baseline-missing-schema",
+      "description": "Missing schema must REJECT",
+      "input": {"id":"vec-10","payload":{"amount":10,"asset":"DEMO","note":"ok"},"digest":"43066f6864425db731cc749dc0b23d4769e8495e1c56ea893c6d7ed90e6fa541"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-REQUIRED-KEYS","citation":"profiles/raven-canonical-envelope-1.json#/rules/1","text":"Every required top-level key must be present."},
+      "rationale": "Proves schema presence is independently required."
+    },
+    {
+      "id": "C01_valid_empty_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "valid-empty-plain-object",
+      "description": "An empty plain-object payload is valid",
+      "input": {"schema":"raven-canonical-envelope/1","id":"empty-payload","payload":{},"digest":"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"},
+      "expected": {"classification":"SPECIFIED","decision":"ACCEPT"},
+      "requirement": {"id":"REQ-ACCEPT-VALID","citation":"profiles/raven-canonical-envelope-1.json#/rules/4-6","text":"An empty plain object satisfies the payload rule and must be accepted when all other rules pass."},
+      "rationale": "Catches refuse-everything and targets that invent a non-empty payload requirement."
+    },
+    {
+      "id": "C02_valid_recursive_key_sort",
+      "provenance": "challenge-pack",
+      "failure_class": "recursive-key-order-control",
+      "description": "Insertion order must not replace recursive sorted-key canonicalization",
+      "input": {"schema":"raven-canonical-envelope/1","id":"sorted-edge","payload":{"z":1,"a":{"d":4,"c":3}},"digest":"9609398a798ffd5d25bf2ad53bb05d312094237c7c818dd99951e600396fcc64"},
+      "expected": {"classification":"SPECIFIED","decision":"ACCEPT"},
+      "requirement": {"id":"REQ-DIGEST-CANONICALIZATION","citation":"profiles/raven-canonical-envelope-1.json#/rules/5","text":"Canonical JSON sorts object keys recursively."},
+      "rationale": "Kills an insertion-order hash mutant using a valid nested counterexample."
+    },
+    {
+      "id": "C03_valid_whitespace_id",
+      "provenance": "challenge-pack",
+      "failure_class": "nonempty-whitespace-id-control",
+      "description": "Whitespace-only id remains a non-empty string under the written profile",
+      "input": {"schema":"raven-canonical-envelope/1","id":" ","payload":{"kind":"whitespace-id"},"digest":"c13faee4c57ca067eec2bc64f0a0caf593259a1e8e80a82438cee11fb3512193"},
+      "expected": {"classification":"SPECIFIED","decision":"ACCEPT"},
+      "requirement": {"id":"REQ-ID","citation":"profiles/raven-canonical-envelope-1.json#/rules/3","text":"id must be a non-empty string; trimming is not required."},
+      "rationale": "Prevents the corpus from silently expanding the profile to require a trimmed semantic identifier."
+    },
+    {
+      "id": "C04_valid_unicode_id_and_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "unicode-string-control",
+      "description": "Unicode strings are accepted when their exact canonical digest matches",
+      "input": {"schema":"raven-canonical-envelope/1","id":"π-🪶","payload":{"label":"π","emoji":"🪶"},"digest":"d2901fc63c101339a503fa5b90cbb961a55c764ede17b43babba3277267574f1"},
+      "expected": {"classification":"SPECIFIED","decision":"ACCEPT"},
+      "requirement": {"id":"REQ-ACCEPT-VALID","citation":"profiles/raven-canonical-envelope-1.json#/rules/3-6","text":"The profile permits non-empty Unicode strings and canonical JSON payload strings."},
+      "rationale": "Catches ASCII-only behavior not authorized by the profile."
+    },
+    {
+      "id": "C05_valid_nested_unexpected_name",
+      "provenance": "challenge-pack",
+      "failure_class": "nested-field-scope-control",
+      "description": "Unexpected-field prohibition applies only at the top level",
+      "input": {"schema":"raven-canonical-envelope/1","id":"nested-field","payload":{"metadata":{"unexpected":"allowed-inside-payload"},"value":1},"digest":"1259a21e5a7e3a799768f5238cc933c4a4b0250ea8a57eb33a2e64e578a34725"},
+      "expected": {"classification":"SPECIFIED","decision":"ACCEPT"},
+      "requirement": {"id":"REQ-NO-UNEXPECTED","citation":"profiles/raven-canonical-envelope-1.json#/rules/0","text":"Only unexpected top-level keys are prohibited."},
+      "rationale": "Catches over-broad field-name filtering inside payload objects."
+    },
+    {
+      "id": "C06_null_envelope",
+      "provenance": "challenge-pack",
+      "failure_class": "null-envelope-shape",
+      "description": "JSON null is not an envelope object",
+      "input": null,
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-ENVELOPE-OBJECT","citation":"profiles/raven-canonical-envelope-1.json#/invocation/input","text":"Input is one JSON envelope object."},
+      "rationale": "Exercises the outer object boundary rather than an individual field rule."
+    },
+    {
+      "id": "C07_array_envelope",
+      "provenance": "challenge-pack",
+      "failure_class": "array-envelope-shape",
+      "description": "A top-level array is not an envelope object",
+      "input": [],
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-ENVELOPE-OBJECT","citation":"profiles/raven-canonical-envelope-1.json#/invocation/input","text":"Input is one JSON envelope object."},
+      "rationale": "Separates arrays from plain envelope objects."
+    },
+    {
+      "id": "C08_missing_id",
+      "provenance": "challenge-pack",
+      "failure_class": "missing-id-required-key",
+      "description": "Missing id must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","payload":{"ok":true},"digest":"4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-REQUIRED-KEYS","citation":"profiles/raven-canonical-envelope-1.json#/rules/1","text":"Every required top-level key must be present."},
+      "rationale": "Completes the required-key matrix for id."
+    },
+    {
+      "id": "C09_missing_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "missing-payload-required-key",
+      "description": "Missing payload must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"missing-payload","digest":"4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-REQUIRED-KEYS","citation":"profiles/raven-canonical-envelope-1.json#/rules/1","text":"Every required top-level key must be present."},
+      "rationale": "Completes the required-key matrix for payload."
+    },
+    {
+      "id": "C10_numeric_id",
+      "provenance": "challenge-pack",
+      "failure_class": "numeric-id-type",
+      "description": "Numeric id must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":7,"payload":{"ok":true},"digest":"4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-ID","citation":"profiles/raven-canonical-envelope-1.json#/rules/3","text":"id must be a non-empty string."},
+      "rationale": "Separates non-empty truthy values from strings."
+    },
+    {
+      "id": "C11_boolean_id",
+      "provenance": "challenge-pack",
+      "failure_class": "boolean-id-type",
+      "description": "Boolean id must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":true,"payload":{"ok":true},"digest":"4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-ID","citation":"profiles/raven-canonical-envelope-1.json#/rules/3","text":"id must be a non-empty string."},
+      "rationale": "Catches coercive id checks that accept truthy booleans."
+    },
+    {
+      "id": "C12_array_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "array-payload-shape",
+      "description": "Array payload must REJECT even with its matching digest",
+      "input": {"schema":"raven-canonical-envelope/1","id":"array-payload","payload":[1,2],"digest":"49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-PAYLOAD","citation":"profiles/raven-canonical-envelope-1.json#/rules/4","text":"payload must be a plain object."},
+      "rationale": "Kills targets that use typeof object without excluding arrays."
+    },
+    {
+      "id": "C13_null_payload",
+      "provenance": "challenge-pack",
+      "failure_class": "null-payload-shape",
+      "description": "Null payload must REJECT even with its matching digest",
+      "input": {"schema":"raven-canonical-envelope/1","id":"null-payload","payload":null,"digest":"74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-PAYLOAD","citation":"profiles/raven-canonical-envelope-1.json#/rules/4","text":"payload must be a plain object."},
+      "rationale": "Kills JavaScript null-is-object mistakes."
+    },
+    {
+      "id": "C14_uppercase_digest",
+      "provenance": "challenge-pack",
+      "failure_class": "uppercase-digest-representation",
+      "description": "Uppercase hex is not the exact lowercase SHA-256 hex produced by the profile algorithm",
+      "input": {"schema":"raven-canonical-envelope/1","id":"uppercase-digest","payload":{"ok":true},"digest":"4062EDAF750FB8074E7E83E0C9028C94E32468A8B6F1614774328EF045150F93"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-DIGEST-EQUALITY","citation":"profiles/raven-canonical-envelope-1.json#/rules/5","text":"digest must equal the algorithm's exact SHA-256 hex output."},
+      "rationale": "Exercises representation equality rather than only wrong digest bytes."
+    },
+    {
+      "id": "C15_numeric_digest",
+      "provenance": "challenge-pack",
+      "failure_class": "numeric-digest-representation",
+      "description": "Non-string digest must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"numeric-digest","payload":{"ok":true},"digest":123},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-DIGEST-EQUALITY","citation":"profiles/raven-canonical-envelope-1.json#/rules/5","text":"digest must equal the SHA-256 hex string."},
+      "rationale": "Catches coercive or presence-only digest validation."
+    },
+    {
+      "id": "C16_insertion_order_digest",
+      "provenance": "challenge-pack",
+      "failure_class": "noncanonical-insertion-order-digest",
+      "description": "Digest over insertion-order JSON must REJECT when it differs from sorted-key canonical JSON",
+      "input": {"schema":"raven-canonical-envelope/1","id":"wrong-order-hash","payload":{"z":1,"a":{"d":4,"c":3}},"digest":"c1b832f9f7aa2852621516c0889bacd0b711b1175dc420988b8a3368542f6d9f"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-DIGEST-CANONICALIZATION","citation":"profiles/raven-canonical-envelope-1.json#/rules/5","text":"Digest input is sorted-key canonical JSON, not input insertion order."},
+      "rationale": "Negative counterpart to C02 and a direct oracle for canonicalization."
+    },
+    {
+      "id": "C17_proto_named_top_level_field",
+      "provenance": "challenge-pack",
+      "failure_class": "dangerous-name-top-level-field",
+      "description": "An own __proto__ top-level key remains unexpected and must REJECT",
+      "input": {"schema":"raven-canonical-envelope/1","id":"proto-key","payload":{"safe":true},"digest":"13f513fe32a8991557ebf28941b75597641e94717c08569b7723d998c7428423","__proto__":{"polluted":true}},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-NO-UNEXPECTED","citation":"profiles/raven-canonical-envelope-1.json#/rules/0","text":"Every unexpected top-level key is rejected, regardless of its name."},
+      "rationale": "Exercises a representation edge that can disappear under unsafe object copying."
+    },
+    {
+      "id": "C18_null_schema",
+      "provenance": "challenge-pack",
+      "failure_class": "null-schema-representation",
+      "description": "Null schema must REJECT",
+      "input": {"schema":null,"id":"null-schema","payload":{"ok":true},"digest":"4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-SCHEMA","citation":"profiles/raven-canonical-envelope-1.json#/rules/2","text":"schema must strictly equal the declared schema value."},
+      "rationale": "Catches truthiness or missing-only schema validation."
+    },
+    {
+      "id": "C19_schema_case_mismatch",
+      "provenance": "challenge-pack",
+      "failure_class": "schema-case-representation",
+      "description": "Case-changed schema must REJECT",
+      "input": {"schema":"RAVEN-CANONICAL-ENVELOPE/1","id":"schema-case","payload":{"ok":true},"digest":"4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93"},
+      "expected": {"classification":"SPECIFIED","decision":"REJECT"},
+      "requirement": {"id":"REQ-SCHEMA","citation":"profiles/raven-canonical-envelope-1.json#/rules/2","text":"schema must strictly equal the declared schema value."},
+      "rationale": "Catches case-folded profile selection."
+    },
+    {
+      "id": "C20_truncated_json",
+      "provenance": "challenge-pack",
+      "failure_class": "malformed-truncated-json",
+      "description": "Truncated JSON probes parser containment",
+      "input_utf8_base64": "eyJzY2hlbWEiOg==",
+      "expected": {"classification":"UNDERSPECIFIED","allowed_observations":["REJECT","PROCESS_ERROR"]},
+      "requirement": {"id":"REQ-MALFORMED-UNSPECIFIED","citation":"profiles/raven-canonical-envelope-1.json#/invocation/input","text":"The profile specifies a JSON object input but does not normatively choose refusal versus process error for malformed JSON bytes."},
+      "rationale": "Records malformed-input behavior without promoting the reference target's choice into the profile."
+    },
+    {
+      "id": "C21_duplicate_id_key",
+      "provenance": "challenge-pack",
+      "failure_class": "duplicate-json-member",
+      "description": "Duplicate JSON member handling is not specified",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSIsImlkIjoiZmlyc3QiLCJpZCI6InNlY29uZCIsInBheWxvYWQiOnt9LCJkaWdlc3QiOiI0NDEzNmZhMzU1YjM2NzhhMTE0NmFkMTZmN2U4NjQ5ZTk0ZmI0ZmMyMWZlNzdlODMxMGMwNjBmNjFjYWFmZjhhIn0=",
+      "expected": {"classification":"UNDERSPECIFIED","allowed_observations":["ACCEPT","REJECT","PROCESS_ERROR"]},
+      "requirement": {"id":"REQ-DUPLICATE-UNSPECIFIED","citation":"profiles/raven-canonical-envelope-1.json#/invocation/input","text":"The profile does not define duplicate JSON member semantics before object construction."},
+      "rationale": "Prevents JSON.parse last-wins behavior from being mislabeled as an implementation violation."
+    },
+    {
+      "id": "C22_trailing_json_value",
+      "provenance": "challenge-pack",
+      "failure_class": "trailing-json-value",
+      "description": "Trailing JSON value probes parser containment",
+      "input_utf8_base64": "eyJzY2hlbWEiOiJyYXZlbi1jYW5vbmljYWwtZW52ZWxvcGUvMSJ9IHRydWU=",
+      "expected": {"classification":"UNDERSPECIFIED","allowed_observations":["REJECT","PROCESS_ERROR"]},
+      "requirement": {"id":"REQ-MALFORMED-UNSPECIFIED","citation":"profiles/raven-canonical-envelope-1.json#/invocation/input","text":"The profile does not define malformed JSON process behavior."},
+      "rationale": "Distinguishes structured refusal from parser/process failure without scoring either."
+    },
+    {
+      "id": "C23_whitespace_only_input",
+      "provenance": "challenge-pack",
+      "failure_class": "whitespace-only-input",
+      "description": "Whitespace-only stdin probes empty parser input",
+      "input_utf8_base64": "IA==",
+      "expected": {"classification":"UNDERSPECIFIED","allowed_observations":["REJECT","PROCESS_ERROR"]},
+      "requirement": {"id":"REQ-MALFORMED-UNSPECIFIED","citation":"profiles/raven-canonical-envelope-1.json#/invocation/input","text":"The profile does not define empty or whitespace-only process behavior."},
+      "rationale": "Makes error-versus-refusal behavior visible but non-normative."
+    }
+  ],
+  "content_digest_sha256": "6c2e34151a0e87ff05470a60209140f25aedcaa653ed7a30c8b4be470a2bee44"
+}

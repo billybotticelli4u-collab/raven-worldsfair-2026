@@ -1,0 +1,15 @@
+{
+  "name": "raven-conformance-challenge-pack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent adversarial challenge pack for raven-canonical-envelope/1.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "evaluate": "node src/cli.js"
+  },
+  "license": "Apache-2.0"
+}
