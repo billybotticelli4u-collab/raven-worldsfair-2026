@@ -1,5 +1,4 @@
-reports/*.json
-!reports/.gitkeep
 node_modules/
-generated-build-info.json
-.DS_Store
+reports/
+.server.assembled.mjs
+src/.server.assembled.mjs
