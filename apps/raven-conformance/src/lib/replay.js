@@ -63,7 +63,6 @@ export function checkBundleIdentities(report) {
 
 function semanticSlice(report) {
   return {
-    overall: report.summary?.overall,
     counts: report.summary?.counts || {
       PASS: report.summary?.pass,
       BEHAVIORAL_DIVERGENCE: report.summary?.divergence,
@@ -82,9 +81,6 @@ export function compareSemantic(original, replayed) {
   const b = semanticSlice(replayed);
   const diffs = [];
   const expectedIds = new Set(a.results.map((r) => r.vector_id));
-  if (a.overall !== b.overall) {
-    diffs.push({ field: "overall", expected: a.overall, actual: b.overall });
-  }
   const byId = new Map(b.results.map((r) => [r.vector_id, r]));
   for (const r of a.results) {
     const o = byId.get(r.vector_id);

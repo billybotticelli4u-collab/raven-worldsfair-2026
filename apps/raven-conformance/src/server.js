@@ -314,28 +314,15 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && url.pathname === "/api/run-stream") {
-      beginSse(res);
       const { targetId, target } = parseTargetId(url.searchParams.get("target"));
       const timeoutMs = url.searchParams.has("timeout_ms") ? Number(url.searchParams.get("timeout_ms")) : undefined;
       const suppliedRunId = sanitizeId(url.searchParams.get("run_id")) || runId("run");
+      if (!target) return sendJson(res, 400, { error: "unknown_target", message: publicErrorMessage("unknown_target") });
+      if (activeRun) return sendJson(res, 409, { error: "run_in_progress", message: publicErrorMessage("run_in_progress"), active_run_id: activeRun.runId });
+
+      beginSse(res);
       const controller = new AbortController();
       req.on("close", () => controller.abort());
-
-      if (!target) {
-        sendSse(res, { type: "error", run_id: suppliedRunId, code: "unknown_target", message: publicErrorMessage("unknown_target") });
-        return res.end();
-      }
-      if (activeRun) {
-        sendSse(res, {
-          type: "error",
-          run_id: suppliedRunId,
-          code: "run_in_progress",
-          message: publicErrorMessage("run_in_progress"),
-          active_run_id: activeRun.runId,
-        });
-        return res.end();
-      }
-
       sendSse(res, { type: "run_started", run_id: suppliedRunId, target: target.id });
       try {
         const report = await executeLiveRun({

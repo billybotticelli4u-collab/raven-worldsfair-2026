@@ -102,7 +102,7 @@ The Challenge 2 Judge UI opens `EventSource("/api/run-stream?target=<ID>")` and 
 
 **Included in `deterministic_report_sha256` / content digest:** schema, product, target binding digests, profile, corpus, isolation mode disclosure (not wall-clock), results semantic fields (vector_id, status, expected, observed.decision/reason), summary counts/overall, divergence_definition, limitations text, binding object.
 
-**Volatile (excluded from deterministic digest):** `run_id`, `started_at`, `finished_at`, per-vector `evidence.durationMs`, `environment` wall identity that changes host-to-host may be bound separately; `reproduction` branch tip strings may update — Challenge 1 binds digests of profile/corpus/target and semantic outcomes.
+**Volatile (excluded from deterministic digest):** `run_id`, `started_at`, `finished_at`, per-vector `evidence.durationMs`, `environment` wall identity that changes host-to-host may be bound separately. The current implementation still includes `reproduction`, `limitations`, and `isolation.platform` inside `deterministicReportBody()`, so edits to those fields will change `deterministic_report_sha256` until the digest inputs are narrowed further.
 
 ## 6. Error codes
 

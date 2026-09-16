@@ -75,13 +75,12 @@ describe("Challenge 2 judge server", () => {
     assert.equal(finished.payload.report.summary.overall, "CONFORMANT");
   });
 
-  it("streams structured error events for disallowed targets", async () => {
+  it("rejects disallowed streamed targets before opening SSE", async () => {
     const response = await fetch(`${BASE}/api/run-stream?target=HOSTILE_ENDLESS`);
-    const text = await response.text();
-    const events = parseSse(text);
-    const failure = events.find((event) => event.type === "error");
-    assert.ok(failure);
-    assert.equal(failure.code, "unknown_target");
+    assert.equal(response.status, 400);
+    assert.doesNotMatch(response.headers.get("content-type") || "", /text\/event-stream/i);
+    const failure = await response.json();
+    assert.equal(failure.error, "unknown_target");
     assert.equal(typeof failure.message, "string");
   });
 

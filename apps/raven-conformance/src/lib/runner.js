@@ -535,6 +535,7 @@ export async function runProbe(targetId, opts = {}) {
       maxStdout: opts.maxStdout || (target.id.includes("FLOOD") ? PROBE_FLOOD_MAX_STDOUT : undefined),
       maxStderr: opts.maxStderr || (target.id.includes("FLOOD") ? PROBE_FLOOD_MAX_STDERR : undefined),
       injectCanary: false,
+      requireDecision: false,
     });
 
     const kind = target.probe_kind || target.id;

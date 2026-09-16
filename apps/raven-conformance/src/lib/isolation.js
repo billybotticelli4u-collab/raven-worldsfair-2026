@@ -291,6 +291,7 @@ export function spawnIsolated({
   maxStderr = DEFAULT_MAX_STDERR_BYTES,
   envExtra = {},
   injectCanary = false,
+  requireDecision = true,
 }) {
   return new Promise((resolve) => {
     const started = Date.now();
@@ -386,13 +387,17 @@ export function spawnIsolated({
         parseError = "timeout";
       } else {
         const line = stdoutStr.trim().split(/\r?\n/).filter(Boolean).pop() || "";
-        try {
-          observed = JSON.parse(line);
-          if (!observed || typeof observed.decision !== "string") {
-            parseError = "missing_decision";
+        if (!line) {
+          if (requireDecision) parseError = "missing_decision";
+        } else {
+          try {
+            observed = JSON.parse(line);
+            if (requireDecision && (!observed || typeof observed.decision !== "string")) {
+              parseError = "missing_decision";
+            }
+          } catch {
+            parseError = "unparseable_stdout";
           }
-        } catch {
-          parseError = "unparseable_stdout";
         }
       }
 
