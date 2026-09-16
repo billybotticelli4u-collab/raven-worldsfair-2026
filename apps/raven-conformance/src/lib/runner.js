@@ -478,7 +478,8 @@ export async function runConformance(targetId, opts = {}) {
     ],
     reproduction: {
       clean_clone: [
-        "git clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git",
+        "# Place the supplied challenge2-disclosure-candidate.bundle in this directory first.",
+        `git clone --branch ${BRANCH_NAME} ./challenge2-disclosure-candidate.bundle raven-worldsfair-2026`,
         "cd raven-worldsfair-2026",
         `git checkout ${BRANCH_NAME}`,
         "cd apps/raven-conformance",
