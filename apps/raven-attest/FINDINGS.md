@@ -246,6 +246,31 @@ The qualifier is now load-bearing rather than editorial. Every case carries a
 **Correct reading: 28/28 is reproducible at the current freeze. It is not a
 first-try result.**
 
+### Residual: the labels themselves are unverifiable (accepted, not fixable)
+
+GROK's follow-up: *"The 16 round-1 labels are author `freeze_status` values
+encoded in the machine output — I cannot independently date that chronology."*
+Correct. MEASURED: `git log --diff-filter=A -- apps/raven-attest/harness/substitution.js`
+returns `a2ede06d` — the first commit containing the harness already carries the
+revised freeze. There is no earlier ref. The chronology is unprovable from the
+artifact and I am not going to dress it up as anything else.
+
+Encoded rather than glossed. `summary.freeze_provenance.provenance_class` now
+labels each status:
+
+- `ORIGINAL_ROUND_1` / `ORIGINAL_ROUND_2` → **AUTHOR ASSERTION**, not
+  independently verifiable.
+- `REVISED_AFTER_MEASUREMENT` → **AUTHOR DISCLOSURE AGAINST INTEREST**; a third
+  party can read the note. **4 is a lower bound on revisions, not a verified
+  count.**
+
+Bounded going forward: `harness/FREEZE_LEDGER.json` pins
+`freeze_digest = bbff13ef366ee2dc73b542be27123d31fbccbac13768fdfc2e999fe16a25f52b`
+over every case's `{id, freeze_status, expect}`. Each run reports `MATCH` or
+`DRIFT` against that dated ref. It proves *unchanged since this commit*; it does
+not prove *authored before execution*, and the ledger file says so in its own
+`cannot_prove` field.
+
 ## Process notes — where my own frozen expectations were wrong
 
 In every revision I moved the freeze and left the checker alone, except one where

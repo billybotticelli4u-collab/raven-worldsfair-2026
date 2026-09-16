@@ -83,9 +83,9 @@ enumerates them:
 
 | Status | Cases | Meaning |
 |---|---|---|
-| `ORIGINAL_ROUND_1` | 16 | authored and frozen before any case in this pack ran |
-| `ORIGINAL_ROUND_2` | 8 | authored after round 1, frozen before its own first run |
-| `REVISED_AFTER_MEASUREMENT` | 4 (S04, S05, S12, S19) | frozen value changed after seeing output |
+| `ORIGINAL_ROUND_1` | 16 | *author-asserted*: frozen before any case in this pack ran — **not independently verifiable** |
+| `ORIGINAL_ROUND_2` | 8 | *author-asserted*: frozen before its own first run — **not independently verifiable** |
+| `REVISED_AFTER_MEASUREMENT` | 4 (S04, S05, S12, S19) | frozen value changed after seeing output — disclosed, and a **lower bound** |
 
 In all four revisions the **freeze moved and the checker did not** — three were
 incomplete freezes where the extra detection was correct behaviour I had not
@@ -95,6 +95,24 @@ checker defect and `C1` was fixed (`CHECKER_REVISIONS` in the harness source).
 Read 28/28 as *"reproducible at the current freeze"*, never as *"first-try
 green"*. Both the revisions and the checker fix are enumerated rather than
 absorbed into the score.
+
+### What the freeze_status labels are, and are not
+
+`ORIGINAL_ROUND_1` and `ORIGINAL_ROUND_2` are **author assertions and are not
+independently verifiable.** Git cannot date them: the first commit containing
+this harness (`a2ede06d`) already carries the revised freeze, so there is no
+earlier ref showing what round 1 looked like. Residual correctly raised by GROK
+on 2026-09-16 — *"I cannot independently date that chronology."* It is not
+retroactively fixable.
+
+`REVISED_AFTER_MEASUREMENT` is different in kind: it is a **disclosure against
+interest**, and a third party can read the `freeze_revision` note and see the
+admission. Treat 4 as a **lower bound** on revisions, never a verified count.
+
+What *is* establishable from this commit forward: `harness/FREEZE_LEDGER.json`
+pins a digest over every case's `{id, freeze_status, expect}`. Every run prints
+`MATCH` or `DRIFT` against it. That proves **"unchanged since that commit"** — it
+does not and cannot prove "authored before execution".
 
 ## The pin, and why it matters
 
@@ -118,6 +136,7 @@ src/lib/bundle.js        digest re-derivation, independent of the engine
 src/lib/oracle.js        profile → expected-decision oracle (reads no target)
 src/lib/stable.js        deterministic / variable partition of a report
 harness/substitution.js  28 frozen cases: 3 positive controls + 25 attacks
+harness/FREEZE_LEDGER.json  dated freeze digest; every run reports MATCH or DRIFT
 pins/                    out-of-band anchor
 results/                 machine-readable pack output
 THREAT_MODEL.md          what each field covers, what is merely descriptive

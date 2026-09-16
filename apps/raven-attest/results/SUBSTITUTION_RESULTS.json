@@ -50,6 +50,19 @@
           "what": "C1 compared the pinned target entry digest only against what the report claimed, not against the bytes on disk, so swapping the target file after the run went unnoticed by the pin. C1 now checks both sides."
         }
       ],
+      "provenance_class": {
+        "ORIGINAL_ROUND_1": "AUTHOR ASSERTION — not independently verifiable. Git cannot date it: the first commit containing this harness already carries the revised freeze.",
+        "ORIGINAL_ROUND_2": "AUTHOR ASSERTION — same limitation. These cases were added after round 1 and matched their freeze on first run, but only the author observed that.",
+        "REVISED_AFTER_MEASUREMENT": "AUTHOR DISCLOSURE AGAINST INTEREST — a third party can read the freeze_revision note and see the admission. Treat 4 as a LOWER BOUND on revisions, not a verified count."
+      },
+      "freeze_ledger": {
+        "ledger_freeze_digest": "bbff13ef366ee2dc73b542be27123d31fbccbac13768fdfc2e999fe16a25f52b",
+        "live_freeze_digest": "bbff13ef366ee2dc73b542be27123d31fbccbac13768fdfc2e999fe16a25f52b",
+        "status": "MATCH",
+        "established_at_commit": "resolve with: git log --diff-filter=A --format=%H -- apps/raven-attest/harness/FREEZE_LEDGER.json",
+        "proves": "The frozen expectations have not drifted since the commit that introduced this file. Any later run prints MATCH or DRIFT against a dated ref.",
+        "cannot_prove": "WHEN any individual expectation was authored. The first commit containing the harness (a2ede06d) already carries the revised freeze, so git cannot date round 1 and neither can this ledger. freeze_status values ORIGINAL_ROUND_1 and ORIGINAL_ROUND_2 remain AUTHOR ASSERTIONS. Residual correctly raised by GROK in non-author review, 2026-09-16; it is not retroactively fixable, only bounded going forward."
+      },
       "honest_reading": "28/28 is reproducible at the current freeze. It is not a first-try result: 4 freezes were revised after measurement and 1 checker defect was fixed. Both are enumerated here rather than absorbed into the score."
     }
   },

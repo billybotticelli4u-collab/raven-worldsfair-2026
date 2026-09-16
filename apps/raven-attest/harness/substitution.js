@@ -94,6 +94,34 @@ function runEngineAllowDivergent(app, target, cwd) {
   }
 }
 
+/**
+ * FREEZE LEDGER
+ *
+ * `freeze_status` is an AUTHOR ASSERTION. A third party can verify that 28/28
+ * reproduces; they cannot verify *when* any expectation was authored, because
+ * the first commit containing this harness (a2ede06d) already carries the
+ * revised freeze. Git cannot date round 1 and neither can anything else here.
+ * Residual raised by GROK, 2026-09-16: "I cannot independently date that
+ * chronology." Correct, and not retroactively fixable.
+ *
+ * What IS establishable, from this commit forward: the freeze has not drifted.
+ * freezeDigest() hashes {id, freeze_status, expect} for every case. The value is
+ * committed in harness/FREEZE_LEDGER.json in its own commit, so any later run
+ * shows MATCH or DRIFT against a dated ref. That proves "unchanged since
+ * <commit>", never "authored before execution".
+ */
+function freezeDigest(cases) {
+  const canon = cases
+    .map((c) => ({
+      id: c.id,
+      freeze_status: c.freeze_status,
+      verdict: c.expect.verdict,
+      detected_by: [...c.expect.detected_by].sort(),
+    }))
+    .sort((a, b) => (a.id < b.id ? -1 : 1));
+  return sha(JSON.stringify(canon));
+}
+
 const CHECKER_REVISIONS = [
   {
     id: "checker-revision-1",
@@ -630,6 +658,29 @@ for (const c of CASES) {
   });
 }
 
+// Freeze-drift check against the dated ledger.
+const LEDGER_PATH = path.join(HERE, "FREEZE_LEDGER.json");
+const liveFreezeDigest = freezeDigest(CASES);
+let freezeLedger;
+try {
+  const led = readJson(LEDGER_PATH);
+  freezeLedger = {
+    ledger_freeze_digest: led.freeze_digest,
+    live_freeze_digest: liveFreezeDigest,
+    status: led.freeze_digest === liveFreezeDigest ? "MATCH" : "DRIFT",
+    established_at_commit: led.established_at_commit,
+    proves: led.proves,
+    cannot_prove: led.cannot_prove,
+  };
+} catch {
+  freezeLedger = {
+    ledger_freeze_digest: null,
+    live_freeze_digest: liveFreezeDigest,
+    status: "NO_LEDGER",
+    note: "harness/FREEZE_LEDGER.json absent — drift cannot be checked.",
+  };
+}
+
 const determinism = determinismExperiment(tmpRoot);
 
 // Detector coverage: a check that never fails in any case is an untested guard.
@@ -680,6 +731,15 @@ const summary = {
     original_round_2: runs.filter((r) => r.freeze_status === "ORIGINAL_ROUND_2").map((r) => r.id),
     revised_after_measurement: runs.filter((r) => r.freeze_status === "REVISED_AFTER_MEASUREMENT").map((r) => r.id),
     checker_revisions: CHECKER_REVISIONS,
+    provenance_class: {
+      ORIGINAL_ROUND_1:
+        "AUTHOR ASSERTION — not independently verifiable. Git cannot date it: the first commit containing this harness already carries the revised freeze.",
+      ORIGINAL_ROUND_2:
+        "AUTHOR ASSERTION — same limitation. These cases were added after round 1 and matched their freeze on first run, but only the author observed that.",
+      REVISED_AFTER_MEASUREMENT:
+        "AUTHOR DISCLOSURE AGAINST INTEREST — a third party can read the freeze_revision note and see the admission. Treat 4 as a LOWER BOUND on revisions, not a verified count.",
+    },
+    freeze_ledger: freezeLedger,
     honest_reading:
       "28/28 is reproducible at the current freeze. It is not a first-try result: 4 freezes were revised after measurement and 1 checker defect was fixed. Both are enumerated here rather than absorbed into the score.",
   },
@@ -701,6 +761,8 @@ if (asJson) {
     if (r.freeze_revision) console.log(`                    freeze revised: ${r.freeze_revision}`);
     if (r.side_evidence) console.log(`                    side: ${JSON.stringify(r.side_evidence)}`);
   }
+  console.log("");
+  console.log("FREEZE LEDGER:", JSON.stringify(freezeLedger));
   console.log("");
   console.log("DETERMINISM (D01):", JSON.stringify(determinism.measured));
   console.log("");

@@ -1,0 +1,13 @@
+{
+  "ledger_schema": "raven-attest-freeze-ledger/1",
+  "freeze_digest": "bbff13ef366ee2dc73b542be27123d31fbccbac13768fdfc2e999fe16a25f52b",
+  "covers": "sha256 over the canonical form of every case's {id, freeze_status, expect.verdict, expect.detected_by(sorted)}, sorted by id. Computed by freezeDigest() in substitution.js.",
+  "case_count": 28,
+  "established_at_commit": "resolve with: git log --diff-filter=A --format=%H -- apps/raven-attest/harness/FREEZE_LEDGER.json",
+  "proves": "The frozen expectations have not drifted since the commit that introduced this file. Any later run prints MATCH or DRIFT against a dated ref.",
+  "cannot_prove": "WHEN any individual expectation was authored. The first commit containing the harness (a2ede06d) already carries the revised freeze, so git cannot date round 1 and neither can this ledger. freeze_status values ORIGINAL_ROUND_1 and ORIGINAL_ROUND_2 remain AUTHOR ASSERTIONS. Residual correctly raised by GROK in non-author review, 2026-09-16; it is not retroactively fixable, only bounded going forward.",
+  "how_to_verify": [
+    "cd apps/raven-attest && node harness/substitution.js --json | node -e 'let s=\"\";process.stdin.on(\"data\",d=>s+=d).on(\"end\",()=>console.log(JSON.parse(s).summary.freeze_provenance.freeze_ledger))'",
+    "status MATCH means the live freeze equals this ledger; DRIFT means a frozen expectation changed after this commit."
+  ]
+}
