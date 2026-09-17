@@ -12,6 +12,7 @@
  * A Node child_process alone is NOT a security sandbox.
  */
 import { spawnSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   mkdtempSync,
   mkdirSync,
@@ -21,6 +22,7 @@ import {
   readFileSync,
   chmodSync,
   realpathSync,
+  readdirSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -215,40 +217,68 @@ export function probeNodePermissions(workDir) {
   const entry = path.join(probeDir, "entry.mjs");
   const outside = path.join(probeDir, "outside.txt");
   const marker = path.join(probeDir, "child-marker.txt");
+  const workerMarker = marker + ".w";
+  // Embed absolute paths in the generated script. File-mode Node puts the script
+  // path in process.argv[1]; using argv[1]/[2] as out/marker overwrites entry.mjs.
   writeFileSync(
     entry,
     `import { writeFileSync } from "node:fs";
-import { spawn } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { Worker } from "node:worker_threads";
-const out = process.argv[1];
-const marker = process.argv[2];
+const out = ${JSON.stringify(outside)};
+const marker = ${JSON.stringify(marker)};
+const workerMarker = ${JSON.stringify(workerMarker)};
 const result = { write: null, child: null, worker: null };
 try { writeFileSync(out, "x"); result.write = "ok"; } catch (e) { result.write = e.code || String(e); }
-try { spawn(process.execPath, ["-e", "require('fs').writeFileSync(process.argv[1],'c')", marker], { stdio: "ignore" }); result.child = "ok"; }
-catch (e) { result.child = e.code || String(e); }
-try { new Worker("require('fs').writeFileSync(require('worker_threads').workerData,'w')", { eval: true, workerData: marker + ".w" }); result.worker = "ok"; }
-catch (e) { result.worker = e.code || String(e); }
+try {
+  const c = spawnSync(process.execPath, ["-e", "require('fs').writeFileSync(process.argv[1],'c')", marker], { encoding: "utf8" });
+  if (c.error) result.child = c.error.code || String(c.error);
+  else if (c.status === 0) result.child = "ok";
+  else result.child = (c.stderr || "").includes("ERR_ACCESS_DENIED") ? "ERR_ACCESS_DENIED" : ("exit_" + c.status);
+} catch (e) { result.child = e.code || String(e); }
+try {
+  await new Promise((resolve, reject) => {
+    const w = new Worker(
+      "require('fs').writeFileSync(require('worker_threads').workerData,'w');",
+      { eval: true, workerData: workerMarker },
+    );
+    w.on("error", reject);
+    w.on("exit", (code) => (code === 0 ? resolve() : reject(Object.assign(new Error("worker_exit_" + code), { code: "WORKER_EXIT" }))));
+  });
+  result.worker = "ok";
+} catch (e) { result.worker = e.code || String(e); }
 process.stdout.write(JSON.stringify(result));
 `,
   );
+  const entryHashBefore = createHash("sha256").update(readFileSync(entry)).digest("hex");
   let realEntry;
   try {
     realEntry = realpathSync(entry);
   } catch (err) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
     return { available: false, reason: `realpath_failed:${err}` };
   }
   const r = spawnSync(
     process.execPath,
-    ["--permission", `--allow-fs-read=${realEntry}`, realEntry, outside, marker],
-    { encoding: "utf8", timeout: 5000, cwd: probeDir },
+    ["--permission", `--allow-fs-read=${realEntry}`, realEntry],
+    { encoding: "utf8", timeout: 8000, cwd: probeDir },
   );
   if (r.error) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
     return { available: false, reason: `spawn_error:${r.error.message || r.error}` };
+  }
+  if (r.status !== 0) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
+    return {
+      available: false,
+      reason: `probe_nonzero_exit:status=${r.status}:stderr=${(r.stderr || "").slice(0, 200)}`,
+    };
   }
   let parsed;
   try {
     parsed = JSON.parse((r.stdout || "").trim().split(/\r?\n/).filter(Boolean).pop() || "");
   } catch {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
     return {
       available: false,
       reason: `probe_unparseable:status=${r.status}:stderr=${(r.stderr || "").slice(0, 200)}`,
@@ -256,40 +286,75 @@ process.stdout.write(JSON.stringify(result));
   }
   const denied = (v) => v === "ERR_ACCESS_DENIED";
   if (!denied(parsed.write) || !denied(parsed.child) || !denied(parsed.worker)) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
     return {
       available: false,
       reason: `probe_denials_incomplete:${JSON.stringify(parsed)}`,
       probe: parsed,
     };
   }
-  if (existsSync(outside) || existsSync(marker)) {
+  if (existsSync(outside) || existsSync(marker) || existsSync(workerMarker)) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
     return { available: false, reason: "probe_side_effects_present", probe: parsed };
   }
-  // Positive control: same ops succeed without --permission.
-  const pos = spawnSync(process.execPath, [realEntry, outside, marker], {
+  const entryHashAfterRestricted = createHash("sha256").update(readFileSync(entry)).digest("hex");
+  if (entryHashAfterRestricted !== entryHashBefore) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
+    return { available: false, reason: "probe_entry_mutated_under_restriction" };
+  }
+  // Positive control: same ops succeed without --permission; all markers must appear.
+  const pos = spawnSync(process.execPath, [realEntry], {
     encoding: "utf8",
-    timeout: 5000,
+    timeout: 8000,
     cwd: probeDir,
   });
+  if (pos.error) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
+    return { available: false, reason: `positive_spawn_error:${pos.error.message || pos.error}` };
+  }
+  if (pos.status !== 0) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
+    return {
+      available: false,
+      reason: `positive_nonzero_exit:status=${pos.status}:stderr=${(pos.stderr || "").slice(0, 200)}`,
+    };
+  }
   let posParsed;
   try {
     posParsed = JSON.parse((pos.stdout || "").trim().split(/\r?\n/).filter(Boolean).pop() || "");
   } catch {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
     return { available: false, reason: "positive_control_unparseable", stderr: (pos.stderr || "").slice(0, 200) };
   }
-  if (posParsed.write !== "ok") {
-    return { available: false, reason: `positive_control_write_failed:${JSON.stringify(posParsed)}` };
+  if (posParsed.write !== "ok" || posParsed.child !== "ok" || posParsed.worker !== "ok") {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
+    return { available: false, reason: `positive_control_incomplete:${JSON.stringify(posParsed)}` };
   }
-  // Cleanup positive-control artifacts
-  try { rmSync(outside, { force: true }); } catch { /* */ }
-  try { rmSync(marker, { force: true }); } catch { /* */ }
-  try { rmSync(marker + ".w", { force: true }); } catch { /* */ }
+  if (!existsSync(outside) || !existsSync(marker) || !existsSync(workerMarker)) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
+    return {
+      available: false,
+      reason: `positive_markers_missing:write=${existsSync(outside)}:child=${existsSync(marker)}:worker=${existsSync(workerMarker)}`,
+      positive: posParsed,
+    };
+  }
+  const entryHashAfterPositive = createHash("sha256").update(readFileSync(entry)).digest("hex");
+  if (entryHashAfterPositive !== entryHashBefore) {
+    try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
+    return { available: false, reason: "probe_entry_mutated_by_positive_control" };
+  }
+  // Cleanup: remove entire probe dir so no positive artifacts remain.
+  try { rmSync(probeDir, { recursive: true, force: true }); } catch { /* */ }
+  if (existsSync(probeDir)) {
+    return { available: false, reason: "probe_cleanup_incomplete" };
+  }
   return {
     available: true,
     reason: "node_permission_probe_ok",
     probe: parsed,
-    positive: { write: posParsed.write },
+    positive: { write: posParsed.write, child: posParsed.child, worker: posParsed.worker },
     realpath_entry: realEntry,
+    entry_sha256: entryHashBefore,
   };
 }
 

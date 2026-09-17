@@ -49,7 +49,7 @@ Classify `READY_FOR_HACKATHON_PRODUCT_REVIEW` or `NOT_READY` after freeze.
 Bounded isolation runner + result taxonomy + hostile probes + replay + UI contract.
 
 - Branch: `billy/fair-challenge1-bounded-runner-2026-09-16`
-- Isolation: `sandbox_exec` (Darwin Seatbelt) when verified; otherwise `curated_demo` with `verified: false`
+- Isolation: `sandbox_exec` (Darwin Seatbelt) when verified; `node_permissions` (Node `--permission`, not an OS sandbox) on Linux when verified; otherwise fail-closed / `curated_demo` with `verified: false`
 - A Node child_process alone is **not** a security sandbox
 - No arbitrary public code upload; no merge/deploy/npm publish in this handoff
 

@@ -21,7 +21,7 @@ export const PREEXISTING = [
 export const FAIR_BUILT = [
   "Conformance product loop (target → claimed profile → corpus → execution → evidence report → reproduction)",
   "Profile abstraction: raven-canonical-envelope/1",
-  "Challenge 1 bounded runner: sandbox-exec on Darwin / curated_demo disclosure otherwise",
+  "Challenge 1 bounded runner: sandbox-exec (Darwin Seatbelt) when verified; Node --permission (realpath allow-fs-read) on Linux when verified — not an OS/kernel sandbox; fail-closed / curated_demo disclosure otherwise",
   "Expanded result taxonomy (no silent PASS for crash/timeout/flood/invalid)",
   "Hostile Raven-owned boundary probes + replay CLI",
   "UI contract interface for UI lane (local publish)",

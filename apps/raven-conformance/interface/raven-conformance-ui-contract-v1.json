@@ -95,5 +95,5 @@
     "results[].evidence.stdout_truncated_at",
     "_written_path"
   ],
-  "isolation_modes": ["sandbox_exec", "curated_demo"]
+  "isolation_modes": ["sandbox_exec", "node_permissions", "curated_demo", "unavailable"]
 }

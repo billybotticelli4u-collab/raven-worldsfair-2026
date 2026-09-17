@@ -83,8 +83,9 @@ Crashes / timeouts / invalid / flood **never** become `PASS`.
 
 | Mode | When | Verified? |
 |------|------|-----------|
-| `sandbox_exec` | Darwin + Seatbelt profile applies | `verified: true` — deny network, confine writes to ephemeral workdir |
-| `curated_demo` | sandbox-exec unavailable (e.g. Linux CI) | `verified: false` — timeout, env allowlist, output caps, process-group kill only |
+| `sandbox_exec` | Darwin + Seatbelt profile applies | `verified: true` — deny network; Seatbelt profile (unchanged policy) |
+| `node_permissions` | Linux (and non-Seatbelt hosts) when Node `--permission` probe passes | `verified: true` — deny fs-write / child / worker with realpath allow-fs-read of entry; **not** an OS/kernel sandbox; network not denied by these flags |
+| `curated_demo` / `unavailable` | permission/Seatbelt unavailable | `verified: false` / fail-closed — timeout, env allowlist, output caps, process-group kill only |
 
 **Always enforced by runner:** bounded time + process-group kill, stdout/stderr byte caps, env allowlist, per-run ephemeral workdirs, cleanup.
 

@@ -95,6 +95,9 @@ describe("Linux Node permission positive controls", () => {
       assert.equal(probe.probe.child, "ERR_ACCESS_DENIED");
       assert.equal(probe.probe.worker, "ERR_ACCESS_DENIED");
       assert.equal(probe.positive.write, "ok");
+      assert.equal(probe.positive.child, "ok");
+      assert.equal(probe.positive.worker, "ok");
+      assert.equal(existsSync(path.join(work, "perm-probe")), false);
     } finally {
       cleanupWorkdir(work);
     }
