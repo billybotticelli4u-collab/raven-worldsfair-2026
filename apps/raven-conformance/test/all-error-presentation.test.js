@@ -79,12 +79,14 @@ describe("all-error presentation + affected vector IDs", () => {
     const adapted = adaptReport(
       {
         schema: "raven-conformance-report/1",
-        summary: { test_count: 0, pass: 0, divergence: 0, overall: "DIVERGENT", counts: {}, empty_result_set: true },
+        summary: { test_count: 0, pass: 0, divergence: 0, overall: "INCOMPLETE", counts: {}, empty_result_set: true },
         results: [],
       },
       loadProfile().data,
     );
     assert.equal(adapted.display.empty, true);
+    assert.equal(adapted.display.overall_engine, "INCOMPLETE");
+    assert.notEqual(adapted.display.overall_engine, "CONFORMANT");
     assert.match(adapted.display.presentation_banner, /EMPTY/);
   });
 

@@ -430,6 +430,9 @@ export async function runConformance(targetId, opts = {}) {
     counts.BEHAVIORAL_DIVERGENCE;
   let overall;
   if (incomplete || runnerFailure) overall = "INCOMPLETE";
+  // Empty corpus / zero vector rows: non-success (INCOMPLETE). Do not treat
+  // 0===0 as all-PASS. Preserves all-skipped ⇒ CONFORMANT and all-crash ⇒ DIVERGENT.
+  else if (results.length === 0) overall = "INCOMPLETE";
   else if (blocking === 0 && counts.SKIPPED_VECTOR + passCount === results.length) overall = "CONFORMANT";
   else if (passCount === results.length) overall = "CONFORMANT";
   else overall = "DIVERGENT"; // includes all-execution-error runs — not remapped to HARNESS_ERROR
@@ -530,7 +533,7 @@ export async function runConformance(targetId, opts = {}) {
         : mixed_execution_and_behavioral
           ? "MIXED: execution errors and behavioral mismatches both present — distinguish by status and vector id lists."
           : results.length === 0
-            ? "EMPTY: no vector rows — not labeled PASS."
+            ? "EMPTY: no vector rows — overall INCOMPLETE; not labeled PASS or CONFORMANT."
             : null,
     },
     results,

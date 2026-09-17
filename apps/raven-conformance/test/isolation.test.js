@@ -85,8 +85,8 @@ describe("isolation boundary", () => {
 });
 
 describe("Linux Node permission positive controls", () => {
-  it("probe reports denials and unrestricted positive write succeeds", () => {
-    if (process.platform === "win32") return;
+  it("probe reports denials and unrestricted positive write succeeds", (t) => {
+    if (process.platform === "win32") { t.skip("Node permission probe not applicable on win32"); return; }
     const work = createRunWorkdir("perm_probe");
     try {
       const probe = probeNodePermissions(work);
@@ -103,8 +103,8 @@ describe("Linux Node permission positive controls", () => {
     }
   });
 
-  it("spawnIsolated denies fs-write/child/worker; unrestricted node reaches ops", async () => {
-    if (process.platform !== "linux") return;
+  it("spawnIsolated denies fs-write/child/worker; unrestricted node reaches ops", async (t) => {
+    if (process.platform !== "linux") { t.skip("Linux-only Node --permission runner path"); return; }
     const work = createRunWorkdir("perm_spawn");
     const scratch = mkdtempSync(path.join(os.tmpdir(), "raven-perm-pos-"));
     try {
@@ -154,8 +154,8 @@ process.stdout.write(JSON.stringify({ decision: "ACCEPT", ...result }));
     }
   });
 
-  it("realpath allow covers symlink entry; allow decisions use realpath", async () => {
-    if (process.platform !== "linux") return;
+  it("realpath allow covers symlink entry; allow decisions use realpath", async (t) => {
+    if (process.platform !== "linux") { t.skip("Linux-only Node --permission realpath allow"); return; }
     const work = createRunWorkdir("perm_symlink");
     try {
       const isolation = resolveIsolation(work);
@@ -207,8 +207,8 @@ process.stdout.write(JSON.stringify({ decision: "ACCEPT", ...result }));
     }
   });
 
-  it("network is not proven contained by permission flags (separate measurement)", async () => {
-    if (process.platform !== "linux") return;
+  it("network is not proven contained by permission flags (separate measurement)", async (t) => {
+    if (process.platform !== "linux") { t.skip("Linux-only network measurement under node_permissions"); return; }
     const work = createRunWorkdir("perm_net");
     try {
       const isolation = resolveIsolation(work);

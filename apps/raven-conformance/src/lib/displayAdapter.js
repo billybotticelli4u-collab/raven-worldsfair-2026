@@ -126,7 +126,7 @@ export function adaptReport(report, profile = null) {
     || (execution_error_vector_ids.length > 0 && behavioral_divergence_vector_ids.length > 0);
   let presentation_banner = null;
   if (report.results.length === 0 || report.summary?.empty_result_set) {
-    presentation_banner = "EMPTY RESULT SET — not labeled PASS.";
+    presentation_banner = "EMPTY RESULT SET — overall non-success (engine INCOMPLETE); not labeled PASS or CONFORMANT.";
   } else if (all_error) {
     presentation_banner = `ALL EXECUTION FAILURES — affected vectors: ${execution_error_vector_ids.join(", ") || "(none listed)"}. Not behavioral mismatches; never PASS.`;
   } else if (mixed) {

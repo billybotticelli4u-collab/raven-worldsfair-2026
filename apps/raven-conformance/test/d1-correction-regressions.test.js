@@ -32,8 +32,8 @@ const OLD_BRANCH = "codex/challenge2-disclosure-fixes-2026-09-16";
 const OLD_BUNDLE = "challenge2-disclosure-candidate.bundle";
 
 describe("R3 probeNodePermissions argv / marker regression", () => {
-  it("positive control creates all markers; entry bytes unchanged; probe dir cleaned", () => {
-    if (process.platform === "win32") return;
+  it("positive control creates all markers; entry bytes unchanged; probe dir cleaned", (t) => {
+    if (process.platform === "win32") { t.skip("win32: Node permission probe not applicable"); return; }
     const work = createRunWorkdir("r3_probe");
     const sentinelOutside = path.join(work, "must-not-leak.txt");
     try {
@@ -73,8 +73,8 @@ describe("R3 probeNodePermissions argv / marker regression", () => {
     }
   });
 
-  it("red→green: argv[1]-as-out mutant overwrites entry; fixed probe does not", () => {
-    if (process.platform === "win32") return;
+  it("red→green: argv[1]-as-out mutant overwrites entry; fixed probe does not", (t) => {
+    if (process.platform === "win32") { t.skip("win32: Node permission probe not applicable"); return; }
     const scratch = mkdtempSync(path.join(os.tmpdir(), "r3-argv-mutant-"));
     try {
       const entry = path.join(scratch, "entry.mjs");
