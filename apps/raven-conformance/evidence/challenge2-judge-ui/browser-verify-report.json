@@ -1,123 +1,123 @@
 {
-  "started_at": "2026-09-16T01:51:06.453Z",
+  "started_at": "2026-09-18T08:51:12.662Z",
   "journeys": [
     {
       "targetId": "CONFORMANT_REFERENCE",
       "overall": "CONFORMANT",
-      "progressEventCount": 11,
-      "elapsed_ms": 1451,
+      "progressEventCount": 13,
+      "elapsed_ms": 3618,
       "actions": [
         {
           "action": "load_first_screen",
-          "t_ms": 1010
-        },
-        {
-          "action": "select_CONFORMANT_REFERENCE",
           "t_ms": 1035
         },
         {
+          "action": "select_CONFORMANT_REFERENCE",
+          "t_ms": 1150
+        },
+        {
           "action": "click_run",
-          "t_ms": 1067
+          "t_ms": 1703
         },
         {
           "action": "result_visible",
-          "t_ms": 1364
+          "t_ms": 3384
         },
         {
           "action": "progress_events_observed",
-          "t_ms": 1379
+          "t_ms": 3423
         },
         {
           "action": "inspect_evidence",
-          "t_ms": 1401
+          "t_ms": 3453
         },
         {
           "action": "download_click",
-          "t_ms": 1420
+          "t_ms": 3517
         },
         {
           "action": "copy_repro",
-          "t_ms": 1449
+          "t_ms": 3608
         }
       ]
     },
     {
       "targetId": "BROKEN_OBVIOUS",
       "overall": "DIVERGENT",
-      "progressEventCount": 11,
-      "elapsed_ms": 1425,
+      "progressEventCount": 13,
+      "elapsed_ms": 2247,
       "actions": [
         {
           "action": "load_first_screen",
-          "t_ms": 1012
+          "t_ms": 1053
         },
         {
           "action": "select_BROKEN_OBVIOUS",
-          "t_ms": 1031
+          "t_ms": 1114
         },
         {
           "action": "click_run",
-          "t_ms": 1054
+          "t_ms": 1164
         },
         {
           "action": "result_visible",
-          "t_ms": 1337
+          "t_ms": 2045
         },
         {
           "action": "progress_events_observed",
-          "t_ms": 1353
+          "t_ms": 2093
         },
         {
           "action": "inspect_evidence",
-          "t_ms": 1371
+          "t_ms": 2136
         },
         {
           "action": "download_click",
-          "t_ms": 1397
+          "t_ms": 2209
         },
         {
           "action": "copy_repro",
-          "t_ms": 1421
+          "t_ms": 2241
         }
       ]
     },
     {
       "targetId": "BROKEN_SUBTLE",
       "overall": "DIVERGENT",
-      "progressEventCount": 11,
-      "elapsed_ms": 1386,
+      "progressEventCount": 13,
+      "elapsed_ms": 2409,
       "actions": [
         {
           "action": "load_first_screen",
-          "t_ms": 1013
+          "t_ms": 1024
         },
         {
           "action": "select_BROKEN_SUBTLE",
-          "t_ms": 1030
+          "t_ms": 1054
         },
         {
           "action": "click_run",
-          "t_ms": 1047
+          "t_ms": 1088
         },
         {
           "action": "result_visible",
-          "t_ms": 1328
+          "t_ms": 2249
         },
         {
           "action": "progress_events_observed",
-          "t_ms": 1337
+          "t_ms": 2278
         },
         {
           "action": "inspect_evidence",
-          "t_ms": 1349
+          "t_ms": 2322
         },
         {
           "action": "download_click",
-          "t_ms": 1370
+          "t_ms": 2374
         },
         {
           "action": "copy_repro",
-          "t_ms": 1384
+          "t_ms": 2402
         }
       ]
     }
@@ -140,21 +140,21 @@
     {
       "id": "journey_CONFORMANT_REFERENCE",
       "status": "PASS",
-      "elapsed_ms": 1451,
+      "elapsed_ms": 3618,
       "overall": "CONFORMANT",
       "actions": 8
     },
     {
       "id": "journey_BROKEN_OBVIOUS",
       "status": "PASS",
-      "elapsed_ms": 1425,
+      "elapsed_ms": 2247,
       "overall": "DIVERGENT",
       "actions": 8
     },
     {
       "id": "journey_BROKEN_SUBTLE",
       "status": "PASS",
-      "elapsed_ms": 1386,
+      "elapsed_ms": 2409,
       "overall": "DIVERGENT",
       "actions": 8
     },
@@ -172,7 +172,7 @@
     {
       "id": "recorded_fallback_labeled",
       "status": "PASS",
-      "banner": "RECORDED DEMO REPORT — not a newly executed live run · file sample-report-BROKEN_SUBTLE.json · run_id run_2b52d34b26fe421f · digest 9cd956c62c7caa9159c01bdc5e3214317d61a0a3e51444879b5fe075729d35a9"
+      "banner": "RECORDED DEMO REPORT — not a newly executed live run · file sample-report-BROKEN_SUBTLE.json · run_id run_proposal_a_mvp · digest a90e84b5b704c6f08537dbac8bb4f3f7d94778b806ab168018b0a7d1f27b1b7f"
     },
     {
       "id": "retry_after_recorded",
@@ -189,39 +189,39 @@
     {
       "id": "scripted_subtle_timing",
       "status": "PASS",
-      "elapsed_ms": 1386,
+      "elapsed_ms": 2409,
       "actions": [
         {
           "action": "load_first_screen",
-          "t_ms": 1013
+          "t_ms": 1024
         },
         {
           "action": "select_BROKEN_SUBTLE",
-          "t_ms": 1030
+          "t_ms": 1054
         },
         {
           "action": "click_run",
-          "t_ms": 1047
+          "t_ms": 1088
         },
         {
           "action": "result_visible",
-          "t_ms": 1328
+          "t_ms": 2249
         },
         {
           "action": "progress_events_observed",
-          "t_ms": 1337
+          "t_ms": 2278
         },
         {
           "action": "inspect_evidence",
-          "t_ms": 1349
+          "t_ms": 2322
         },
         {
           "action": "download_click",
-          "t_ms": 1370
+          "t_ms": 2374
         },
         {
           "action": "copy_repro",
-          "t_ms": 1384
+          "t_ms": 2402
         }
       ],
       "note": "Scripted first-time journey — not user research."
@@ -230,12 +230,12 @@
       "id": "copied_command_cli_reproduction",
       "status": "PASS",
       "exit": 1,
-      "stdout_tail": "S] V09_payload_not_object  expected=REJECT  observed=REJECT\n[PASS] V10_missing_schema  expected=REJECT  observed=REJECT\n\nReproduction:\ncd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE\n\nNote: BEHAVIORAL_DIVERGENCE means observed ≠ specified expectation only — not a security score.\n\nWrote /workspace/raven-worldsfair-2026/apps/raven-conformance/reports/run_9a075f91e69e4fd6.json\n"
+      "stdout_tail": "pected=ACCEPT  observed=ACCEPT\n[PASS] V12_proto_digest_omits_member  expected=REJECT  observed=REJECT\n\nReproduction:\ncd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE\n\nNote: BEHAVIORAL_DIVERGENCE means observed ≠ specified expectation only — not a security score.\n\nWrote /workspace/c2-on-d1-candidate-2026-09-18/candidate/apps/raven-conformance/reports/run_1b613389d7c54489.json\n"
     }
   ],
   "failed": [],
   "unverified": [],
-  "finished_at": "2026-09-16T01:51:16.874Z",
+  "finished_at": "2026-09-18T08:51:36.472Z",
   "summary": {
     "pass": 12,
     "fail": 0,

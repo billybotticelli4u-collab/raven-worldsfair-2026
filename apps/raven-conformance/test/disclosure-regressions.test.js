@@ -54,7 +54,7 @@ console.log(JSON.stringify({decision:'ACCEPT',
   assert.deepEqual(sandboxed.observed, {decision:'ACCEPT', read:true, homeWrite:false, tempWrite:true});
   t.diagnostic('Positive control: home read/write and separate temp write succeed. Seatbelt: home read and separate temp write succeed; home write denied.');
   const report = await runConformance('CONFORMANT_REFERENCE', {write:false});
-  assert.equal(report.summary.pass, 10);
+  assert.equal(report.summary.pass, 12);
   assert.equal(report.isolation.mode, 'sandbox_exec');
   for (const [field, text] of [['allowed_resources.filesystem', report.allowed_resources.filesystem], ['isolation.details', report.isolation.details]]) {
     await t.test(field, () => {

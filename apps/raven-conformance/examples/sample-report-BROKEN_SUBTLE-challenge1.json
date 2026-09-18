@@ -1,8 +1,8 @@
 {
   "schema": "raven-conformance-report/1",
-  "run_id": "run_dea1f1ff630e4e13",
-  "started_at": "2026-09-16T01:41:08.740Z",
-  "finished_at": "2026-09-16T01:41:08.992Z",
+  "run_id": "run_proposal_a_subtle",
+  "started_at": "2026-09-17T08:05:43.523Z",
+  "finished_at": "2026-09-17T08:05:44.162Z",
   "product": "raven-conformance",
   "build_stage_note": "Build Stage product milestone. Does not claim Day-3 Evidence Contract Handshake as this product.",
   "target": {
@@ -10,8 +10,9 @@
     "name": "Broken subtle",
     "version": "1.0.0",
     "entry": "BROKEN_SUBTLE.mjs",
-    "entry_sha256": "1deb1d444dad92e3f1069891ca3b14ccb396f3dfefde218a1a0201976df583a0",
+    "entry_sha256": "efc6285a4161fb4a9cfaa064033d53d8fbffbdbeaaeecb7aa9e668e8deb4fb4c",
     "claimed_conformance_profile": "raven-canonical-envelope/1",
+    "claimed_conformance_profile_version": "1.0.0",
     "invocation_interface": "stdin_json_line",
     "description": "Raven-owned demo of verifier-class defect: accepts unexpected top-level fields while still checking digest/schema. Not a third-party vulnerability claim."
   },
@@ -23,17 +24,17 @@
   },
   "corpus": {
     "id": "raven-canonical-envelope-demo-corpus/1",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "file": "raven-canonical-envelope-demo-corpus-1.json",
-    "sha256": "27d6c5adac941846141671fa79a059004c7188327510a45c6e6c69d27959f23d",
-    "declared_content_digest_sha256": "27d6c5adac941846141671fa79a059004c7188327510a45c6e6c69d27959f23d",
-    "vector_count": 10
+    "sha256": "374bf72f28cfc3356269692e2d0e99a9f34b9b83ab5196ca9408d965be531073",
+    "declared_content_digest_sha256": "374bf72f28cfc3356269692e2d0e99a9f34b9b83ab5196ca9408d965be531073",
+    "vector_count": 12
   },
   "isolation": {
     "mode": "curated_demo",
     "verified": false,
-    "platform": "linux",
-    "details": "Non-Darwin host: sandbox-exec (Seatbelt) not available. Runner enforces timeout, process-group kill, env allowlist, output byte caps, ephemeral workdirs. NOT a verified security sandbox.",
+    "platform": "darwin",
+    "details": "sandbox-exec unavailable or probe failed (sandbox_exec_node_probe_failed:status=71:signal=null:stderr=sandbox-exec: sandbox_apply: Operation not permitted\n); runner enforces timeout/env/output caps only",
     "verified_controls": [
       "env_allowlist",
       "timeout_process_group_kill",
@@ -44,14 +45,14 @@
       "network_denied_only_via_proxy_unset_not_kernel",
       "filesystem_writes_not_kernel_confined"
     ],
-    "probe_reason": "non_darwin",
+    "probe_reason": "sandbox_exec_node_probe_failed:status=71:signal=null:stderr=sandbox-exec: sandbox_apply: Operation not permitted\n",
     "disclosure": "Child process alone is not a security sandbox. Mode discloses exact enforcement."
   },
   "environment": {
-    "node": "v22.18.0",
-    "platform": "linux",
-    "arch": "x64",
-    "os": "Linux 6.12.94+",
+    "node": "v25.8.1",
+    "platform": "darwin",
+    "arch": "arm64",
+    "os": "Darwin 25.4.0",
     "cwd_policy": "ephemeral_workdir_per_run",
     "network_policy": "outbound_denied_by_proxy_unset_only_not_kernel_boundary",
     "credentials_policy": "no_raven_credentials_in_target_env",
@@ -74,9 +75,9 @@
   },
   "binding": {
     "profile_sha256": "914c2d5673ee9c5aaef00acac27440f6481f6397bdec81c2c835e088fe66bca4",
-    "corpus_sha256": "27d6c5adac941846141671fa79a059004c7188327510a45c6e6c69d27959f23d",
-    "target_entry_sha256": "1deb1d444dad92e3f1069891ca3b14ccb396f3dfefde218a1a0201976df583a0",
-    "deterministic_report_sha256": "7a5bed72a947ef12fb019f4b0a87108648f445a5bafbd3fb33b10d33e5068949"
+    "corpus_sha256": "374bf72f28cfc3356269692e2d0e99a9f34b9b83ab5196ca9408d965be531073",
+    "target_entry_sha256": "efc6285a4161fb4a9cfaa064033d53d8fbffbdbeaaeecb7aa9e668e8deb4fb4c",
+    "deterministic_report_sha256": "6ba6334071373f089468bc29593abcb2e1378795789e77bfc8675c7aa3a6eebf"
   },
   "volatile_fields": [
     "run_id",
@@ -86,12 +87,12 @@
     "environment.os_release_detail"
   ],
   "summary": {
-    "test_count": 10,
-    "pass": 8,
+    "test_count": 12,
+    "pass": 10,
     "divergence": 2,
     "behavioral_divergence": 2,
     "counts": {
-      "PASS": 8,
+      "PASS": 10,
       "BEHAVIORAL_DIVERGENCE": 2,
       "TARGET_CRASH": 0,
       "TIMEOUT": 0,
@@ -122,7 +123,7 @@
         "stdout": "{\"decision\":\"ACCEPT\",\"reason\":\"subtle_accepts_extra_fields\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 32,
+        "durationMs": 51,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -143,7 +144,7 @@
         "stdout": "{\"decision\":\"ACCEPT\",\"reason\":\"subtle_accepts_extra_fields\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 25,
+        "durationMs": 54,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -164,7 +165,7 @@
         "stdout": "{\"decision\":\"REJECT\",\"reason\":\"digest_mismatch\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 23,
+        "durationMs": 53,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -185,7 +186,7 @@
         "stdout": "{\"decision\":\"REJECT\",\"reason\":\"schema_mismatch\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 24,
+        "durationMs": 54,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -206,7 +207,7 @@
         "stdout": "{\"decision\":\"REJECT\",\"reason\":\"missing_required:digest\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 23,
+        "durationMs": 51,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -227,7 +228,7 @@
         "stdout": "{\"decision\":\"REJECT\",\"reason\":\"id_invalid\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 23,
+        "durationMs": 54,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -248,7 +249,7 @@
         "stdout": "{\"decision\":\"ACCEPT\",\"reason\":\"subtle_accepts_extra_fields\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 29,
+        "durationMs": 52,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -269,7 +270,7 @@
         "stdout": "{\"decision\":\"ACCEPT\",\"reason\":\"subtle_accepts_extra_fields\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 23,
+        "durationMs": 53,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -290,7 +291,7 @@
         "stdout": "{\"decision\":\"REJECT\",\"reason\":\"payload_not_object\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 25,
+        "durationMs": 53,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -311,7 +312,49 @@
         "stdout": "{\"decision\":\"REJECT\",\"reason\":\"missing_required:schema\"}\n",
         "stderr": "",
         "exitCode": 0,
-        "durationMs": 24,
+        "durationMs": 52,
+        "timedOut": false,
+        "flooded": false,
+        "note": null
+      }
+    },
+    {
+      "vector_id": "V11_proto_digest_includes_member",
+      "description": "Own __proto__ payload member contributes to the digest and must ACCEPT",
+      "expected": {
+        "decision": "ACCEPT"
+      },
+      "observed": {
+        "decision": "ACCEPT",
+        "reason": "subtle_accepts_extra_fields"
+      },
+      "status": "PASS",
+      "evidence": {
+        "stdout": "{\"decision\":\"ACCEPT\",\"reason\":\"subtle_accepts_extra_fields\"}\n",
+        "stderr": "",
+        "exitCode": 0,
+        "durationMs": 52,
+        "timedOut": false,
+        "flooded": false,
+        "note": null
+      }
+    },
+    {
+      "vector_id": "V12_proto_digest_omits_member",
+      "description": "Digest over an omitted __proto__ member must REJECT",
+      "expected": {
+        "decision": "REJECT"
+      },
+      "observed": {
+        "decision": "REJECT",
+        "reason": "digest_mismatch"
+      },
+      "status": "PASS",
+      "evidence": {
+        "stdout": "{\"decision\":\"REJECT\",\"reason\":\"digest_mismatch\"}\n",
+        "stderr": "",
+        "exitCode": 0,
+        "durationMs": 51,
         "timedOut": false,
         "flooded": false,
         "note": null
@@ -329,11 +372,11 @@
     "Author-lane Fair Build Stage product review surface only. No arbitrary public code upload."
   ],
   "reproduction": {
-    "clean_clone": "git clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git\ncd raven-worldsfair-2026\ngit checkout billy/fair-challenge1-bounded-runner-2026-09-16\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target BROKEN_SUBTLE",
+    "clean_clone": "# Place the supplied challenge2-disclosure-candidate.bundle in this directory first.\ngit clone --branch codex/challenge2-disclosure-fixes-2026-09-16 ./challenge2-disclosure-candidate.bundle raven-worldsfair-2026\ncd raven-worldsfair-2026\ngit checkout codex/challenge2-disclosure-fixes-2026-09-16\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target BROKEN_SUBTLE",
     "one_liner": "cd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE",
     "replay": "cd apps/raven-conformance && npm run replay -- --report reports/<run_id>.json",
     "demo": "cd apps/raven-conformance && npm run demo"
   },
-  "report_content_digest_sha256": "757daf29029ad4dced36baef6c7245058f4282bf96b1f63ff1819faad8d2662c",
-  "deterministic_report_sha256": "7a5bed72a947ef12fb019f4b0a87108648f445a5bafbd3fb33b10d33e5068949"
+  "report_content_digest_sha256": "c849c398d05294cd01b6cd64292c4a8e1c89f83dd750c3bdc640c905b0d72ade",
+  "deterministic_report_sha256": "6ba6334071373f089468bc29593abcb2e1378795789e77bfc8675c7aa3a6eebf"
 }

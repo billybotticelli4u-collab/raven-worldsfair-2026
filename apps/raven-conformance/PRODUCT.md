@@ -52,6 +52,7 @@ Bounded isolation runner + result taxonomy + hostile probes + replay + UI contra
 - Isolation: `sandbox_exec` (Darwin Seatbelt) when verified; `node_permissions` (Node `--permission`, not an OS sandbox) on Linux when verified; otherwise fail-closed / `curated_demo` with `verified: false`
 - A Node child_process alone is **not** a security sandbox
 - No arbitrary public code upload; no merge/deploy/npm publish in this handoff
+- Corpus: 12 vectors including paired proto digests `V11_proto_digest_includes_member` / `V12_proto_digest_omits_member` (Proposal A on D1). `INTEGER_KEY_ORDER` unresolved.
 
 ## Challenge 2 Judge UI (this branch)
 

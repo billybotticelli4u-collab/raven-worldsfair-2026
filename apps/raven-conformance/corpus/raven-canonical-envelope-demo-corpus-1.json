@@ -1,6 +1,6 @@
 {
   "id": "raven-canonical-envelope-demo-corpus/1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "profile": "raven-canonical-envelope/1",
   "description": "Raven-owned deterministic demo corpus for Fair Conformance MVP. Self-contained; not copied from private corpora.",
   "vectors": [
@@ -175,7 +175,37 @@
       "expected": {
         "decision": "REJECT"
       }
+    },
+    {
+      "id": "V11_proto_digest_includes_member",
+      "description": "Own __proto__ payload member contributes to the digest and must ACCEPT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-11",
+        "payload": {
+          "__proto__": 1
+        },
+        "digest": "5a01b4879e11f6261f39c2f190ffde6edb6b012c42064d68312ee2f6eaf1957a"
+      },
+      "expected": {
+        "decision": "ACCEPT"
+      }
+    },
+    {
+      "id": "V12_proto_digest_omits_member",
+      "description": "Digest over an omitted __proto__ member must REJECT",
+      "input": {
+        "schema": "raven-canonical-envelope/1",
+        "id": "vec-12",
+        "payload": {
+          "__proto__": 1
+        },
+        "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "expected": {
+        "decision": "REJECT"
+      }
     }
   ],
-  "content_digest_sha256": "27d6c5adac941846141671fa79a059004c7188327510a45c6e6c69d27959f23d"
+  "content_digest_sha256": "374bf72f28cfc3356269692e2d0e99a9f34b9b83ab5196ca9408d965be531073"
 }

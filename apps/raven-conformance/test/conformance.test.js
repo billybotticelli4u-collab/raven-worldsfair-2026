@@ -15,7 +15,7 @@ describe("raven-conformance Challenge 1 demos", () => {
     const corpus = loadCorpus();
     const targets = loadDemoTargets();
     assert.equal(profile.data.name, "raven-canonical-envelope/1");
-    assert.equal(corpus.data.vectors.length, 10);
+    assert.equal(corpus.data.vectors.length, 12);
     assert.equal(corpus.digest, corpus.declaredDigest);
     assert.deepEqual(
       targets.map((t) => t.id),
@@ -27,7 +27,7 @@ describe("raven-conformance Challenge 1 demos", () => {
   it("CONFORMANT_REFERENCE passes entire corpus", async () => {
     const report = await runConformance("CONFORMANT_REFERENCE", { write: false });
     assert.equal(report.summary.overall, "CONFORMANT");
-    assert.equal(report.summary.pass, 10);
+    assert.equal(report.summary.pass, 12);
     assert.equal(report.summary.divergence, 0);
     assert.equal(report.summary.counts.BEHAVIORAL_DIVERGENCE, 0);
     assert.ok(report.report_content_digest_sha256);

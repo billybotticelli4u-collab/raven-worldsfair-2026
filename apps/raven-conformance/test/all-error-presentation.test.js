@@ -36,12 +36,18 @@ describe("all-error presentation + affected vector IDs", () => {
     writeFileSync(target, readFileSync(target, "utf8") + "\nprocess.exitCode=17;\n");
     const report = await f.runner.runConformance("CONFORMANT_REFERENCE", { write: false });
     assert.equal(report.summary.pass, 0);
-    assert.equal(report.summary.counts.TARGET_CRASH, 10);
+    assert.equal(report.summary.counts.TARGET_CRASH, 12);
     assert.equal(report.summary.behavioral_divergence, 0);
     assert.equal(report.summary.overall, "DIVERGENT"); // not remapped to HARNESS_ERROR
     assert.equal(report.summary.all_execution_errors, true);
     assert.equal(report.summary.mixed_execution_and_behavioral, false);
-    assert.equal(report.summary.execution_error_vector_ids.length, 10);
+    assert.equal(report.summary.execution_error_vector_ids.length, 12);
+    assert.deepEqual(
+      report.summary.execution_error_vector_ids,
+      report.results.map((r) => r.vector_id),
+    );
+    assert.ok(report.summary.execution_error_vector_ids.includes("V11_proto_digest_includes_member"));
+    assert.ok(report.summary.execution_error_vector_ids.includes("V12_proto_digest_omits_member"));
     assert.ok(report.summary.presentation_hint.includes("ALL_EXECUTION_ERRORS"));
 
     const adapted = adaptReport(report, loadProfile().data);
@@ -106,11 +112,17 @@ describe("all-error presentation + affected vector IDs", () => {
     corpus.content_digest_sha256 = sha256Hex(JSON.stringify(forDigest, null, 2) + "\n");
     writeFileSync(corpusPath, JSON.stringify(corpus, null, 2) + "\n");
     const report = await f.runner.runConformance("CONFORMANT_REFERENCE", { write: false });
-    assert.equal(report.summary.counts.SKIPPED_VECTOR, 10);
+    assert.equal(report.summary.counts.SKIPPED_VECTOR, 12);
     assert.equal(report.summary.pass, 0);
     assert.equal(report.summary.all_execution_errors, false);
     assert.equal(report.summary.overall, "CONFORMANT"); // existing skip+pass policy: all skipped ⇒ CONFORMANT
-    assert.equal(report.summary.skipped_vector_ids.length, 10);
+    assert.equal(report.summary.skipped_vector_ids.length, 12);
+    assert.deepEqual(
+      report.summary.skipped_vector_ids,
+      report.results.map((r) => r.vector_id),
+    );
+    assert.ok(report.summary.skipped_vector_ids.includes("V11_proto_digest_includes_member"));
+    assert.ok(report.summary.skipped_vector_ids.includes("V12_proto_digest_omits_member"));
     // Must not claim execution-error banner
     const adapted = adaptReport(report, loadProfile().data);
     assert.equal(adapted.display.all_error, false);

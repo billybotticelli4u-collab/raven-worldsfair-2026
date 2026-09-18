@@ -1,6 +1,6 @@
 {
   "schema": "raven-conformance-report/1",
-  "run_id": "run_2b52d34b26fe421f",
+  "run_id": "run_proposal_a_mvp",
   "target": {
     "id": "BROKEN_SUBTLE",
     "claimed_conformance_profile": "raven-canonical-envelope/1"
@@ -13,13 +13,13 @@
   },
   "corpus": {
     "id": "raven-canonical-envelope-demo-corpus/1",
-    "version": "1.0.0",
-    "sha256": "27d6c5adac941846141671fa79a059004c7188327510a45c6e6c69d27959f23d",
-    "vector_count": 10
+    "version": "1.1.0",
+    "sha256": "374bf72f28cfc3356269692e2d0e99a9f34b9b83ab5196ca9408d965be531073",
+    "vector_count": 12
   },
   "summary": {
-    "test_count": 10,
-    "pass": 8,
+    "test_count": 12,
+    "pass": 10,
     "divergence": 2,
     "overall": "DIVERGENT"
   },
@@ -38,7 +38,7 @@
       "stdout": "{\"decision\":\"ACCEPT\",\"reason\":\"subtle_accepts_extra_fields\"}\n",
       "stderr": "",
       "exitCode": 0,
-      "durationMs": 50
+      "durationMs": 53
     }
   },
   "divergence_definition": "DIVERGENCE = observed decision ≠ specified corpus expectation only. Not automatically exploitable, unsafe, or malicious. No generic security score.",
@@ -46,7 +46,7 @@
     "clean_clone": "git clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git\ncd raven-worldsfair-2026\ngit checkout billy/fair-conformance-mvp-2026-09-16\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target BROKEN_SUBTLE",
     "one_liner": "cd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE"
   },
-  "report_content_digest_sha256": "9cd956c62c7caa9159c01bdc5e3214317d61a0a3e51444879b5fe075729d35a9",
+  "report_content_digest_sha256": "a90e84b5b704c6f08537dbac8bb4f3f7d94778b806ab168018b0a7d1f27b1b7f",
   "limitations": [
     "MVP isolation is local Node child_process with restricted env and timeout — not a general sandbox or container hardened runtime.",
     "Outbound network is denied by unsetting proxies and documenting policy; this does not install a kernel network namespace.",

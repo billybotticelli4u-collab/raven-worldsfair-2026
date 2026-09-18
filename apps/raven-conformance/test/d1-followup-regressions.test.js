@@ -151,7 +151,9 @@ describe("D1 follow-up: empty-corpus non-success", () => {
       recomputeCorpusDigest(corpus);
       writeFileSync(corpusPath, JSON.stringify(corpus, null, 2) + "\n");
       const report = await f.runner.runConformance("CONFORMANT_REFERENCE", { write: false });
-      assert.equal(report.summary.counts.SKIPPED_VECTOR, 10);
+      assert.equal(report.summary.counts.SKIPPED_VECTOR, 12);
+      assert.ok(report.results.some((r) => r.vector_id === "V11_proto_digest_includes_member"));
+      assert.ok(report.results.some((r) => r.vector_id === "V12_proto_digest_omits_member"));
       assert.equal(report.summary.overall, "CONFORMANT");
     }
     // all-crash remains DIVERGENT (not remapped)

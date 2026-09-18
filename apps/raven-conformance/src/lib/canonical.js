@@ -8,7 +8,7 @@ export function canonicalJson(value) {
 function sortKeys(value) {
   if (Array.isArray(value)) return value.map(sortKeys);
   if (value && typeof value === "object") {
-    const out = {};
+    const out = Object.create(null);
     for (const key of Object.keys(value).sort()) {
       out[key] = sortKeys(value[key]);
     }

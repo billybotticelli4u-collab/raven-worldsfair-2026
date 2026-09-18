@@ -60,7 +60,11 @@ Probes are marked `probe: true` in `targets/manifests.json` and are excluded fro
 | `BROKEN_SUBTLE` | Verifier-class defect demo: accepts unexpected top-level fields (#212-class **as a Raven-owned demo target**). Not a third-party vulnerability claim. |
 
 Profile: `raven-canonical-envelope/1`  
-Corpus: `raven-canonical-envelope-demo-corpus/1` (10 vectors, self-contained)
+Corpus: `raven-canonical-envelope-demo-corpus/1` (12 vectors, self-contained)
+
+`src/lib/canonical.js` is supporting `/1` conformance code and is covered by tests, but it has no live import under `src/`; the demo target scripts carry their own serializer.
+
+Paired proto vectors: `V11_proto_digest_includes_member` (ACCEPT) and `V12_proto_digest_omits_member` (REJECT). Ordinary own `__proto__` key semantics are preserved via `Object.create(null)` serializers. `INTEGER_KEY_ORDER` remains explicitly unresolved.
 
 ## Result taxonomy
 

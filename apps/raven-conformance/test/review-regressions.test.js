@@ -21,7 +21,7 @@ test('review B2 full correct target that exits 17 cannot become CONFORMANT',asyn
  const f=await fixture(t);const target=path.join(f.dir,'targets/CONFORMANT_REFERENCE.mjs');
  writeFileSync(target,readFileSync(target,'utf8')+'\nprocess.exitCode=17;\n');
  const r=await f.runner.runConformance('CONFORMANT_REFERENCE',{write:false});
- assert.equal(r.summary.pass,0);assert.equal(r.summary.counts.TARGET_CRASH,10);assert.equal(r.summary.behavioral_divergence,0);assert.notEqual(r.summary.overall,'CONFORMANT');
+ assert.equal(r.summary.pass,0);assert.equal(r.summary.counts.TARGET_CRASH,12);assert.equal(r.summary.behavioral_divergence,0);assert.notEqual(r.summary.overall,'CONFORMANT');
 });
 for(const [field,value] of [['claimed_conformance_profile','different/99'],['claimed_conformance_profile_version','99.0.0'],['claimed_conformance_profile_version',null]])test(`review B1 refuses ${field}=${value}`,async t=>{
  const f=await fixture(t);const p=path.join(f.dir,'targets/manifests.json');const m=JSON.parse(readFileSync(p));m.targets[0][field]=value;writeFileSync(p,JSON.stringify(m));
