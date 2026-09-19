@@ -1,0 +1,12 @@
+{
+  "name": "raven-worldsfair-2026",
+  "private": true,
+  "type": "module",
+  "description": "Crypto World's Fair 2026 public Fair surface + Vercel entry for apps/raven-conformance",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "vercel:smoke": "node scripts/vercel-adapter-smoke.mjs"
+  }
+}

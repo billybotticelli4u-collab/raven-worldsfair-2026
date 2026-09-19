@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "cd apps/raven-conformance && npm run build",
+  "outputDirectory": "apps/raven-conformance/public",
+  "ignoreCommand": "exit 1",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 300,
+      "includeFiles": "apps/raven-conformance/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" }
+  ]
+}
