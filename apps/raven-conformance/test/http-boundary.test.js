@@ -172,3 +172,104 @@ test('failed replay releases the execution lock', async () => {
   assert.equal(r.status, 500);
   assert.equal((await request('/api/health')).body.active_run, null);
 });
+
+test('F1 rejected streaming upload closes the socket before the sender finishes', async (t) => {
+  const socket = net.createConnection({ host: '127.0.0.1', port });
+  const plannedBytes = 8 * 1024 * 1024;
+  let response = '', sentBytes = 0, writer, observationTimer, socketError;
+  const started = Date.now();
+  // This observation window returns data, not a rejected deadline promise: the
+  // assertions below must distinguish a remote close from our own cleanup.
+  const observed = new Promise(resolve => {
+    socket.on('data', data => { response += data.toString('utf8'); });
+    socket.on('error', error => { socketError = error.code; });
+    socket.once('close', () => resolve({ closed: true, elapsedMs: Date.now() - started }));
+    observationTimer = setTimeout(() => resolve({ closed: false, elapsedMs: Date.now() - started }), 2000);
+    socket.once('connect', () => {
+      socket.write('POST /api/run HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nTransfer-Encoding: chunked\r\nConnection: keep-alive\r\n\r\n');
+      const chunk = Buffer.alloc(16384, 0x20);
+      writer = setInterval(() => {
+        if (socket.destroyed || sentBytes >= plannedBytes) return;
+        socket.write(`${chunk.length.toString(16)}\r\n`);
+        socket.write(chunk); socket.write('\r\n');
+        sentBytes += chunk.length;
+      }, 5);
+      // Deliberately never send the terminating chunk: the server must close us.
+    });
+  });
+  let result;
+  try { result = await observed; }
+  finally { clearInterval(writer); clearTimeout(observationTimer); socket.destroy(); }
+  t.diagnostic(JSON.stringify({ ...result, sentBytes, plannedBytes, socketError }));
+  assert.equal((await request('/api/health')).body.ok, true);
+  assert.match(response, /^HTTP\/1\.1 413 /);
+  assert.match(response, /request_too_large/);
+  assert.equal(result.closed, true, 'rejected upload must be closed by the server within 2 seconds');
+  assert.match(response.split('\r\n\r\n')[0], /\r\nconnection:\s*close\r?$/im);
+  assert.ok(sentBytes < 1024 * 1024, `server read cutoff must precede 1 MiB sent; observed ${sentBytes}`);
+});
+
+test('F1 SSE disconnect retains the lock until the real worker writes its report', async (t) => {
+  const reportsBefore = new Set(readdirSync(path.join(dir, 'reports')));
+  let response, startTimer;
+  const stream = http.get({ host: '127.0.0.1', port, path: '/api/run-stream?target=CONFORMANT_REFERENCE', agent: false });
+  const started = new Promise((resolve, reject) => {
+    startTimer = setTimeout(() => reject(new Error('SSE did not emit run_started')), 8000);
+    stream.once('error', reject);
+    stream.once('response', res => {
+      response = res;
+      let text = '';
+      res.on('data', data => {
+        text += data;
+        if (text.includes('"run_started"')) resolve();
+      });
+    });
+  });
+  let finished = false, newReports = [], postDisconnectMs;
+  try {
+    await started; clearTimeout(startTimer);
+    assert.ok((await request('/api/health')).body.active_run, 'positive control: SSE worker is running');
+    const disconnectedAt = Date.now();
+    const closed = once(response, 'close');
+    response.destroy(); stream.destroy(); await closed;
+    const health = await request('/api/health');
+    postDisconnectMs = Date.now() - disconnectedAt;
+    assert.ok(health.body.active_run, 'SSE disconnect must not release the running worker lock');
+    const blocked = await request('/api/run', { method: 'POST', json: { target: 'CONFORMANT_REFERENCE' } });
+    assert.equal(blocked.status, 409); assert.equal(blocked.body.error, 'run_in_progress');
+  } finally {
+    clearTimeout(startTimer); response?.destroy(); stream.destroy();
+    // Wait for the actual worker even when the mutant assertion fails, so a
+    // failed test cannot tear down the app while its target is still running.
+    const deadline = Date.now() + 20000;
+    while (Date.now() < deadline) {
+      newReports = readdirSync(path.join(dir, 'reports')).filter(name => !reportsBefore.has(name));
+      if (newReports.length && (await request('/api/health')).body.active_run === null) { finished = true; break; }
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    t.diagnostic(JSON.stringify({ postDisconnectMs, finished, newReports }));
+  }
+  assert.ok(finished, 'SSE worker must finish and release its lock within 20 seconds');
+  assert.equal(newReports.length, 1, 'disconnected SSE run still writes exactly one report');
+  assert.match(newReports[0], /^run_[a-f0-9]+\.json$/);
+  const report = await request(`/api/report/${newReports[0].slice(0, -5)}`);
+  assert.equal(report.status, 200); assert.equal(report.body.summary.overall, 'CONFORMANT');
+});
+
+test('F1 HTTP replay refuses nested report and example files but admits a direct report', async () => {
+  const live = await request('/api/run', { method: 'POST', json: { target: 'CONFORMANT_REFERENCE', run_id: 'run_f1replay' } });
+  assert.equal(live.status, 200); assert.equal(live.body.report.summary.overall, 'CONFORMANT');
+  const direct = 'reports/run_f1replay.json';
+  const control = await request('/api/replay', { method: 'POST', json: { report_path: direct } });
+  assert.equal(control.status, 200); assert.equal(control.body.ok, true);
+  for (const root of ['reports', 'examples']) {
+    const nested = `${root}/sub/run_sub.json`;
+    mkdirSync(path.join(dir, root, 'sub'), { recursive: true });
+    cpSync(path.join(dir, direct), path.join(dir, nested));
+    for (const report_path of [nested, path.join(dir, nested)]) {
+      const refused = await request('/api/replay', { method: 'POST', json: { report_path } });
+      assert.equal(refused.status, 400, `nested replay must be refused: ${report_path}`);
+      assert.equal(refused.body.error, 'invalid_report_path');
+    }
+  }
+});
