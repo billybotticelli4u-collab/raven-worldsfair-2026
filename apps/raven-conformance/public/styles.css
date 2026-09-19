@@ -55,7 +55,7 @@ dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--c
 .progress-bar { height: 100%; background: linear-gradient(90deg, #3b5db0, var(--accent)); width: 0%; transition: width .15s linear; }
 .progress-log { list-style: none; margin: 0; padding: 0; max-height: 9rem; overflow: auto; font-size: .82rem; color: var(--muted); }
 .progress-log li { padding: .2rem 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
-.banner { border-radius: 12px; padding: .75rem 1rem; margin-bottom: 1rem; border: 1px solid var(--line); background: #1a2740; }
+.banner { border-radius: 12px; padding: .75rem 1rem; margin-bottom: 1rem; border: 1px solid var(--line); background: #1a2740; overflow-wrap: anywhere; }
 .banner.recorded { border-color: var(--warn); background: #2a2410; color: #ffe6a8; }
 .banner.error { border-color: var(--bad); background: #2a1218; color: #ffc4cb; }
 .banner.stale { border-color: var(--skip); background: #1a1f2c; }

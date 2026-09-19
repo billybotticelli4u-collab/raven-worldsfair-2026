@@ -144,3 +144,18 @@ npm start    # http://127.0.0.1:8791
 ```
 
 Live SSE progress (`/api/run-stream`), display adapter over Challenge 1 taxonomy, recorded-report fallback, download/repro, a11y + XSS text-only rendering. UI does not recalculate verdicts or maintain a second runner.
+
+### HTTP admission limits
+
+The local judge server accepts JSON objects up to 64 KiB and allows 5 seconds to
+finish sending a body. HTTP target timeouts must be integers from 100 to 10000 ms;
+the default stays 3000. Optional report IDs must be `run_` plus 1–64 letters or
+digits and cannot overwrite an existing report. All execution routes share one
+in-process lock. HTTP replay is limited to regular JSON files directly in this
+app's `reports/` or `examples/`; external paths remain available through the CLI.
+See the UI contract for exact errors and compatibility changes.
+
+These controls do not make the localhost app a public multi-tenant service.
+Authentication, rate limiting, report retention, cross-process concurrency and
+deployment configuration still require a separate release decision. No target,
+corpus, profile, verifier policy or result taxonomy changed in this HTTP patch.

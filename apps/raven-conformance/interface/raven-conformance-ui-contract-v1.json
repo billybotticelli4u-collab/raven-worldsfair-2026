@@ -33,8 +33,8 @@
     "required": ["target"],
     "properties": {
       "target": { "type": "string" },
-      "timeout_ms": { "type": "integer", "minimum": 100, "default": 3000 },
-      "run_id": { "type": "string" }
+      "timeout_ms": { "type": "integer", "minimum": 100, "maximum": 10000, "default": 3000 },
+      "run_id": { "type": "string", "pattern": "^run_[A-Za-z0-9]{1,64}$", "description": "Optional new report ID; an existing ID is refused with 409." }
     }
   },
   "progress_events": [
@@ -61,6 +61,17 @@
     "unknown_target",
     "missing_target_entry",
     "invalid_json",
+    "invalid_request",
+    "invalid_timeout",
+    "invalid_run_id",
+    "run_id_exists",
+    "invalid_report_path",
+    "invalid_recorded_id",
+    "invalid_path_encoding",
+    "request_too_large",
+    "request_timeout",
+    "request_aborted",
+    "run_in_progress",
     "RUNNER_FAILURE",
     "OUTPUT_FLOOD",
     "TIMEOUT",
@@ -71,7 +82,7 @@
     "type": "object",
     "required": ["report_path"],
     "properties": {
-      "report_path": { "type": "string" }
+      "report_path": { "type": "string", "description": "HTTP: existing regular JSON file directly in app reports/ or examples/, no symlinks. App-relative or absolute. CLI path behavior is unchanged." }
     }
   },
   "replay_response": {

@@ -19,6 +19,7 @@ import {
 import { replayReport } from "./lib/replay.js";
 import { readBuildInfo } from "./lib/buildInfo.js";
 import { adaptReport, classifyResult } from "./lib/displayAdapter.js";
+import { HttpError, readJsonObject, validateRunOptions, decodeId, containedFile, localReplayPath } from "./lib/httpBoundary.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const APP_ROOT = path.join(__dirname, "..");
@@ -52,20 +53,13 @@ function serveStatic(req, res) {
   if (urlPath === "/") urlPath = "/index.html";
   const safe = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, "");
   const filePath = path.join(PUBLIC, safe);
-  if (!filePath.startsWith(PUBLIC) || !existsSync(filePath)) {
+  if (!containedFile(PUBLIC, filePath)) {
     res.writeHead(404).end("Not found");
     return;
   }
   const ext = path.extname(filePath);
   res.writeHead(200, { "content-type": MIME[ext] || "application/octet-stream" });
   res.end(readFileSync(filePath));
-}
-
-async function readBody(req) {
-  const chunks = [];
-  for await (const c of req) chunks.push(c);
-  const raw = Buffer.concat(chunks).toString("utf8") || "{}";
-  return JSON.parse(raw);
 }
 
 function publicize(report) {
@@ -155,10 +149,11 @@ const server = http.createServer(async (req, res) => {
       });
     }
     if (req.method === "GET" && url.pathname.startsWith("/api/recorded/")) {
-      const id = decodeURIComponent(url.pathname.slice("/api/recorded/".length));
+      const id = decodeId(url.pathname.slice("/api/recorded/".length));
+      if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(id)) return sendJson(res, 400, { error: "invalid_recorded_id" });
       const fileName = `sample-report-${id}.json`;
       const filePath = path.join(EXAMPLES, fileName);
-      if (!filePath.startsWith(EXAMPLES) || !existsSync(filePath)) {
+      if (!containedFile(EXAMPLES, filePath)) {
         return sendJson(res, 404, { error: "recorded_not_found", id });
       }
       const report = JSON.parse(readFileSync(filePath, "utf8"));
@@ -193,10 +188,10 @@ const server = http.createServer(async (req, res) => {
       });
     }
     if (req.method === "GET" && url.pathname.startsWith("/api/report/")) {
-      const runId = decodeURIComponent(url.pathname.slice("/api/report/".length));
+      const runId = decodeId(url.pathname.slice("/api/report/".length));
       if (!/^run_[a-zA-Z0-9]+$/.test(runId)) return sendJson(res, 400, { error: "invalid_run_id" });
       const filePath = path.join(REPORTS_DIR, `${runId}.json`);
-      if (!filePath.startsWith(REPORTS_DIR) || !existsSync(filePath)) {
+      if (!containedFile(REPORTS_DIR, filePath)) {
         return sendJson(res, 404, { error: "report_not_found", run_id: runId });
       }
       res.writeHead(200, {
@@ -214,6 +209,7 @@ const server = http.createServer(async (req, res) => {
         connection: "keep-alive",
       });
       const send = (event, data) => {
+        if (res.destroyed || res.writableEnded) return;
         res.write(`event: ${event}\n`);
         res.write(`data: ${JSON.stringify(data)}\n\n`);
       };
@@ -259,8 +255,8 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/run") {
-      let body;
-      try { body = await readBody(req); } catch { return sendJson(res, 400, { error: "invalid_json" }); }
+      const body = await readJsonObject(req);
+      validateRunOptions(body);
       const targetId = body.target;
       if (!targetId) return sendJson(res, 400, { error: "missing_target" });
       const demos = loadDemoTargets().map((t) => t.id);
@@ -269,6 +265,9 @@ const server = http.createServer(async (req, res) => {
           error: "unknown_target",
           message: "Only allowlisted demo targets via /api/run. Use /api/run-probes for probes. No arbitrary upload.",
         });
+      }
+      if (body.run_id && existsSync(path.join(REPORTS_DIR, `${body.run_id}.json`))) {
+        return sendJson(res, 409, { error: "run_id_exists" });
       }
       if (activeRun) {
         return sendJson(res, 409, {
@@ -286,23 +285,37 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (req.method === "POST" && url.pathname === "/api/run-probes") {
-      const reports = await runAllProbes({ write: true });
-      return sendJson(res, 200, {
-        probes: reports.map(({ _written_path, ...r }) => ({ ...r, written_path: _written_path || null })),
-      });
+      await readJsonObject(req);
+      if (activeRun) return sendJson(res, 409, { error: "run_in_progress" });
+      activeRun = { target: "probes", startedAt: new Date().toISOString() };
+      try {
+        const reports = await runAllProbes({ write: true });
+        return sendJson(res, 200, {
+          probes: reports.map(({ _written_path, ...r }) => ({ ...r, written_path: _written_path || null })),
+        });
+      } finally { activeRun = null; }
     }
     if (req.method === "POST" && url.pathname === "/api/replay") {
-      let body;
-      try { body = await readBody(req); } catch { return sendJson(res, 400, { error: "invalid_json" }); }
+      const body = await readJsonObject(req);
       if (!body.report_path) return sendJson(res, 400, { error: "missing_report_path" });
-      const result = await replayReport(body.report_path, { write: false });
-      return sendJson(res, result.ok ? 200 : 409, result);
+      const reportPath = localReplayPath(APP_ROOT, body.report_path);
+      if (activeRun) return sendJson(res, 409, { error: "run_in_progress" });
+      activeRun = { target: "replay", startedAt: new Date().toISOString() };
+      try {
+        const result = await replayReport(reportPath, { write: false });
+        return sendJson(res, result.ok ? 200 : 409, result);
+      } finally { activeRun = null; }
     }
     if (req.method === "GET" || req.method === "HEAD") return serveStatic(req, res);
     res.writeHead(405).end("Method not allowed");
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (!res.headersSent) {
+      if (err instanceof HttpError) {
+        // End rejected uploads even if the sender never finishes the body.
+        res.setHeader("connection", "close");
+        return sendJson(res, err.status, { error: err.code });
+      }
       const code = message.startsWith("unknown_target") ? 400 : 500;
       sendJson(res, code, { error: code === 400 ? "unknown_target" : "server_error", message });
     } else {

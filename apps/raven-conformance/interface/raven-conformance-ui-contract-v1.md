@@ -32,15 +32,28 @@ UI **must not** offer arbitrary public code upload. Only allowlisted manifest ta
 {
   "target": "CONFORMANT_REFERENCE",
   "timeout_ms": 3000,
-  "run_id": "optional_client_supplied"
+  "run_id": "run_myexample"
 }
 ```
 
 | Field | Type | Default |
 |-------|------|---------|
 | `target` | string | required for run |
-| `timeout_ms` | number | runner default (3000) |
-| `run_id` | string | server-generated `run_<hex>` |
+| `timeout_ms` | integer, 100–10000 inclusive | runner default (3000) |
+| `run_id` | `run_` plus 1–64 ASCII letters/digits; must not already exist | server-generated `run_<hex>` |
+
+HTTP admission hardening: JSON bodies must be objects, at most 65536 received
+bytes, and completed within 5 seconds after the handler begins reading the body.
+This applies to run, probes and replay. Oversized bodies return 413, unfinished
+bodies 408, and invalid objects/options 400. These are transport refusals, not
+conformance verdicts. Target/CLI semantics and profile bytes are unchanged.
+This narrows formerly unchecked HTTP inputs; clients supplying arbitrary run IDs,
+timeouts over 10000, or external replay paths must migrate.
+
+SSE runs, POST runs, probes and replays share one execution lock. Concurrent
+execution requests return 409 (SSE retains its existing named error event).
+Disconnecting an SSE client does not cancel the bounded run; its lock remains
+held until completion. No promise of cross-process locking is made.
 
 Probe suite: `POST /api/run-probes` (optional) or CLI `npm run probes`.
 
@@ -112,6 +125,11 @@ MVP HTTP path returns the full report in one response (no SSE required). UI may 
 | `unknown_target` | 400 / exit 2 | Target id not in manifest |
 | `missing_target_entry` | 500 | Entry file missing |
 | `invalid_json` | 400 | Bad request body |
+| `invalid_request` | 400 | JSON is not an object |
+| `invalid_timeout` / `invalid_run_id` | 400 | Unsupported HTTP execution option |
+| `run_id_exists` / `run_in_progress` | 409 | Existing report ID / server executing work |
+| `request_too_large` / `request_timeout` | 413 / 408 | Body admission limit |
+| `invalid_report_path` / `invalid_recorded_id` / `invalid_path_encoding` | 400 | Invalid HTTP file selector |
 | `RUNNER_FAILURE` | 500 / report | Isolation/setup failed |
 | `OUTPUT_FLOOD` | in-result | Byte cap hit |
 | `TIMEOUT` | in-result | Kill after timeout |
@@ -121,6 +139,12 @@ MVP HTTP path returns the full report in one response (no SSE required). UI may 
 ## 7. Replay request / response
 
 CLI: `npm run replay -- --report <path>`
+
+HTTP `POST /api/replay` accepts an existing regular `.json` file directly inside
+this app's `reports/` or `examples/` only (app-relative or absolute). Symlinks and
+external paths are refused. The CLI continues to accept operator-selected paths.
+Recorded/download routes also reject symlinks and directory escapes. App files
+are trusted; these checks do not isolate an attacker who can modify the app.
 
 Request conceptually:
 
