@@ -351,8 +351,11 @@ els.aboutBtn.addEventListener("click", async () => {
     const info = await fetch("/api/build-info").then((r) => r.json());
     clear(els.aboutBody);
     const addP = (text) => { const p = document.createElement("p"); textOnly(p, text); els.aboutBody.appendChild(p); };
-    addP("Commit: " + (info.fairBuildCommit || "unknown"));
-    addP("Branch: " + (info.fairBuildBranch || "unknown"));
+    addP("Reported commit: " + (info.fairBuildCommit || "unknown"));
+    addP("Identity: " + info.identityStatus + " / " + info.commitSource);
+    addP("Warnings: " + (info.identityWarnings || []).join(", "));
+    addP("Public UI fingerprint: " + (info.publicFingerprint?.sha256 || "unavailable"));
+    addP(info.identityLimit || "Commit not independently verified.");
     addP(info.buildStageNote || "");
     for (const [title, items] of [[info.labels?.fairBuilt || "FAIR-BUILT", info.fairBuilt || []], [info.labels?.preexisting || "PRE-EXISTING", info.preexisting || []]]) {
       const h = document.createElement("h3"); textOnly(h, title); els.aboutBody.appendChild(h);

@@ -1,10 +1,7 @@
-import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
-import path from "node:path";
+import { readIdentity } from "./buildIdentity.js";
 
 const APP_ROOT = fileURLToPath(new URL("../..", import.meta.url));
-const REPO_ROOT = path.resolve(APP_ROOT, "../..");
 
 export const OFFICIAL_CONTEST_START = {
   instant: "2026-09-14T06:00:00-07:00",
@@ -32,35 +29,11 @@ export const FAIR_BUILT = [
   "Fair disclosure About / README PRE-EXISTING vs FAIR-built",
 ];
 
-function git(cmd) {
-  try {
-    return execSync(cmd, {
-      cwd: REPO_ROOT,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-  } catch {
-    return null;
-  }
-}
-
 export function readBuildInfo() {
-  const fromEnv = process.env.WORLDSFAIR_BUILD_COMMIT || process.env.FAIR_BUILD_COMMIT;
-  let commit = fromEnv || null;
-  let branch = process.env.WORLDSFAIR_BUILD_BRANCH || null;
-  let source = fromEnv ? "env" : null;
-
-  if (!commit) {
-    commit = git("git rev-parse HEAD");
-    branch = branch || git("git branch --show-current");
-    source = "git";
-  }
-
+  const identity = readIdentity(APP_ROOT);
   return {
     product: "raven-conformance",
-    fairBuildCommit: commit,
-    fairBuildBranch: branch,
-    commitSource: source,
+    ...identity,
     officialContestStart: OFFICIAL_CONTEST_START,
     preexisting: PREEXISTING,
     fairBuilt: FAIR_BUILT,

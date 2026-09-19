@@ -32,13 +32,14 @@ test("does not falsely label pre-existing foundation as Fair-created", () => {
   );
 });
 
-test("env injection overrides commit when provided", () => {
+test("operator injection is disclosed without overriding checkout identity", () => {
   const prev = process.env.WORLDSFAIR_BUILD_COMMIT;
   process.env.WORLDSFAIR_BUILD_COMMIT = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
   try {
     const info = readBuildInfo();
-    assert.equal(info.fairBuildCommit, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    assert.equal(info.commitSource, "env");
+    assert.notEqual(info.fairBuildCommit, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    assert.equal(info.identityStatus, "CONFLICT");
+    assert.equal(info.commitSource, "git_checkout");
   } finally {
     if (prev === undefined) delete process.env.WORLDSFAIR_BUILD_COMMIT;
     else process.env.WORLDSFAIR_BUILD_COMMIT = prev;

@@ -157,7 +157,7 @@ document.getElementById("aboutBtn").addEventListener("click", async () => {
       (${info.officialContestStart.zone})</p>
     <p><strong>Built during competition:</strong> Yes — Fair surface after contest start
       (PRE-EXISTING foundation vs FAIR WORK listed below).</p>
-    <p><strong>Current Fair build commit:</strong>
+    <p><strong>Reported Fair commit:</strong>
       <span class="mono">${info.fairBuildCommit || "(unknown)"}</span>
       <br/><span class="muted">source: ${info.commitSource}</span></p>
     <h3>${info.labels.foundation}</h3>
@@ -166,6 +166,12 @@ document.getElementById("aboutBtn").addEventListener("click", async () => {
     <ul>${info.fairWorkInThisApp.map((x) => `<li>${x}</li>`).join("")}</ul>
     <p class="muted">Branch: <span class="mono">${info.fairBuildBranch || "—"}</span></p>
   `;
+  for (const text of ["Identity: " + info.identityStatus,
+    "Warnings: " + (info.identityWarnings || []).join(", "),
+    "Public UI fingerprint: " + (info.publicFingerprint?.sha256 || "unavailable"),
+    info.identityLimit || "Commit not independently verified."]) {
+    const p = document.createElement("p"); p.textContent = text; aboutBody.appendChild(p);
+  }
   aboutDialog.showModal();
 });
 
