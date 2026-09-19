@@ -124,10 +124,10 @@ process.stdout.write(JSON.stringify({ write: "ok" }));
 });
 
 describe("R1 reproduction instructions + About inventory", () => {
-  it("fresh report binds D1 correction bundle/branch and refuses old disclosure names", async () => {
+  it("fresh report binds C2 release bundle/branch and refuses old disclosure names", async () => {
     const id = getDeliveryIdentity();
-    assert.equal(id.bundle, "billy-d1-correction-r1r2r3-2026-09-17.bundle");
-    assert.equal(id.branch, "billy/d1-correction-r1r2r3-2026-09-17");
+    assert.equal(id.bundle, "raven-c2-release-recipe-2026-09-19.bundle");
+    assert.equal(id.branch, "codex/c2-release-recipe-2026-09-19");
     assert.notEqual(id.branch, OLD_BRANCH);
     assert.notEqual(id.bundle, OLD_BUNDLE);
 
@@ -136,8 +136,8 @@ describe("R1 reproduction instructions + About inventory", () => {
     assert.equal(typeof repro, "string");
     assert.doesNotMatch(repro, /codex\/challenge2-disclosure-fixes-2026-09-16/);
     assert.doesNotMatch(repro, /challenge2-disclosure-candidate\.bundle/);
-    assert.match(repro, /billy-d1-correction-r1r2r3-2026-09-17\.bundle/);
-    assert.match(repro, /billy\/d1-correction-r1r2r3-2026-09-17/);
+    assert.match(repro, /raven-c2-release-recipe-2026-09-19\.bundle/);
+    assert.match(repro, /codex\/c2-release-recipe-2026-09-19/);
     assert.match(repro, /git rev-parse HEAD/);
     assert.match(repro, /HEAD\^\{tree\}/);
     assert.match(repro, /AUTHOR-REPORT\.md/);
@@ -159,25 +159,24 @@ describe("R1 reproduction instructions + About inventory", () => {
     assert.ok(info.fairBuilt.includes(runnerLine));
   });
 
-  it("executed clean-clone against delivered bundle asserts branch and HEAD/TREE", () => {
+  it("executed clean-clone against delivered bundle asserts branch and HEAD/TREE", (t) => {
     const id = getDeliveryIdentity();
     const bundlePath =
-      process.env.D1_DELIVERY_BUNDLE ||
-      "/workspace/d1-correction-2026-09-17/delivery/" + id.bundle;
+      process.env.C2_DELIVERY_BUNDLE ||
+      path.join(APP, "../../..", id.bundle);
     const identityPath =
-      process.env.D1_DELIVERY_IDENTITY ||
-      "/workspace/d1-correction-2026-09-17/delivery/DELIVERY-IDENTITY.json";
+      process.env.C2_DELIVERY_IDENTITY ||
+      path.join(APP, "../../../DELIVERY-IDENTITY.json");
 
     // Always-on source guard: old disclosure names must stay gone.
-    const runnerSrc = readFileSync(path.join(APP, "src/lib/runner.js"), "utf8");
+    const runnerSrc = readFileSync(path.join(APP, "src/lib/reproduction.js"), "utf8");
     assert.doesNotMatch(runnerSrc, /codex\/challenge2-disclosure-fixes-2026-09-16/);
     assert.doesNotMatch(runnerSrc, /challenge2-disclosure-candidate\.bundle/);
-    assert.match(runnerSrc, /billy-d1-correction-r1r2r3-2026-09-17\.bundle/);
-    assert.match(runnerSrc, /billy\/d1-correction-r1r2r3-2026-09-17/);
+    assert.match(runnerSrc, /raven-c2-release-recipe-2026-09-19\.bundle/);
+    assert.match(runnerSrc, /codex\/c2-release-recipe-2026-09-19/);
 
     if (!existsSync(bundlePath) || !existsSync(identityPath)) {
-      // Clone execution requires the sealed delivery artifacts.
-      // Source guards above already fail if old disclosure names return.
+      t.skip("sealed bundle/identity unavailable; source checks passed, clone execution NOT_EXECUTED");
       return;
     }
 

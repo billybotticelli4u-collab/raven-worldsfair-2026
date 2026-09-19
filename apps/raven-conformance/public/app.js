@@ -188,7 +188,7 @@ function renderPayload(data, opts = {}) {
   }
   if (ui?.error) showError("Report could not be adapted for UI: " + ui.error + ". Not labeled PASS.");
   lastReport = report; lastSource = opts.source || data.source || "unknown";
-  lastRepro = report.reproduction?.one_liner || "";
+  lastRepro = report.reproduction?.clean_clone || report.reproduction?.one_liner || "";
   const overallVal = report.summary?.overall || "UNVERIFIED";
   textOnly(els.overall, overallVal);
   els.overall.className = overallVal === "CONFORMANT" ? "outcome ok" : overallVal === "INCOMPLETE" ? "outcome warn" : "outcome bad";

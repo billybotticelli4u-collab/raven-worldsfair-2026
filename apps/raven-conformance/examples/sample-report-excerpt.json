@@ -43,15 +43,22 @@
   },
   "divergence_definition": "DIVERGENCE = observed decision ≠ specified corpus expectation only. Not automatically exploitable, unsafe, or malicious. No generic security score.",
   "reproduction": {
-    "clean_clone": "git clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git\ncd raven-worldsfair-2026\ngit checkout billy/fair-conformance-mvp-2026-09-16\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target BROKEN_SUBTLE",
+    "clean_clone": "# Verify the external ZIP hash and packet manifest before running these commands.\n# Run from the extracted delivery folder containing the bundle and DELIVERY-IDENTITY.json.\nset -e\ngit clone --branch codex/c2-release-recipe-2026-09-19 ./raven-c2-release-recipe-2026-09-19.bundle raven-worldsfair-2026\ncd raven-worldsfair-2026\ngit rev-parse HEAD\ngit rev-parse 'HEAD^{tree}'\nnode -e 'const fs=require(\"node:fs\"),cp=require(\"node:child_process\"),id=JSON.parse(fs.readFileSync(\"../DELIVERY-IDENTITY.json\",\"utf8\"));const head=cp.execFileSync(\"git\",[\"rev-parse\",\"HEAD\"],{encoding:\"utf8\"}).trim(),tree=cp.execFileSync(\"git\",[\"rev-parse\",\"HEAD^{tree}\"],{encoding:\"utf8\"}).trim();if(id.head!==head||id.tree!==tree||id.branch!==\"codex/c2-release-recipe-2026-09-19\"||id.bundle!==\"raven-c2-release-recipe-2026-09-19.bundle\")throw Error(\"DELIVERY_IDENTITY_MISMATCH\");'\n# AUTHOR-REPORT.md beside the bundle records scope, checks and limitations.\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target BROKEN_SUBTLE\n# BROKEN_SUBTLE intentionally returns exit 1 for V07/V08 divergence; reference returns 0.",
     "one_liner": "cd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE"
   },
-  "report_content_digest_sha256": "a90e84b5b704c6f08537dbac8bb4f3f7d94778b806ab168018b0a7d1f27b1b7f",
+  "report_content_digest_sha256": "3e92a340d34033eb2a54eac26a6ab63958883d532bee094a5f962857e0e8c52d",
   "limitations": [
     "MVP isolation is local Node child_process with restricted env and timeout — not a general sandbox or container hardened runtime.",
     "Outbound network is denied by unsetting proxies and documenting policy; this does not install a kernel network namespace.",
     "Demo targets and corpus are Raven-owned Fair self-contained fixtures — not private production corpora.",
     "Does not include token, marketplace, cert authority, pentest scanner, accounts, registry, billing, or governance architecture.",
     "Author-lane Fair Build Stage product review surface only."
-  ]
+  ],
+  "reproduction_update": {
+    "kind": "instructions_only",
+    "observations_rerun": false,
+    "previous_file_sha256": "a86e81e0cdd0cf0b35159601aca3820650719d2fae7dc4f2cd7304d99ef8aba9",
+    "source_commit": "24dbca45ef479fc843fef593365e4007dff75ed3",
+    "note": "Recorded observations are retained. Delivery instructions supersede the prior recipe; this is not a fresh execution or a claim of replay compatibility."
+  }
 }

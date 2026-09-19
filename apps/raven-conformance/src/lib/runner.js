@@ -26,25 +26,8 @@ import {
 
 const PROFILE_FILE = "raven-canonical-envelope-1.json";
 const CORPUS_FILE = "raven-canonical-envelope-demo-corpus-1.json";
-const DELIVERY_BUNDLE = "billy-d1-correction-r1r2r3-2026-09-17.bundle";
-const DELIVERY_BRANCH = "billy/d1-correction-r1r2r3-2026-09-17";
-
-/**
- * Delivery binding for clean-clone instructions.
- * Exact HEAD/TREE are sealed beside the bundle in DELIVERY-IDENTITY.json /
- * AUTHOR-REPORT.md so the tip commit is not forced off-by-one by embedding
- * its own hash in-tree. Optional env overrides support the executed regression.
- */
-export function getDeliveryIdentity() {
-  const fromEnvHead = process.env.D1_DELIVERY_HEAD || null;
-  const fromEnvTree = process.env.D1_DELIVERY_TREE || null;
-  return {
-    bundle: DELIVERY_BUNDLE,
-    branch: DELIVERY_BRANCH,
-    head: fromEnvHead,
-    tree: fromEnvTree,
-  };
-}
+export { getDeliveryIdentity } from "./reproduction.js";
+import { cleanCloneRecipe } from "./reproduction.js";
 
 function refuse(code) { const error = new Error(code); error.code = code; throw error; }
 
@@ -555,19 +538,7 @@ export async function runConformance(targetId, opts = {}) {
       "Author-lane Fair Build Stage product review surface only. No arbitrary public code upload.",
     ],
     reproduction: {
-      clean_clone: [
-        `# Place the supplied ${DELIVERY_BUNDLE} in this directory first.`,
-        `git clone --branch ${DELIVERY_BRANCH} ./${DELIVERY_BUNDLE} raven-worldsfair-2026`,
-        "cd raven-worldsfair-2026",
-        `git checkout ${DELIVERY_BRANCH}`,
-        "git rev-parse HEAD",
-        "git rev-parse 'HEAD^{tree}'",
-        "# Confirm HEAD and TREE match Final HEAD / Final TREE in AUTHOR-REPORT.md",
-        "# and DELIVERY-IDENTITY.json shipped beside this bundle (D1 correction tip).",
-        "cd apps/raven-conformance",
-        "npm test",
-        `npm run conform -- --target ${targetId}`,
-      ].join("\n"),
+      clean_clone: cleanCloneRecipe(targetId),
       one_liner: `cd apps/raven-conformance && npm run conform -- --target ${targetId}`,
       replay: `cd apps/raven-conformance && npm run replay -- --report reports/<run_id>.json`,
       demo: "cd apps/raven-conformance && npm run demo",

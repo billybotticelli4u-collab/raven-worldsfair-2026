@@ -159,3 +159,7 @@ These controls do not make the localhost app a public multi-tenant service.
 Authentication, rate limiting, report retention, cross-process concurrency and
 deployment configuration still require a separate release decision. No target,
 corpus, profile, verifier policy or result taxonomy changed in this HTTP patch.
+
+## Current local delivery instructions
+
+Use [RELEASE-HANDOFF.md](RELEASE-HANDOFF.md) for the C2 release-recipe candidate bundle, external identity gate and recorded-report migration. Live and recorded reports name the same delivery; Copy reproduction copies the displayed recipe. Final HEAD/TREE and verification results are sealed beside the bundle, not embedded in this source commit.
