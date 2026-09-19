@@ -69,3 +69,6 @@ dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--c
 .loading-pulse { animation: pulse 1.1s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) { .progress-bar { transition: none; } .loading-pulse { animation: none; } }
+
+/* Build fingerprints and commit assertions must wrap on narrow displays. */
+.about { min-width: 0; overflow-wrap: anywhere; }

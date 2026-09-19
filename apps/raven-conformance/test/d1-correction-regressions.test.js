@@ -126,8 +126,8 @@ process.stdout.write(JSON.stringify({ write: "ok" }));
 describe("R1 reproduction instructions + About inventory", () => {
   it("fresh report binds C2 release bundle/branch and refuses old disclosure names", async () => {
     const id = getDeliveryIdentity();
-    assert.equal(id.bundle, "raven-c2-release-recipe-2026-09-19.bundle");
-    assert.equal(id.branch, "codex/c2-release-recipe-2026-09-19");
+    assert.equal(id.bundle, "raven-c2-release-successor-2026-09-19.bundle");
+    assert.equal(id.branch, "codex/c2-release-successor-2026-09-19");
     assert.notEqual(id.branch, OLD_BRANCH);
     assert.notEqual(id.bundle, OLD_BUNDLE);
 
@@ -136,8 +136,8 @@ describe("R1 reproduction instructions + About inventory", () => {
     assert.equal(typeof repro, "string");
     assert.doesNotMatch(repro, /codex\/challenge2-disclosure-fixes-2026-09-16/);
     assert.doesNotMatch(repro, /challenge2-disclosure-candidate\.bundle/);
-    assert.match(repro, /raven-c2-release-recipe-2026-09-19\.bundle/);
-    assert.match(repro, /codex\/c2-release-recipe-2026-09-19/);
+    assert.match(repro, /raven-c2-release-successor-2026-09-19\.bundle/);
+    assert.match(repro, /codex\/c2-release-successor-2026-09-19/);
     assert.match(repro, /git rev-parse HEAD/);
     assert.match(repro, /HEAD\^\{tree\}/);
     assert.match(repro, /AUTHOR-REPORT\.md/);
@@ -172,8 +172,8 @@ describe("R1 reproduction instructions + About inventory", () => {
     const runnerSrc = readFileSync(path.join(APP, "src/lib/reproduction.js"), "utf8");
     assert.doesNotMatch(runnerSrc, /codex\/challenge2-disclosure-fixes-2026-09-16/);
     assert.doesNotMatch(runnerSrc, /challenge2-disclosure-candidate\.bundle/);
-    assert.match(runnerSrc, /raven-c2-release-recipe-2026-09-19\.bundle/);
-    assert.match(runnerSrc, /codex\/c2-release-recipe-2026-09-19/);
+    assert.match(runnerSrc, /raven-c2-release-successor-2026-09-19\.bundle/);
+    assert.match(runnerSrc, /codex\/c2-release-successor-2026-09-19/);
 
     if (!existsSync(bundlePath) || !existsSync(identityPath)) {
       t.skip("sealed bundle/identity unavailable; source checks passed, clone execution NOT_EXECUTED");

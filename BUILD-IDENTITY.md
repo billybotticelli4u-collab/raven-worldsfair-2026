@@ -18,6 +18,10 @@ For agent-trust use its port (default 8787). The verifier refuses missing files,
 
 ## Scope and release handoff
 
-Current C2 recorded reports and clone recipes still describe their accepted e042 predecessor. They are preserved as historical measurements. To review THIS successor, use its bundled REVIEW-HANDOFF.md and SOURCE-IDENTITY.json; do not use a recorded report's recipe as this successor's clone instructions. Publishing this successor requires a separately reviewed release handoff update. No deployment, Vercel settings, corpus, profile, verifier dependency or isolation policy is changed here.
+This release successor updates C2 live and recorded clone instructions to the delivered successor bundle. Recorded observations remain historical and are not relabelled as fresh measurements. DELIVERY-IDENTITY.json binds the final HEAD/TREE outside source. No deployment, Vercel settings, corpus, profile, verifier dependency or isolation policy is changed here.
 
 The bundled older agent-trust app lacks vendor/raven-receipt-verifier/packages/verify-js/src/index.ts. Its full suite has 12 failures on the unchanged base and candidate. Restoring that authenticated dependency/deployment base is a separate prerequisite to any whole-app release assertion. Identity-focused tests and About/HTTP checks do not close it.
+
+## App-specific fingerprint scope (W-1)
+
+C2 has no build-info generator. Its fingerprint checks current public-file consistency only; it does not detect drift since generation. Automatic drift-since-generation comparison is available only in agent-trust after its generator runs. Neither app authenticates a source commit or backend bytes.

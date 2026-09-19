@@ -5,8 +5,8 @@ import { createHash } from 'node:crypto';
 import { runConformance } from '../src/lib/runner.js';
 import { checkReportIntegrity } from '../src/lib/replay.js';
 
-const bundle = 'raven-c2-release-recipe-2026-09-19.bundle';
-const branch = 'codex/c2-release-recipe-2026-09-19';
+const bundle = 'raven-c2-release-successor-2026-09-19.bundle';
+const branch = 'codex/c2-release-successor-2026-09-19';
 const stale = /billy-d1-correction|challenge2-disclosure-candidate|billy\/fair-conformance-mvp|codex\/challenge2-disclosure-fixes/;
 function check(recipe) {
   assert.ok(recipe.includes(bundle), 'recipe must name current bundle');

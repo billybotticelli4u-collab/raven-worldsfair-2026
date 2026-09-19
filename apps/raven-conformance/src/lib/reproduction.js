@@ -1,6 +1,6 @@
 // HEAD/TREE live beside the final bundle, avoiding a commit containing its own hash.
-const DELIVERY_BUNDLE = 'raven-c2-release-recipe-2026-09-19.bundle';
-const DELIVERY_BRANCH = 'codex/c2-release-recipe-2026-09-19';
+const DELIVERY_BUNDLE = 'raven-c2-release-successor-2026-09-19.bundle';
+const DELIVERY_BRANCH = 'codex/c2-release-successor-2026-09-19';
 
 export function getDeliveryIdentity() {
   return {

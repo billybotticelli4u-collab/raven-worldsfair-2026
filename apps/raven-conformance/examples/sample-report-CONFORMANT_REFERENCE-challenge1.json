@@ -372,19 +372,20 @@
     "Author-lane Fair Build Stage product review surface only. No arbitrary public code upload."
   ],
   "reproduction": {
-    "clean_clone": "# Verify the external ZIP hash and packet manifest before running these commands.\n# Run from the extracted delivery folder containing the bundle and DELIVERY-IDENTITY.json.\nset -e\ngit clone --branch codex/c2-release-recipe-2026-09-19 ./raven-c2-release-recipe-2026-09-19.bundle raven-worldsfair-2026\ncd raven-worldsfair-2026\ngit rev-parse HEAD\ngit rev-parse 'HEAD^{tree}'\nnode -e 'const fs=require(\"node:fs\"),cp=require(\"node:child_process\"),id=JSON.parse(fs.readFileSync(\"../DELIVERY-IDENTITY.json\",\"utf8\"));const head=cp.execFileSync(\"git\",[\"rev-parse\",\"HEAD\"],{encoding:\"utf8\"}).trim(),tree=cp.execFileSync(\"git\",[\"rev-parse\",\"HEAD^{tree}\"],{encoding:\"utf8\"}).trim();if(id.head!==head||id.tree!==tree||id.branch!==\"codex/c2-release-recipe-2026-09-19\"||id.bundle!==\"raven-c2-release-recipe-2026-09-19.bundle\")throw Error(\"DELIVERY_IDENTITY_MISMATCH\");'\n# AUTHOR-REPORT.md beside the bundle records scope, checks and limitations.\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target CONFORMANT_REFERENCE\n# BROKEN_SUBTLE intentionally returns exit 1 for V07/V08 divergence; reference returns 0.",
+    "clean_clone": "# Verify the external ZIP hash and packet manifest before running these commands.\n# Run from the extracted delivery folder containing the bundle and DELIVERY-IDENTITY.json.\nset -e\ngit clone --branch codex/c2-release-successor-2026-09-19 ./raven-c2-release-successor-2026-09-19.bundle raven-worldsfair-2026\ncd raven-worldsfair-2026\ngit rev-parse HEAD\ngit rev-parse 'HEAD^{tree}'\nnode -e 'const fs=require(\"node:fs\"),cp=require(\"node:child_process\"),id=JSON.parse(fs.readFileSync(\"../DELIVERY-IDENTITY.json\",\"utf8\"));const head=cp.execFileSync(\"git\",[\"rev-parse\",\"HEAD\"],{encoding:\"utf8\"}).trim(),tree=cp.execFileSync(\"git\",[\"rev-parse\",\"HEAD^{tree}\"],{encoding:\"utf8\"}).trim();if(id.head!==head||id.tree!==tree||id.branch!==\"codex/c2-release-successor-2026-09-19\"||id.bundle!==\"raven-c2-release-successor-2026-09-19.bundle\")throw Error(\"DELIVERY_IDENTITY_MISMATCH\");'\n# AUTHOR-REPORT.md beside the bundle records scope, checks and limitations.\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target CONFORMANT_REFERENCE\n# BROKEN_SUBTLE intentionally returns exit 1 for V07/V08 divergence; reference returns 0.",
     "one_liner": "cd apps/raven-conformance && npm run conform -- --target CONFORMANT_REFERENCE",
     "replay": "cd apps/raven-conformance && npm run replay -- --report reports/<run_id>.json",
     "demo": "cd apps/raven-conformance && npm run demo"
   },
-  "report_content_digest_sha256": "149e97a9a43217d6279ae63b64d0462e46b9ca2fd515d39c90df697939d43ca4",
+  "report_content_digest_sha256": "6fbad02d5ab8da1b7e900d8b466c69b40805fba6ddaf3af8e61a53e06c620db2",
   "deterministic_report_sha256": "eeadf00bbc824105210c249d0fcf8f654c9df23eb217ab11b3e92245033406a5",
   "reproduction_update": {
     "kind": "instructions_only",
     "observations_rerun": false,
-    "previous_file_sha256": "c932d8fc7a40162431c5e12a97691486396cbd4ca695332b6b1f5f82b00a6312",
+    "previous_file_sha256": "a335b9cde24add54e42da89d3b6adaaa46f12faace1da31ab56b1a7c2e404941",
     "source_commit": "24dbca45ef479fc843fef593365e4007dff75ed3",
     "note": "Recorded observations are retained. Delivery instructions supersede the prior recipe; this is not a fresh execution or a claim of replay compatibility.",
-    "digest_note": "The prior sample deterministic digest failed the current unchanged integrity routine. Digests are recomputed; measured fields are unchanged."
+    "digest_note": "The prior sample deterministic digest failed the current unchanged integrity routine. Digests are recomputed; measured fields are unchanged.",
+    "previous_candidate": "1a8275cbbeb5513011f06325c334e24f619c0ae7"
   }
 }
