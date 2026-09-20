@@ -36,9 +36,15 @@ export function classifyIdentityChecks({
       ? null
       : String(deployedCommit).toLowerCase();
 
-  // Exact local unbound state: UNKNOWN (or null) identity and no deployed commit.
-  const localUnboundState =
-    loopback && (id === "UNKNOWN" || id === null) && commit === null;
+  // Local unbound state (loopback only). Two real shapes of `npm start` on a
+  // developer machine (CODEX B2):
+  //   - plain extracted package: identityStatus UNKNOWN (or null), commit null;
+  //   - git checkout: identityStatus UNVERIFIED_ASSERTION, commit = HEAD (40-hex).
+  // CONFLICT, CORRUPTED, or a malformed commit never qualify.
+  const commitWellFormed = commit === null || /^[0-9a-f]{40}$/.test(commit);
+  const wellFormedLocalIdentity =
+    id === null || id === "UNKNOWN" || id === "UNVERIFIED_ASSERTION";
+  const localUnboundState = loopback && wellFormedLocalIdentity && commitWellFormed;
 
   const identityOk = !!(shapeOk && allowlistedIdentity && commitShapeOk);
   const detail = `host=${host || "?"} product-shape=${shapeOk ? "ok" : "bad"} identityStatus=${id} commit=${commit}`;
@@ -66,8 +72,8 @@ export function classifyIdentityChecks({
       // Shape+identity look production-valid but commit binding missing → still fail the pair via expectedCommit row.
       buildInfo = { ok: true, detail: detail + " (remote; commit pin checked next)" };
     }
-  } else if (localUnboundState && shapeOk && expected) {
-    // Local unbound server but operator pinned a commit → identity row fails closed.
+  } else if (localUnboundState && shapeOk && expected && commit === null) {
+    // Local unbound server with no commit but operator pinned one → identity row fails closed.
     buildInfo = { ok: false, detail: detail + " (local unbound cannot satisfy pinned EXPECTED_COMMIT)" };
   } else {
     buildInfo = { ok: identityOk, detail };
@@ -91,7 +97,7 @@ export function classifyIdentityChecks({
         name: expectedName,
         ok: false,
         detail:
-          "EXPECTED_COMMIT unset on loopback but identity/commit are not the exact local UNKNOWN/null state",
+          "EXPECTED_COMMIT unset on loopback but identityStatus/commit are not a well-formed local state (UNKNOWN/null or UNVERIFIED_ASSERTION + 40-hex)",
       };
     } else {
       expectedRow = {

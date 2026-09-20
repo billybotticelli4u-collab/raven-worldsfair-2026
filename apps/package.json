@@ -1,0 +1,5 @@
+{
+  "type": "commonjs",
+  "private": true,
+  "description": "Package scope for apps/raven-site (no package.json of its own on main): keeps its zero-config Vercel .js functions CommonJS under the Fair root type:module. Outside the apex surface and outside the production Root Directory (apps/raven-site)."
+}

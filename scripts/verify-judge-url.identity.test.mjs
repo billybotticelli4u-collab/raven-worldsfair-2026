@@ -102,3 +102,79 @@ test("corrupt identity on loopback is not LOCAL-UNBOUND", () => {
   assert.equal(r.buildInfo.ok, false);
   assert.equal(r.expectedCommit.ok, false);
 });
+
+test("real local git checkout on loopback (UNVERIFIED_ASSERTION + HEAD) is LOCAL-UNBOUND when EXPECTED_COMMIT unset (CODEX B2)", () => {
+  const r = classifyIdentityChecks({
+    baseUrl: "http://127.0.0.1:8791/",
+    expectedCommit: "",
+    identityStatus: "UNVERIFIED_ASSERTION",
+    deployedCommit: "b29c1f25acff34942a90074a5e7889e05351866f",
+    shapeOk: true,
+    allowlistedIdentity: true,
+    commitShapeOk: true,
+  });
+  assert.equal(r.buildInfo.klass, "LOCAL-UNBOUND");
+  assert.equal(r.buildInfo.ok, true);
+  assert.equal(r.expectedCommit.klass, "LOCAL-UNBOUND");
+  assert.equal(r.expectedCommit.ok, true);
+});
+
+test("git checkout on loopback with pinned EXPECTED_COMMIT: match passes, mismatch fails", () => {
+  const base = {
+    baseUrl: "http://localhost:8791/",
+    identityStatus: "UNVERIFIED_ASSERTION",
+    deployedCommit: "b29c1f25acff34942a90074a5e7889e05351866f",
+    shapeOk: true,
+    allowlistedIdentity: true,
+    commitShapeOk: true,
+  };
+  const ok = classifyIdentityChecks({ ...base, expectedCommit: "b29c1f25acff34942a90074a5e7889e05351866f" });
+  assert.equal(ok.buildInfo.ok, true);
+  assert.equal(ok.expectedCommit.ok, true);
+  assert.notEqual(ok.expectedCommit.klass, "LOCAL-UNBOUND");
+  const bad = classifyIdentityChecks({ ...base, expectedCommit: "0000000000000000000000000000000000000000" });
+  assert.equal(bad.expectedCommit.ok, false);
+});
+
+test("CONFLICT identity on loopback is never LOCAL-UNBOUND", () => {
+  const r = classifyIdentityChecks({
+    baseUrl: "http://127.0.0.1:8791/",
+    expectedCommit: "",
+    identityStatus: "CONFLICT",
+    deployedCommit: "b29c1f25acff34942a90074a5e7889e05351866f",
+    shapeOk: true,
+    allowlistedIdentity: false,
+    commitShapeOk: true,
+  });
+  assert.notEqual(r.buildInfo.klass, "LOCAL-UNBOUND");
+  assert.equal(r.buildInfo.ok, false);
+  assert.equal(r.expectedCommit.ok, false);
+});
+
+test("UNVERIFIED_ASSERTION with malformed commit on loopback is not LOCAL-UNBOUND", () => {
+  const r = classifyIdentityChecks({
+    baseUrl: "http://127.0.0.1:8791/",
+    expectedCommit: "",
+    identityStatus: "UNVERIFIED_ASSERTION",
+    deployedCommit: "not-a-commit",
+    shapeOk: true,
+    allowlistedIdentity: true,
+    commitShapeOk: false,
+  });
+  assert.notEqual(r.buildInfo.klass, "LOCAL-UNBOUND");
+  assert.equal(r.expectedCommit.ok, false);
+});
+
+test("remote git-checkout-shaped response with unset EXPECTED_COMMIT still fails binding (negative control)", () => {
+  const r = classifyIdentityChecks({
+    baseUrl: "https://raven-worldsfair-2026.vercel.app/",
+    expectedCommit: "",
+    identityStatus: "UNVERIFIED_ASSERTION",
+    deployedCommit: "b29c1f25acff34942a90074a5e7889e05351866f",
+    shapeOk: true,
+    allowlistedIdentity: true,
+    commitShapeOk: true,
+  });
+  assert.notEqual(r.expectedCommit.klass, "LOCAL-UNBOUND");
+  assert.equal(r.expectedCommit.ok, false);
+});

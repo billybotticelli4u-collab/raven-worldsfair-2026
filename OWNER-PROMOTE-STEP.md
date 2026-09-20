@@ -1,7 +1,7 @@
 # Owner promote step — Fair tip (ask not open yet)
 
-**Updated:** 2026-09-20 (Europe/Rome)
-**Author:** Billy (Release Lead / integrator — not independent reviewer)
+**Updated:** 2026-09-20 (Europe/Rome), successor to b29c1f2 after CODEX CHANGES_REQUESTED (B1–B3)
+**Author:** Billy (Release Lead / integrator — not independent reviewer); this successor commit authored by Claude desktop as Billy's stand-in (Billy offline 2026-09-20) — Claude may not review it
 **Deploys:** FROZEN. No push. No deploy.
 
 ## Promote shape (structural — non-negotiable)
@@ -21,30 +21,38 @@ CODEX must confirm this sentence in re-review before any Owner YES/NO is opened.
 
 ## Site-test status on this tip
 
-Measured with `node apps/raven-site/test.mjs` (Node 22):
+Measured with `node apps/raven-site/test.mjs` (pinned Node 22.18.0) on this HEAD:
 
 | Class | Count | Notes |
 |-------|------:|-------|
-| PASS | 139 | Includes the two former tip defects below |
-| FAIL (lineage ENOENT) | 5 | Expected on Fair tip — **not** site defects |
-| FAIL (real tip defects) | 0 | Fixed on this HEAD |
+| PASS | 139 | |
+| FAIL (lineage ENOENT) | 5 | Expected on Fair tip — **not** site defects (listed below) |
+| FAIL (real tip defects) | 0 | Exit code is 1 only because of the five ENOENTs |
 
-### Fixed on this HEAD (were real tip defects; main was already green)
-1. **World’s Fair footer** — link lived only in `index.html`; added to `index.template.html` and regenerated so template↔HTML twins match.
-2. **`apps/raven-site/package.json`** — was empty/missing; now `{"type":"commonjs"}` so `api/request-access.js` and `build.js` do not inherit Fair-root `"type":"module"`.
+### How the two former tip defects are resolved on this HEAD (apex bytes stay identical to `main`)
+1. **World's Fair footer** — the link was only in generated `index.html`, not the template. Resolution: the footer link is **removed** from `index.html`, so `apps/raven-site/index.html`, `index.template.html` and `.vercelignore` are byte-identical to `origin/main` 8336f86d. `/worldsfair` stays reachable through the redirect already in `apps/raven-site/vercel.json` (allowlisted).
+2. **CommonJS intake** — `apps/raven-site/api/request-access.js` inherited the Fair root `"type":"module"`. Resolution: `apps/package.json` = `{"type":"commonjs"}` (new file **outside** `apps/raven-site/`, so outside the apex surface and outside the production Root Directory). `apps/raven-conformance` and `apps/worldsfair-agent-trust` keep their own `type:module` package.json, so they are unaffected.
 
 ### Also on this HEAD
-- **D5/D6 harness** (`scripts/verify-judge-url.mjs`): `V07_`/`V08_` `vector_id` prefix match + `LOCAL-UNBOUND` for unbound identity rows.
-- **Claude-036 `.vercelignore`**: `!worldsfair/download/README.md` after the bare `README.md` ignore so the download surface is not 404.
+- **D5/D6 harness** (`scripts/verify-judge-url.mjs` + `scripts/lib/judge-url-identity.mjs`): `V07_`/`V08_` `vector_id` prefix match; `LOCAL-UNBOUND` is loopback-only and now covers both real local shapes — extracted package (`UNKNOWN`/null, no commit) **and** git checkout (`UNVERIFIED_ASSERTION` + 40-hex HEAD, `commitSource: git_checkout`). `CONFLICT`/`CORRUPTED`/malformed commit never soft-pass; non-loopback with unset `EXPECTED_COMMIT` always fails the binding row. 12/12 unit tests; `d6-red` proof exits 1.
+- **Download surface (CODEX B3)** — `worldsfair/download/README.md` renamed to `worldsfair/download/DOWNLOAD-NOTES.md` (same bytes 71ae943f…), link + copy + `SHA256SUMS.txt` updated; `.vercelignore` untouched (== main). Deployment-input proof: `node scripts/verify-download-surface-deploy-input.mjs` evaluates `.vercelignore` with `git check-ignore` (gitignore semantics, rooted at `apps/raven-site`) for every linked download → `DOWNLOAD_SURFACE_DEPLOY_INPUT_OK`; negative control shows the old `README.md` name **would** be excluded.
+
+### Measured harness runs on this HEAD (real `npm start` from the git checkout, loopback)
+| Run | Result |
+|-----|--------|
+| `EXPECTED_COMMIT` unset | 7 PASS / 2 LOCAL-UNBOUND / 0 FAIL, exit 0 |
+| `EXPECTED_COMMIT=<this HEAD>` | 9 PASS / 0 / 0, exit 0 |
+| `EXPECTED_COMMIT=000…0` | exit 1 |
+| non-loopback gate (`VERIFY_JUDGE_HOSTNAME_FOR_GATE=raven-worldsfair-2026.vercel.app`), unset pin | 8 PASS / 0 / 1 FAIL (`EXPECTED_COMMIT binding`), exit 1 |
 
 ### Lineage artefacts (5 ENOENTs — do not chase as site bugs)
 These paths exist on `main` and are absent on the Fair tip because the lineages diverged. Documented so CODEX does not treat them as regressions to fix on this branch:
 
 1. `apps/launchguard-acp/deploy/HOSTED-VERIFIER-DEPLOY-RUNBOOK.md` (×2 tests)
 2. `.github/workflows/raven-canary.yml` (×2 tests)
-3. `docs/raven/RAVEN_RECEIPT_V1_SPEC.md` (×1 test; Claude also saw a second pin against the same missing tree)
+3. `docs/raven/RAVEN_RECEIPT_V1_SPEC.md` (×1 test)
 
-Contrast: `origin/main` (e.g. `8336f86`) reports **SITE TESTS OK (144 ok)** because those files exist there.
+Contrast: `origin/main` (8336f86) reports **SITE TESTS OK (144 ok)** because those files exist there.
 
 ## Status
 
