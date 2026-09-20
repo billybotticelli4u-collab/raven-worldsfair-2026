@@ -325,6 +325,34 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, result.ok ? 200 : 409, result);
       } finally { activeRun = null; }
     }
+    if (req.method === "POST" && url.pathname === "/api/receipt/issue") {
+      // Local-only helper: signs a raven-conformance-receipt/1 over report digest.
+      // Does NOT anchor. Requires RAVEN_CONFORMANCE_RECEIPT_KEYPAIR. DEVNET-labeled.
+      const body = await readJsonObject(req);
+      const report = body.report;
+      if (!report || typeof report !== "object") {
+        return sendJson(res, 400, { error: "missing_report" });
+      }
+      try {
+        const { loadKeypair, buildBody, signBody, NETWORK } = await import("./lib/conformanceReceipt.js");
+        const digest =
+          report.deterministic_report_sha256 ||
+          report.binding?.deterministic_report_sha256;
+        if (!digest) return sendJson(res, 400, { error: "missing_digest" });
+        const key = loadKeypair();
+        const receipt = signBody(buildBody({ digest: String(digest).toLowerCase(), report }), key);
+        return sendJson(res, 200, {
+          labeled: "DEVNET",
+          network: NETWORK,
+          receipt,
+          note: "Issued locally. Not anchored. Run npm run receipt:anchor to post digest memo on Solana DEVNET.",
+        });
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        const status = e && e.code === "MISSING_KEY" ? 503 : 500;
+        return sendJson(res, status, { error: "receipt_issue_failed", message });
+      }
+    }
     if (req.method === "GET" || req.method === "HEAD") return serveStatic(req, res);
     res.writeHead(405).end("Method not allowed");
   } catch (err) {
