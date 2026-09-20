@@ -1,0 +1,109 @@
+# I-3 post-deploy / PR gate — Owner must mark this check Required on main.
+# Secrets: JUDGE_VERIFY_BASE_URL (required for pull_request/push), JUDGE_VERIFY_COOKIE (optional).
+# Never echo secrets.
+name: verify-judge-url
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Base URL to verify"
+        required: true
+        type: string
+      expected_commit:
+        description: "40-hex commit that must match fairBuildCommit"
+        required: false
+        type: string
+
+concurrency:
+  group: verify-judge-url-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Resolve target URL and expected commit
+        id: url
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DEPLOY_STATE: ${{ github.event.deployment_status.state }}
+          DEPLOY_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          INPUT_URL: ${{ inputs.base_url }}
+          INPUT_COMMIT: ${{ inputs.expected_commit }}
+          SECRET_URL: ${{ secrets.JUDGE_VERIFY_BASE_URL }}
+          GITHUB_SHA_VALUE: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          URL=""
+          EXPECTED="${INPUT_COMMIT:-$GITHUB_SHA_VALUE}"
+          SKIP="false"
+          if [ "$EVENT_NAME" = "deployment_status" ]; then
+            if [ "$DEPLOY_STATE" != "success" ]; then
+              echo "Non-success deployment_status=$DEPLOY_STATE — not a verification PASS; skipping without synthesizing success."
+              SKIP=true
+            else
+              URL="$DEPLOY_URL"
+            fi
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            URL="$INPUT_URL"
+          else
+            # pull_request / push: URL is mandatory for a required check
+            URL="${SECRET_URL:-}"
+          fi
+          if [ "$SKIP" != "true" ] && [ -z "$URL" ]; then
+            echo "::error::No base URL configured. Set secret JUDGE_VERIFY_BASE_URL (PR/push) or pass workflow_dispatch base_url / deployment_status URL."
+            exit 1
+          fi
+          if [ "$SKIP" = "true" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "base=" >> "$GITHUB_OUTPUT"
+            echo "expected=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          URL="${URL%/}"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "base=$URL" >> "$GITHUB_OUTPUT"
+          echo "expected=$EXPECTED" >> "$GITHUB_OUTPUT"
+          python3 - "$URL" <<'PY'
+          import sys
+          from urllib.parse import urlparse
+          u = urlparse(sys.argv[1])
+          print("Target host (no secrets): " + u.scheme + "://" + (u.hostname or ""))
+          PY
+
+      - name: Run verify-judge-url harness
+        if: steps.url.outputs.skip != 'true'
+        env:
+          VERIFY_JUDGE_COOKIE: ${{ secrets.JUDGE_VERIFY_COOKIE }}
+          BASE: ${{ steps.url.outputs.base }}
+          EXPECTED_COMMIT: ${{ steps.url.outputs.expected }}
+        run: |
+          set -euo pipefail
+          # Constrain cookie use to the resolved base host only (harness already same-origin).
+          node scripts/verify-judge-url.mjs "$BASE" | tee harness-out.txt
+
+      - name: Upload harness log
+        if: always() && steps.url.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-judge-url-log
+          path: harness-out.txt
+
+      - name: Non-success deployment notice
+        if: steps.url.outputs.skip == 'true'
+        run: echo "Skipped non-success deployment_status — check did not claim verification PASS."
