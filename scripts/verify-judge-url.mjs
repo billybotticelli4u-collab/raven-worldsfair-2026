@@ -7,7 +7,8 @@
  * Env:
  *   VERIFY_JUDGE_COOKIE  optional Cookie for SSO-walled previews (same-origin only)
  *   EXPECTED_COMMIT      required for CI/owner gate PASS — 40-hex must match fairBuildCommit
- *                        (unset on local npm start → LOCAL-UNBOUND for the two identity rows)
+ *                        (LOCAL-UNBOUND only on loopback + identity UNKNOWN/null + null commit;
+ *                         non-loopback with EXPECTED_COMMIT unset → FAIL)
  *   FETCH_TIMEOUT_MS     default 15000
  */
 import http from "node:http";
@@ -15,6 +16,7 @@ import https from "node:https";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { classifyIdentityChecks } from "./lib/judge-url-identity.mjs";
 
 const REPO = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const base = (process.argv[2] || "").replace(/\/$/, "");
@@ -157,36 +159,32 @@ try {
       r.status === 200 &&
       j.product === "raven-conformance" &&
       files.length === 3;
-    const identityOk = shapeOk && idOk && commitShape;
-    const detail = `product=${j.product} identityStatus=${j.identityStatus} files=${files.length} commit=${deployedCommit}`;
-    if (!expectedCommit && shapeOk && !identityOk) {
-      // D6: local npm start has fairBuildCommit null / identityStatus UNKNOWN — expected unbound.
-      record(
-        "GET /api/build-info shape + allowlisted identity + commit",
-        true,
-        detail + " (local unbound)",
-        "LOCAL-UNBOUND",
-      );
-    } else {
-      record("GET /api/build-info shape + allowlisted identity + commit", identityOk, detail);
-    }
-  }
-
-  {
-    if (!expectedCommit) {
-      // D6: DEVELOPER.md local path does not pin EXPECTED_COMMIT; do not fail the stranger green path.
-      record(
-        "EXPECTED_COMMIT binding",
-        true,
-        "EXPECTED_COMMIT unset — local unbound (CI/owner gate must pin 40-hex)",
-        "LOCAL-UNBOUND",
-      );
-    } else if (!/^[0-9a-f]{40}$/.test(expectedCommit)) {
-      record("EXPECTED_COMMIT binding", false, `EXPECTED_COMMIT not 40-hex: ${expectedCommit}`);
-    } else {
-      const ok = deployedCommit === expectedCommit;
-      record("EXPECTED_COMMIT matches fairBuildCommit", ok, `expected=${expectedCommit} actual=${deployedCommit}`);
-    }
+    // Test hook: VERIFY_JUDGE_HOSTNAME_FOR_GATE overrides loopback detection only (D6 red tests).
+    const gateBase =
+      process.env.VERIFY_JUDGE_HOSTNAME_FOR_GATE
+        ? `http://${process.env.VERIFY_JUDGE_HOSTNAME_FOR_GATE}/`
+        : base;
+    const classified = classifyIdentityChecks({
+      baseUrl: gateBase,
+      expectedCommit,
+      identityStatus: j.identityStatus ?? null,
+      deployedCommit,
+      shapeOk,
+      allowlistedIdentity: idOk,
+      commitShapeOk: commitShape,
+    });
+    record(
+      "GET /api/build-info shape + allowlisted identity + commit",
+      classified.buildInfo.ok,
+      classified.buildInfo.detail,
+      classified.buildInfo.klass,
+    );
+    record(
+      classified.expectedCommit.name,
+      classified.expectedCommit.ok,
+      classified.expectedCommit.detail,
+      classified.expectedCommit.klass,
+    );
   }
 
   {
