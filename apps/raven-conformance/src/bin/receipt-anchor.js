@@ -10,6 +10,8 @@ import {
   KEY_ENV,
   loadKeypair,
   assertDevnetRpc,
+  assertDevnetCluster,
+  DEVNET_GENESIS_HASH,
   NETWORK,
 } from '../lib/conformanceReceipt.js';
 
@@ -26,7 +28,7 @@ if (!receiptPath) {
 const rpc = arg('--rpc', process.env.RAVEN_CONFORMANCE_DEVNET_RPC || 'https://api.devnet.solana.com');
 
 try {
-  assertDevnetRpc(rpc);
+  assertDevnetRpc(rpc); // URL pre-check only
   const key = loadKeypair();
   const receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
   if (receipt.network !== NETWORK) {
@@ -40,6 +42,8 @@ try {
 
   const payer = Keypair.fromSecretKey(Uint8Array.from(key.secretKey64));
   const connection = new Connection(rpc, 'confirmed');
+  // Hard gate: cluster identity via genesis hash (not URL string).
+  const genesisHash = await assertDevnetCluster(connection, { rpcUrl: rpc });
   const bal = await connection.getBalance(payer.publicKey);
   if (bal < 5000) {
     console.error(`DEVNET balance too low (${bal} lamports). Request airdrop then retry.`);
@@ -63,6 +67,8 @@ try {
   const out = {
     labeled: 'DEVNET',
     network: NETWORK,
+    genesisHash,
+    expectedGenesisHash: DEVNET_GENESIS_HASH,
     rpc,
     reportDigest: digest,
     memo,

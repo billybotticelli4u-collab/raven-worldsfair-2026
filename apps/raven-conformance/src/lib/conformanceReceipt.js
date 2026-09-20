@@ -170,12 +170,45 @@ export function verifyReceipt(receipt, reportPath) {
   return { ok: reasons.length === 0, reasons, digest };
 }
 
+/** Canonical Solana DEVNET genesis hash (cluster identity, not URL cosmetics). */
+export const DEVNET_GENESIS_HASH = 'EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG';
+export const MAINNET_GENESIS_HASH = '5eykt4UsmbJNVoz9FYAsfiAMnv8pf8vR9yLHtwYg4gYs';
+
+/** Soft URL heuristic only — never sufficient alone. */
+export function assertDevnetRpcUrl(url) {
+  const u = (url || '').toLowerCase();
+  if (u.includes('mainnet')) {
+    throw new Error(`Refusing mainnet-looking RPC URL: ${url}`);
+  }
+}
+
+/**
+ * Hard cluster gate: query genesis hash and require DEVNET.
+ * This is what prevents "labelled devnet" URL tricks from touching mainnet.
+ */
+export async function assertDevnetCluster(connection, { rpcUrl } = {}) {
+  if (rpcUrl) assertDevnetRpcUrl(rpcUrl);
+  const genesisHash = await connection.getGenesisHash();
+  if (genesisHash === MAINNET_GENESIS_HASH) {
+    throw new Error(
+      `Refusing MAINNET cluster (genesis ${genesisHash}). Anchor is DEVNET-only.`,
+    );
+  }
+  if (genesisHash !== DEVNET_GENESIS_HASH) {
+    throw new Error(
+      `RPC genesis hash ${genesisHash} is not Solana DEVNET (${DEVNET_GENESIS_HASH}). Refusing.`,
+    );
+  }
+  return genesisHash;
+}
+
+/** @deprecated Prefer assertDevnetCluster(connection). Kept as URL pre-check only. */
 export function assertDevnetRpc(url) {
+  assertDevnetRpcUrl(url);
   const u = (url || '').toLowerCase();
   if (!u.includes('devnet')) {
-    throw new Error(`RPC must be Solana DEVNET (got ${url}). Refusing.`);
-  }
-  if (u.includes('mainnet')) {
-    throw new Error('Refusing mainnet RPC');
+    throw new Error(
+      `RPC URL must mention devnet before cluster probe (got ${url}). Refusing.`,
+    );
   }
 }
