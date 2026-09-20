@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raven Operator Console</title><link rel="stylesheet" href="../_shared-style.css"></head><body>
+<header><div class="wrap"><b>RAVEN / operator</b> <span style="color:var(--dim);font-size:12px">&nbsp;private cockpit — not deployed, not in public nav</span></div></header>
+<div class="wrap"><h1>Operator Console</h1>
+<p class="lead">The learning loop: lead asks → signed receipt goes back → role/decision/gaps tracked → usage repeats or dies → next build chosen from measured evidence. Everything here is template + script; real data lives in <span class="mono">private/</span> (gitignored).</p>
+<div class="card"><h3>Surfaces</h3><ul>
+<li><a href="leads.html">Leads</a> — full-field tracker (render private/leads.json)</li>
+<li><a href="dotplot.html">Dot plot</a> — who comes back (30-day grid)</li>
+<li><a href="evals.html">Evals</a> · <a href="receipts.html">Receipts</a> · <a href="feedback.html">Feedback classifier</a></li>
+<li><a href="decisions.html">Decisions</a> — human approval log · <a href="skills.html">Skills</a> — operator playbooks</li>
+</ul></div>
+<div class="card"><h3>Daily loop (≈10 min)</h3>
+<p>1. <span class="mono">node scripts/generate-raven-daily-brief.mjs</span> — health, evals, follow-ups, recommendation.<br>
+2. New lead? add to private/leads.json → classify (<span class="mono">raven-feedback-classifier.mjs</span>) → reply from <span class="mono">templates/</span> (verdict first).<br>
+3. Any key/beta/public-claim action → log in decisions, Glen approves (<a href="DECISION_POLICY.md">policy</a>).<br>
+4. Before push: <span class="mono">node scripts/raven-change-review.mjs</span>.</p></div>
+<div class="card"><h3>Health quick-checks</h3>
+<p><span class="mono">curl -s https://raven-hosted-verifier.onrender.com/healthz</span><br>
+<span class="mono">node scripts/site-smoke.mjs</span> · <span class="mono">node scripts/raven-public-blackbox-eval.mjs</span><br>
+Weekly: <span class="mono">node scripts/raven-problem-hunt.mjs</span> (<a href="PROBLEM_HUNTING.md">how to read it</a>)</p></div>
+<div class="card"><h3>Context for agents</h3><p>Working on Raven with an AI agent? Paste <a href="RAVEN_OPERATOR_CONTEXT.md">RAVEN_OPERATOR_CONTEXT.md</a>. It contains the beachhead, banned claims, and decision rules — no secrets.</p></div>
+</div></body></html>

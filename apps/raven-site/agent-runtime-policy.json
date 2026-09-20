@@ -1,0 +1,59 @@
+{
+  "policyName": "raven-agent-runtime-policy",
+  "version": "1",
+  "contractBoundary": "Current signed path: POST /receipt/v1, then local verification with raven-receipt-verifier and an independently authenticated signer pin. POST /verify is legacy v2 compatibility. Local MCP is unsigned developer output, not a signed receipt-v1 fallback.",
+  "toolClass": "read_only_preflight",
+  "requiresWalletAccess": false,
+  "submitsTransactions": false,
+  "summary": "Raven is a read-only preflight tool. It never needs your wallet, signer, or private keys; it never submits transactions, routes trades, or chooses allocation. Run it BEFORE any wallet-capable, swap-capable, listing-capable, or routing-capable tool.",
+  "allowedNetworkTargets": [
+    "https://raven-hosted-verifier.onrender.com (hosted)",
+    "local MCP process (npx -y raven-verify-mcp)"
+  ],
+  "forbiddenInputs": [
+    "rpcUrl (rejected 400)",
+    "issuerIdentity (rejected 400)",
+    "private keys / seed phrases (never send; never logged)"
+  ],
+  "forbiddenCapabilities": [
+    "wallet signer access",
+    "transaction submission",
+    "trade routing",
+    "allocation decisions",
+    "arbitrary filesystem access (receipt storage path only)"
+  ],
+  "recommendedSandbox": "Network egress restricted to the verifier endpoint or local MCP; no wallet handles in the Raven tool's scope; receipt storage as the only write path.",
+  "receiptStorageRequirement": "Store the exact current receipt-v1 object plus the separate local verifier result (append-only). /receipt-schema.json is legacy v2 storage compatibility.",
+  "signatureVerificationRequirement": "For receipt-v1, recompute payloadHash, check receiptId, verify signature with signerPublicKey, and match signerPublicKey to an independently authenticated pin. /pubkey is a cross-check only. Legacy v2 separately uses keyId.",
+  "humanEscalationTriggers": [
+    "risk",
+    "warning",
+    "unknowable",
+    "stale receipt before material action",
+    "signature verification failure",
+    "unsupported token program",
+    "verifier unavailable"
+  ],
+  "ordering": "Raven runs first; decision policy (/decision-policy.json) applies after verification; re-verify before material delayed actions.",
+  "disclaimer": "Not financial advice; no price prediction.",
+  "minimumPermissions": [
+    "call hosted POST /receipt/v1 when a signed deliverable is required; call the explicitly unsigned local MCP only for developer output",
+    "call /pubkey and /healthz",
+    "store signed receipts",
+    "read local receipt fixtures for tests",
+    "pass mint/tokenProgram/metadataAddress/poolAddress where available"
+  ],
+  "forbiddenPermissions": [
+    "wallet signer access",
+    "private key access",
+    "transaction submission",
+    "token transfer",
+    "swap routing",
+    "copy-trading / wallet-following",
+    "arbitrary user-supplied RPC URL",
+    "user-supplied issuerIdentity",
+    "browser-exposed API keys",
+    "secret logging",
+    "using an LLM to override the deterministic verdict"
+  ]
+}

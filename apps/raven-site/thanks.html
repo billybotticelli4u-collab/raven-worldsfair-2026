@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request received — Raven</title>
+<link rel="icon" type="image/svg+xml" href="raven-logo.svg">
+<style>
+:root{--bg:#0b0e14;--panel:#11151f;--line:#232a3b;--line-strong:#5b6c96;--text:#dbe2f0;--dim:#8b94a8;--accent:#7aa2f7;--pass:#87d96c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:.86em}
+a{color:var(--accent);text-decoration:none}
+.wrap{max-width:640px;margin:0 auto;padding:0 24px;text-align:center}
+img.logo{width:120px;height:120px;margin:72px auto 28px;display:block;filter:drop-shadow(0 0 30px rgba(94,230,208,.15))}
+h1{font-size:28px;margin-bottom:12px}
+p{color:var(--dim);margin-bottom:10px}
+.steps{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 24px;margin:28px 0;font-size:14.5px;color:var(--dim)}
+.steps b{color:var(--text)}
+/* --line-strong (3.1:1) — .back is a control, so its boundary needs WCAG 1.4.11 contrast. */
+.back{display:inline-block;margin-top:8px;padding:11px 20px;border:1px solid var(--line-strong);border-radius:8px;color:var(--text);font-weight:600;font-size:15px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="wrap" id="main">
+  <img class="logo" src="raven-logo.svg" alt="Raven">
+  <h1>Request received.</h1>
+  <p><b style="color:var(--pass)">We'll run your token and reply with a signed evidence receipt.</b></p>
+  <div class="steps">
+    <b>What happens next</b><br>
+    1. A human reviews your request — no autoresponder, no list.<br>
+    2. We run your token through the live verifier (authorities, Token-2022 tail, metadata — plus venue-adjusted holders if you asked for beta).<br>
+    3. You get the unedited signed deliverable: engine outcome, finding codes, coverage gaps, ed25519 attestation.<br>
+    4. If it's a fit, an API key follows with docs and a sample <span class="mono">curl</span>.
+  </div>
+  <p>Within 48 hours.</p>
+  <p>We will never ask for API keys, seed phrases, wallet or signing material — not in the reply, not ever.</p>
+  <a class="back" href="index.html">Back to the console</a>
+</main>
+<script defer src="/_vercel/insights/script.js"></script>
+<script src="_agent-events.js"></script>
+</body>
+</html>

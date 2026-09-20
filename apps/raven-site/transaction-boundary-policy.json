@@ -1,0 +1,45 @@
+{
+  "policyName": "raven-transaction-boundary-policy",
+  "version": "1.0",
+  "contractBoundary": "Current signed gate uses POST /receipt/v1 and verifies payloadHash, receiptId, signature, signerPublicKey trust, expected subject, rules, freshness, findings and coverage gaps. POST /verify keyId/verdict fields are legacy v2 compatibility.",
+  "corePrinciple": "Raven receipt first, transaction second. Raven is a pre-action receipt gate - not a transaction builder, signer, simulator, relayer, router, or landing optimizer. Raven never requests wallet signer access and never submits transactions.",
+  "notVerification": [
+    "an unsigned transaction is an action artifact, not verification",
+    "transaction simulation success is not Raven verification",
+    "transaction landing success is not Raven verification",
+    "RPC or relayer success is not Raven verification",
+    "priority fees, low latency, or validator proximity are not Raven verification"
+  ],
+  "preSigningGate": "Before building, simulating, signing, routing, submitting, or handing off a token-touching transaction, verify the exact receipt-v1: payloadHash, receiptId, signature, signerPublicKey vs independent pin, expected subject, rulesVersion, findings, coverage gaps, slot, freshness, and consumer policy. A signer must not sign merely because an agent produced a base64 unsigned transaction. Legacy v2 checks stay version-scoped.",
+  "scopeMatchRule": {
+    "rule": "The transaction scope must match the receipt scope before signing. If the transaction touches a different mint, pool, or metadata account than the receipt covered, the receipt does not cover the action - block or re-verify.",
+    "matchFields": [
+      "chain",
+      "mint",
+      "tokenProgram",
+      "metadataAddress (if applicable)",
+      "poolAddress (if applicable)"
+    ],
+    "builderDrift": "If the transaction builder changes the route/pool/mint after Raven verification, that is a coverage gap or a re-verification trigger, never an implicit pass."
+  },
+  "latencyAndStaleness": [
+    "the faster agents move, the MORE staleness matters, not less",
+    "re-verify immediately before signing/submission",
+    "delayed execution re-verifies at execution time",
+    "relayer retries past the staleness window require re-verification",
+    "cached receipts are display-only under integrator policy"
+  ],
+  "ravenIsNot": [
+    "transaction builder",
+    "signer",
+    "simulator-as-authority",
+    "relayer",
+    "landing optimizer",
+    "RPC selector",
+    "priority-fee optimizer",
+    "arbitrage or liquidation tool",
+    "trading bot"
+  ],
+  "correctOrder": "candidate token -> Raven receipt -> policy -> only then transaction builder/signer/submitter",
+  "prohibitedOrder": "candidate token -> transaction builder -> simulation -> signer -> maybe check Raven later"
+}

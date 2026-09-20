@@ -1,0 +1,50 @@
+{
+  "schema": "raven-access-tiers/1",
+  "service": "Raven — signed token-launch verification for agent commerce",
+  "tiers": [
+    {
+      "id": "mcp_local",
+      "name": "MCP (local)",
+      "price": "free",
+      "access": "open (developer preview)",
+      "install": "npx -y raven-verify-mcp",
+      "tool": "raven_verify_token",
+      "notes": "Runs against your own RPC. Same engine and finding vocabulary, but LOCAL RESULTS ARE UNSIGNED - no signed attestation is issued. The package's linked source repository and issue tracker are private (404 for external users). Developer path only; use the hosted signed API for receipt verification. Its npm README is legacy documentation - do not take the primary endpoint or any trust pin from it.",
+      "signed": false
+    },
+    {
+      "id": "hosted_api",
+      "name": "Hosted signed API",
+      "price": "free during invite-gated alpha",
+      "access": "by API key (request below)",
+      "endpoint": "POST https://raven-hosted-verifier.onrender.com/receipt/v1",
+      "legacy_endpoint": "POST /verify — legacy v2 compatibility only; not recommended for new integrations",
+      "auth": "x-api-key header",
+      "rate_limits": "POST /receipt/v1: 15 requests/min per key. POST /verify: 10 requests/min per key, burst 4.",
+      "guarantees": "Receipt-v1 Ed25519-signed evidence with findings, coverageGaps, slot, payloadHash, receiptId, signerPublicKey, and signature. Required evidence/signing failures issue no receipt; receipt_unavailable is an unsigned refusal.",
+      "openapi": "https://ravenattest.com/openapi.json"
+    },
+    {
+      "id": "acp_job",
+      "name": "ACP job (agent-to-agent)",
+      "price_usdc_per_job": 0.1,
+      "access": "sandbox only via Virtuals Agent Commerce Protocol; not publicly listed in the ACP registry",
+      "offering": "solana_verify_token",
+      "settlement": "escrowed USDC, signed deliverable, on-chain settlement (intended design; not a live capability today)",
+      "notes": "Not publicly listed. No live ACP jobs are available today; use the hosted signed API, which requires an API key.",
+      "availability": "not publicly available; sandbox agents are not discoverable or hireable in the ACP marketplace"
+    },
+    {
+      "id": "holder_beta",
+      "name": "Holder-beta (advanced)",
+      "price": "free during beta",
+      "access": "by invitation, per API key",
+      "adds": "Top-holder concentration with venue-adjusted exclusions: pump.fun bonding-curve and registered PumpSwap pool vaults excluded ONLY with decoded on-chain evidence; unadjusted results carry an explicit qualifier and coverage gap.",
+      "request": "https://ravenattest.com/request-access.html?beta=1"
+    }
+  ],
+  "request_access": "https://ravenattest.com/request-access.html",
+  "disclaimer": "Raven verifies on-chain evidence. It does not predict price or guarantee safety.",
+  "payment_note": "Raven supports stablecoin-native agent payments through ACP (USDC per job). This is a payment rail for verification services — not an investment product, not financial advice.",
+  "founding_alpha": "Hosted access free for design partners during alpha; paid tiers from EUR 99/mo at GA (10k signed verifications), EUR 299/mo (75k), integrations from EUR 1,500/mo. Founding users keep a permanent discount. Verification service only — not an investment product."
+}

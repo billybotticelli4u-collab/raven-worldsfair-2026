@@ -1,0 +1,1030 @@
+{
+  "schema": "raven-eval-pack/1",
+  "service": "Raven hosted verifier",
+  "base_url": "https://raven-hosted-verifier.onrender.com",
+  "note": "LEGACY V2 COMPATIBILITY eval archive. Requests and assertions that name POST /verify, verdict, engineOutcome, replayHash, officialAttestationHash or keyId exercise the historical v2 contract; they are not the current receipt-v1 customer recipe. Current signed integrations use POST /receipt/v1, /receipt-v1-test-vector.json and raven-receipt-verifier with an independently authenticated signer pin. Expected behaviors, not marketing claims. Auth-required tests need an invited API key; never embed keys in clients.",
+  "evals": [
+    {
+      "id": "usdc_authorities_are_risk",
+      "purpose": "Blue chips are not special-cased: active issuer authorities read as risk.",
+      "auth_required": true,
+      "request": {
+        "method": "POST",
+        "path": "/verify",
+        "body": {
+          "mintAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenProgramAddress": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      },
+      "expected_verdict": "risk",
+      "expected_findingCodes_include": [
+        "issuer_control.mint_authority_active",
+        "issuer_control.freeze_authority_active"
+      ],
+      "expected_coverageGaps_include": [
+        "liquidity",
+        "deployer_outcomes"
+      ],
+      "verification_rule": "verdict === 'risk' AND all expected findingCodes present AND signature verifies against an independently pinned signer key",
+      "pass_criteria": "All conditions hold on a fresh live call."
+    },
+    {
+      "id": "gaps_never_mean_safe",
+      "purpose": "A clean-infrastructure token must not be presented as 'safe' while coverage gaps remain.",
+      "auth_required": true,
+      "request": {
+        "method": "POST",
+        "path": "/verify",
+        "body": {
+          "mintAddress": "<any mint whose engine outcome is pass-grade>",
+          "tokenProgramAddress": "<its token program>"
+        }
+      },
+      "expected_behavior": "If engineOutcome is 'pass' and coverageGaps is non-empty, published verdict is 'warning' (coverage degradation). Response text never contains the standalone claim 'safe'.",
+      "expected_coverageGaps_include": [
+        "liquidity"
+      ],
+      "verification_rule": "engineOutcome === 'pass' && coverageGaps.length > 0 implies verdict === 'warning'",
+      "pass_criteria": "No all-clear outcome is emitted over unevaluated surfaces."
+    },
+    {
+      "id": "token2022_extensions_surface",
+      "purpose": "Token-2022 mints surface extension evidence as findings.",
+      "auth_required": true,
+      "request": {
+        "method": "POST",
+        "path": "/verify",
+        "body": {
+          "mintAddress": "CVueTzk4KdmFmi65CbckcTr2hxtS85jAyMeSJiF6pump",
+          "tokenProgramAddress": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      },
+      "expected_findingCodes_include": [
+        "token2022.metadata_pointer_present",
+        "token2022.token_metadata_present"
+      ],
+      "verification_rule": "Both token2022.* codes present in findingCodes.",
+      "pass_criteria": "Extension tail decoded, not ignored."
+    },
+    {
+      "id": "invalid_request_structured_error",
+      "purpose": "Malformed input yields a structured 400, never a verdict.",
+      "auth_required": true,
+      "request": {
+        "method": "POST",
+        "path": "/verify",
+        "body": {
+          "mintAddress": "not-a-mint"
+        }
+      },
+      "expected_behavior": "HTTP 400 with {ok:false,error:'invalid_request'}; no verdict field.",
+      "verification_rule": "status === 400 && body.error === 'invalid_request'",
+      "pass_criteria": "Structured error envelope returned."
+    },
+    {
+      "id": "forbidden_fields_rejected",
+      "purpose": "Callers can never supply infrastructure or identity hints.",
+      "auth_required": true,
+      "request": {
+        "method": "POST",
+        "path": "/verify",
+        "body": {
+          "mintAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenProgramAddress": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "rpcUrl": "https://attacker.example"
+        }
+      },
+      "expected_behavior": "HTTP 400 invalid_request stating rpcUrl/issuerIdentity are not accepted.",
+      "verification_rule": "status === 400; same for issuerIdentity.",
+      "pass_criteria": "Both forbidden fields rejected."
+    },
+    {
+      "id": "pubkey_published",
+      "purpose": "The attestation key is publicly discoverable.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "/pubkey"
+      },
+      "expected_behavior": "keys[0].keyId === 'rvk_c2997e90215279c2', alg ed25519, domain raven-official-attestation.",
+      "verification_rule": "Exact keyId match.",
+      "pass_criteria": "Key served without auth."
+    },
+    {
+      "id": "receipt_fields_complete",
+      "purpose": "Every signed receipt is replayable evidence.",
+      "auth_required": true,
+      "request": {
+        "method": "POST",
+        "path": "/verify",
+        "body": {
+          "mintAddress": "<any valid mint>",
+          "tokenProgramAddress": "<its token program>"
+        }
+      },
+      "expected_behavior": "Response includes replayHash, officialAttestationHash, keyId, signature, signatureAlg='ed25519', issuedAt, engineVersion, rpc.observedSlot, coverageGaps.",
+      "verification_rule": "All fields present AND signature verifies over domain||officialAttestationHash against an independently pinned signer key.",
+      "pass_criteria": "Receipt is independently verifiable offline."
+    },
+    {
+      "id": "no_price_prediction_claims",
+      "purpose": "Raven never claims price prediction or gives financial advice.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "(any public page or API response)"
+      },
+      "expected_behavior": "No response or page claims to predict price or guarantee safety; disclaimers present on site pages and in agents.json.",
+      "verification_rule": "Site/manifest contain the disclaimer; no response contains price-prediction claims.",
+      "pass_criteria": "Disclaimer present; no contrary claims."
+    },
+    {
+      "id": "key_policy_available",
+      "purpose": "The key policy is public, machine-readable, and secret-free.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/key-policy.json"
+      },
+      "expected_behavior": "Valid JSON; currentReceipt.endpoint === POST /receipt/v1; legacyV2.keyId === rvk_c2997e90215279c2; currentSignatureAlgorithm === ed25519; publicKeyEndpoint ends with /pubkey; no private-key/API-key/seed material.",
+      "verification_rule": "currentReceipt.endpoint === 'POST /receipt/v1' AND legacyV2.keyId === 'rvk_c2997e90215279c2' AND currentSignatureAlgorithm === 'ed25519' AND publicKeyEndpoint ends with '/pubkey' AND no secret patterns match.",
+      "pass_criteria": "Policy served and clean."
+    },
+    {
+      "id": "receipt_key_binding",
+      "purpose": "Receipts are key-scoped: old receipts verify against the key that signed them.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipts.html"
+      },
+      "expected_behavior": "Receipt examples include keyId; the page states old receipts remain verifiable against their signing key; the page does NOT claim post-quantum security.",
+      "verification_rule": "keyId present in samples AND key-binding language present AND no post-quantum-secure claim.",
+      "pass_criteria": "Long-term verification semantics stated honestly."
+    },
+    {
+      "id": "agent_context_pack_exists",
+      "purpose": "Agents can ingest Raven without browsing.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/raven-agent-context.md"
+      },
+      "expected_behavior": "Terse context pack served; current receipt-v1 output names findings, coverageGaps, payloadHash, receiptId and signerPublicKey, and states these are signed evidence fields, not a verdict or permission.",
+      "verification_rule": "200 + contains CURRENT RECEIPT-V1 OUTPUT, findings, coverageGaps, payloadHash, receiptId, signerPublicKey, and the signed-evidence boundary.",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "agent_skill_file_exists",
+      "purpose": "A pasteable operating skill exists.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/raven-agent-skill.md"
+      },
+      "expected_behavior": "Skill served with steps, banned actions, escalation policy.",
+      "verification_rule": "200 + contains raven_verify_token",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "prompt_recipes_valid_json",
+      "purpose": "Prompt recipes are machine-readable.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/prompt-recipes.json"
+      },
+      "expected_behavior": "Valid JSON; 12 recipes; each has refusal_rules.",
+      "verification_rule": "JSON.parse succeeds; recipes.length >= 12",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "skill_refuses_safe_language_with_gaps",
+      "purpose": "The skill bans 'safe' with gaps.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/raven-agent-skill.md"
+      },
+      "expected_behavior": "Contains 'never call the token safe if gaps remain' and 'not enough evidence for a full pass'.",
+      "verification_rule": "Both phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "skill_bans_trading_advice",
+      "purpose": "The skill bans advice.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/raven-agent-skill.md"
+      },
+      "expected_behavior": "BANNED ACTIONS includes trading advice, price prediction, buy/sell recommendation.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "workbench_links_agent_pack",
+      "purpose": "Workbench routes agents to the pack.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/workbench.html"
+      },
+      "expected_behavior": "Links agent-pack.html and the context/skill files.",
+      "verification_rule": "Links present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "agents_json_links_agent_pack",
+      "purpose": "Manifest advertises the pack.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agents.json"
+      },
+      "expected_behavior": "agent_workbench block with pack/context/skill/prompt_recipes URLs.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "receipt_schema_valid_json",
+      "purpose": "Stored-receipt schema is machine-readable.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipt-schema.json"
+      },
+      "expected_behavior": "Valid JSON Schema; required incl. keyId, replayHash, officialAttestationHash, observedSlot, engineVersion, coverageGaps, rawResponse.",
+      "verification_rule": "JSON.parse + required fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "receipt_storage_page_exists",
+      "purpose": "Storage guidance is public.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipt-storage.html"
+      },
+      "expected_behavior": "Explains raw-vs-derived, namespaces, deterministic lookup, optional backends.",
+      "verification_rule": "200 + sections present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "receipt_memory_policy_raw_truth",
+      "purpose": "Raw receipt is the source of truth.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipt-memory-policy.md"
+      },
+      "expected_behavior": "States raw receipt exactly as returned is source of truth; explanations separate; never call safe with gaps; 'not enough evidence for a full pass'.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "storage_adapters_documented_only",
+      "purpose": "No storage adapter is claimed live.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipt-storage-adapters.json"
+      },
+      "expected_behavior": "Every adapter status === documented_only.",
+      "verification_rule": "All statuses documented_only",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "walrus_harbor_not_live_dependency",
+      "purpose": "Walrus/Harbor optional only.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipt-storage-adapters.json"
+      },
+      "expected_behavior": "walrus_harbor_optional explicitly states no production integration and server-side proxy required if ever used.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "delegate_key_no_browser_keys",
+      "purpose": "Key hygiene is explicit.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/delegate-key-policy.html"
+      },
+      "expected_behavior": "States no API keys in browser code, repos, or agent memory; signing key server-side only.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "stored_receipt_verify_before_use",
+      "purpose": "Stored receipts must verify before use.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipt-memory-policy.md"
+      },
+      "expected_behavior": "Unverifiable stored receipt = unusable; rerun verification.",
+      "verification_rule": "Phrase present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "storage_failure_never_changes_verdict",
+      "purpose": "Storage is audit-only.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipt-memory-policy.md"
+      },
+      "expected_behavior": "Storage failure never alters a verdict; storage optional.",
+      "verification_rule": "Phrase present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "skill_file_exists_with_forbidden_claims",
+      "purpose": "Single-file skill exists and bans the right things.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/raven-skill.md"
+      },
+      "expected_behavior": "Contains FORBIDDEN CLAIMS incl. safe/price prediction/trading advice + 'not enough evidence for a full pass' + error handling.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "receipts_explain_key_rotation",
+      "purpose": "Receipts page states keyId/rotation semantics.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipts.html"
+      },
+      "expected_behavior": "Cryptographic posture section: old receipts verify under original keyId; no quantum-resistance claim.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "receipts_explain_storage",
+      "purpose": "Receipts page tells agents how to store receipts.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipts.html"
+      },
+      "expected_behavior": "Receipt storage section: full response, index keys, do not overwrite, later receipts = new evidence.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "workbench_has_handoff_policy",
+      "purpose": "Workbench states proceed/block/escalate policy.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/workbench.html"
+      },
+      "expected_behavior": "Handoff policy with risk/warning/unknowable rules present.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "quality_ledger_invariants",
+      "purpose": "Quality Ledger is public and falsifiable.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/evals.html"
+      },
+      "expected_behavior": "Invariants list + latest run + known limitations present.",
+      "verification_rule": "Sections present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "missing_optional_evidence_is_a_gap",
+      "purpose": "Missing pool/metadata evidence reads as coverage gaps, never a pass.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/decision-policy.json"
+      },
+      "expected_behavior": "coverageGapExamples include missing_pool_address and missing_metadata_address; rule forbids treating missing checks as a pass.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "gaps_never_called_safe_policy",
+      "purpose": "Policy forbids 'safe' with gaps.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/decision-policy.json"
+      },
+      "expected_behavior": "prohibitedClaims includes 'safe'; coverageGapRule mandates 'not enough evidence for a full pass'.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "stale_receipt_reverification",
+      "purpose": "Stale receipts re-verify before material actions.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/decision-policy.json"
+      },
+      "expected_behavior": "staleReceiptRule.recommended_defaults.pre_trade_spend_listing === 're-verify immediately'.",
+      "verification_rule": "Field matches",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "decision_policy_verdict_actions",
+      "purpose": "risk blocks/escalates; warning escalates; unknowable not verified.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/decision-policy.json"
+      },
+      "expected_behavior": "verdictActions: risk='block or escalate', warning includes escalation/approval, unknowable='do not proceed as verified'.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "status_policy_dependencies",
+      "purpose": "Operational dependencies disclosed.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/status-policy.json"
+      },
+      "expected_behavior": "States Render verifier dependency, rejects user rpcUrl/issuerIdentity, fails closed on verifier errors.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "skill_includes_staleness_and_gap_rules",
+      "purpose": "Skill carries preflight order + refusals.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/raven.skill.md"
+      },
+      "expected_behavior": "Contains staleness step, 'not enough evidence for a full pass', and liquidity-inference refusal.",
+      "verification_rule": "Phrases present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "runtime_policy_no_wallet_access",
+      "purpose": "Raven requires no wallet signer access and submits no transactions.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agent-runtime-policy.json"
+      },
+      "expected_behavior": "requiresWalletAccess === false; submitsTransactions === false; toolClass read_only_preflight.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "key_policy_no_quantum_claim",
+      "purpose": "No quantum-safe overclaims.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/key-policy.json"
+      },
+      "expected_behavior": "quantumSafeClaim === false AND postQuantumClaim === false; prohibitedClaims includes quantum-safe and future-proof.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "language_policy_exactitude",
+      "purpose": "Wording rules are machine-readable.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/language-policy.json"
+      },
+      "expected_behavior": "bannedPhrases include safe/rug-proof/guaranteed; requiredPhrases.gapsRemain === 'not enough evidence for a full pass'.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "readiness_checklist_complete",
+      "purpose": "Integration checklist covers storage + policy owner + pilot.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/launchguard-readiness.json"
+      },
+      "expected_behavior": "Checklist includes receipt storage and policy-owner questions; pilotPackage day0-day5 present.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "rubrics_present",
+      "purpose": "Integration quality is scoreable.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/rubrics.json"
+      },
+      "expected_behavior": "13 rubrics each with passCriteria and failExamples.",
+      "verification_rule": "rubrics.length >= 13",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "receipt_is_portable_artifact",
+      "purpose": "Signed receipt is THE portable unit; informal surfaces are never authority.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agent-portability.json"
+      },
+      "expected_behavior": "portableArtifact === signed_receipt; forbiddenSurfacesAsAuthority includes screenshot and chat_summary.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "context_is_not_evidence",
+      "purpose": "Context guides questions; only the receipt states what was checked.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agent-portability.json"
+      },
+      "expected_behavior": "contextEngineering.requiredWording present; rejected context includes user-supplied rpcUrl and social hype.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "memory_is_not_authority",
+      "purpose": "Agent memory never replaces signed receipts.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/receipt-storage.json"
+      },
+      "expected_behavior": "memoryPolicy.summaryIsNotAuthority === true; staleMemoryRule forbids remembered passes authorizing new material actions.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "rollout_phases_present",
+      "purpose": "Shadow/advisory/enforced/tuning documented with promotion+rollback criteria.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/launchguard-rollout.json"
+      },
+      "expected_behavior": "All four phases + metricsToTrack + promotionCriteria + rollbackCriteria present.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "deployment_surfaces_compared",
+      "purpose": "Surfaces distinguished honestly incl. the offline nuance.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/deployment-surfaces.json"
+      },
+      "expected_behavior": "Six surfaces present; forbiddenClaims covers fresh-offline-verification.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "integrator_owns_final_decision",
+      "purpose": "Raven never makes the business call.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/decision-policy.json"
+      },
+      "expected_behavior": "finalDecisionOwner === integrator_policy; ravenMakesBusinessDecision === false.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "quality_not_token_consumption",
+      "purpose": "Bad metrics are named bad.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/quality-ledger.json"
+      },
+      "expected_behavior": "badMetrics includes tokensConsumed and numberOfAgentSteps; goodMetrics includes externalReceiptReuseCount and tamperedReceiptRejectionRate.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "llm_cannot_upgrade_verdicts",
+      "purpose": "Anti-slop boundary is explicit.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/anti-slop-policy.json"
+      },
+      "expected_behavior": "llmForbiddenActions include upgrading verdicts and removing coverage gaps; downgradeOnlyRule present.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "summary_contract_preserves_gaps",
+      "purpose": "Summaries keep the receipt honest.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/anti-slop-policy.json"
+      },
+      "expected_behavior": "summaryContract.requiredSummaryFields include coverageGaps and keyId; summaryIsAuthority === false.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "model_neutrality_machine_readable",
+      "purpose": "Verdict never depends on an LLM.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/quality-ledger.json"
+      },
+      "expected_behavior": "modelNeutrality.verdictDependsOnLLM === false; providerSwapChecklist present; deterministicFirst.rule present.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "failure_drills_cover_adversarial_cases",
+      "purpose": "Drills include tamper/stale/down/injection/screenshot.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/failure-drills.json"
+      },
+      "expected_behavior": "Drills 1,4,5,11,14,15 present with expected outcomes; promotionCriteria present.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "generated_code_untrusted",
+      "purpose": "Plugin code proves itself before publish.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/anti-slop-policy.json"
+      },
+      "expected_behavior": "generatedCodePolicy.generatedCodeTrustLevel === untrusted_until_tests_pass; requiredTests include tampered-receipt rejection; no wallet signer permission.",
+      "verification_rule": "Fields match",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "multi_agent_receipt_handoff",
+      "purpose": "Receipts, not summaries, cross agent boundaries.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agent-portability.json"
+      },
+      "expected_behavior": "multiAgentRules.handoff requires exact receipt JSON and re-verification; disagreement rule says signed receipt + decision policy win; driftControls include verdict-flip recording.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "evidence_per_action_not_tokens",
+      "purpose": "Cost/latency policy is explicit.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/quality-ledger.json"
+      },
+      "expected_behavior": "costLatency.principle says evidence per action, not tokens consumed; costGuidance says signature verification needs no reasoning model; latencyGuidance says fail closed rather than hang.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "threat_model_input_boundary",
+      "purpose": "Candidate evidence is not trusted evidence.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agent-threat-model.json"
+      },
+      "expected_behavior": "inputBoundary.rejectedInputs include rpcUrl and issuerIdentity; ignoredClaims include user-supplied verdicts; untrustedInputs include agent memory and screenshots.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "tool_separation_enforced",
+      "purpose": "Discovery, verification, and action tools are separated.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agent-threat-model.json"
+      },
+      "expected_behavior": "toolSeparation.rule forbids action tools running on discovery context or model memory alone; actionTools include wallet signer; verificationTools include /verify and /pubkey.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "approval_cannot_validate_invalid_receipt",
+      "purpose": "Human approval has hard limits.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/decision-policy.json"
+      },
+      "expected_behavior": "humanApprovalLimits says approval cannot make an invalid, unsigned, tampered, or unknown-key receipt valid; failClosedStates map signature_verification_failed to block and 429/timeout to fail closed.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "drills_cover_dos_and_poisoning",
+      "purpose": "Drills include availability and poisoning cases.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/failure-drills.json"
+      },
+      "expected_behavior": "20 drills including verification DoS loop, quota exhaustion (429), context-poisoned website, long-running task drift, batch verification abuse.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "rate_limits_are_safety_controls",
+      "purpose": "Status policy frames resilience.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/status-policy.json"
+      },
+      "expected_behavior": "resilience says rate limits are safety controls, unavailability is a blocked/deferred state, cached receipts never authorize delayed material action without reverification.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "package_name_is_not_trust",
+      "purpose": "Supply chain is part of the trust surface.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/supply-chain-policy.json"
+      },
+      "expected_behavior": "principle says a signed receipt is a trust artifact and a package name is not; dependencyRules say package-manager output is untrusted text; lockfiles must not be deleted.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "honest_provenance_status",
+      "purpose": "No overclaiming on build integrity.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/supply-chain-policy.json"
+      },
+      "expected_behavior": "buildProvenance.notYetImplemented lists npm provenance attestation, SBOM, and reproducible builds; prohibitedAssumptions present.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "ai_agents_no_release_authority",
+      "purpose": "AI coding agents cannot self-release.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/supply-chain-policy.json"
+      },
+      "expected_behavior": "aiCodingAgentRules.forbidden include publishing npm packages, deploying production without approval, issuing keys, and inventing passing tests.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "receipt_scope_not_expandable",
+      "purpose": "Receipts are scoped evidence.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agent-threat-model.json"
+      },
+      "expected_behavior": "receiptScope.rules say a receipt for one mint does not cover another mint, missing poolAddress forbids liquidity inference, and scope must not be expanded by inference.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "drills_cover_supply_chain",
+      "purpose": "Drills rehearse the release chain.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/failure-drills.json"
+      },
+      "expected_behavior": "25 drills including dependency confusion, AI install-fix obedience, lockfile deletion, package tarball secret, AI-only release approval.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "mcp_is_not_authorization",
+      "purpose": "MCP is transport, not security.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/mcp-security-boundary-policy.json"
+      },
+      "expected_behavior": "mcpIsNot includes an authorization model and a wallet signer; rules block unknown MCP servers and forbid tool output from changing verdicts or coverage gaps.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "agent_card_is_claim_not_trust",
+      "purpose": "Discovery is not trust.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/mcp-security-boundary-policy.json"
+      },
+      "expected_behavior": "agentCardTrust.principle says an agent card is a capability claim, not a credential; handoffRequirements preserve exact receipt JSON, gaps, and staleness.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "judge_cannot_override_verdict",
+      "purpose": "Judges and humans have hard limits.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/mcp-security-boundary-policy.json"
+      },
+      "expected_behavior": "orchestrationLimits says a judge model cannot override a deterministic verdict or invalid-signature failure, and a human cannot validate an invalid receipt.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "model_card_not_security_proof",
+      "purpose": "AI runtime is supply chain.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/supply-chain-policy.json"
+      },
+      "expected_behavior": "modelRuntimeRule says a model card is metadata, not a security proof, and the verifier stays deterministic and separately deployed; sourceReviewSignals state verified-source compilation is not implemented.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "drills_cover_agent_runtime",
+      "purpose": "Drills include MCP/memory/judge cases.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/failure-drills.json"
+      },
+      "expected_behavior": "30 drills including agent secret-read attempt, persistent memory poisoning, unknown MCP server, tool output claims a verdict, judge/human override of deterministic failure.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "research_is_not_verification",
+      "purpose": "RAG/deep-research output is never authority.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agentic-research-boundary-policy.json"
+      },
+      "expected_behavior": "researchIsNot includes verification and signature proof; corePrinciple says receipt wins over retrieved snippets and material action fails closed without the exact receipt.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "never_infer_mint_or_chain",
+      "purpose": "Clarification before research.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agentic-research-boundary-policy.json"
+      },
+      "expected_behavior": "clarificationRules say a missing/ambiguous mint is asked for or fails closed - never inferred; deterministic fields preferred over model inference.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "compression_preserves_invariants",
+      "purpose": "Context engineering rules are explicit.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agentic-research-boundary-policy.json"
+      },
+      "expected_behavior": "contextEngineeringRules say compression never drops receipt invariants, large outputs live in state, and context pressure cannot mark a task complete.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "writer_is_not_verifier",
+      "purpose": "Synthesis is separated and checked.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/agentic-research-boundary-policy.json"
+      },
+      "expected_behavior": "writerRules say writer is not verifier, drafts cannot hide gaps or strengthen 'not verified', and citationRules say citations are references, not verification.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "drills_cover_agentic_research",
+      "purpose": "Drills include research-loop cases.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/failure-drills.json"
+      },
+      "expected_behavior": "34 drills including missing mint clarification, stale RAG summary, context compression drops invariants, premature completion.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "receipt_first_transaction_second",
+      "purpose": "The transaction boundary is explicit.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/transaction-boundary-policy.json"
+      },
+      "expected_behavior": "corePrinciple says receipt first, transaction second; notVerification lists simulation, landing, and RPC success; prohibitedOrder shows builder-before-Raven as wrong.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "scope_match_before_signing",
+      "purpose": "Receipts cover what they checked, not what gets signed.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/transaction-boundary-policy.json"
+      },
+      "expected_behavior": "scopeMatchRule requires transaction scope to match receipt scope (chain/mint/tokenProgram/pool/metadata) and treats builder drift as block-or-reverify.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "scheduled_agents_reverify",
+      "purpose": "Timers are not freshness.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/deployment-surfaces.json"
+      },
+      "expected_behavior": "scheduledAgentRule says catch-up runs must not bulk-proceed on old receipts; executionModes require re-verify after sleep/resume.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "skill_changes_cannot_weaken_policy",
+      "purpose": "Skills are governed trust surface.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/supply-chain-policy.json"
+      },
+      "expected_behavior": "skillGovernance forbids agent-edited skills weakening signature/gap/no-safe/no-LLM boundaries without human review; demoRedactionRule blocks real keys in public material.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "hooks_are_deterministic_gates",
+      "purpose": "Pre-action gating is policy, not LLM judgment.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/decision-policy.json"
+      },
+      "expected_behavior": "deterministicHooks define preAction, postVerification, summary, and failure hooks with fail-closed behavior.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "drills_cover_transaction_boundary",
+      "purpose": "Drills rehearse the pre-signing gate.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/failure-drills.json"
+      },
+      "expected_behavior": "42 drills including unsigned transaction without receipt, simulation treated as verification, scope mismatch, stale receipt before signing, signer before policy, scheduled catch-up, skill mutation.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    },
+    {
+      "id": "asset_backed_claims_are_gaps",
+      "purpose": "Serious-looking tokens still need evidence.",
+      "auth_required": false,
+      "request": {
+        "method": "GET",
+        "path": "https://ravenattest.com/evidence-sources.json"
+      },
+      "expected_behavior": "assetBackedLimitation says receipts do not prove legal backing/reserves/compliance for stablecoins/RWAs/wrapped/branded tokens unless explicitly evidenced; unsupported off-chain claims appear as coverage gaps.",
+      "verification_rule": "Fields present",
+      "pass_criteria": "Check passes against the live site."
+    }
+  ]
+}

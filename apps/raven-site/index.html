@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="virtual-protocol-site-verification" content="e0920cc9a4a5a0aeeeed7ae558441c41" />
+<title>Raven — Signed, scope-bounded evidence receipts for Solana tokens</title>
+<meta name="description" content="Raven issues signed, scope-bounded evidence receipts for Solana tokens: what was checked, what was not, and the coverage gaps — verifiable offline against a key you pin. Evidence for AI agents, never a decision and never an authorization.">
+<link rel="icon" type="image/svg+xml" href="raven-logo.svg">
+<meta property="og:title" content="Raven — signed token-launch verification for agent commerce">
+<meta property="og:description" content="Name a token. We'll return a signed Raven evidence receipt. Scope stated, coverage gaps declared, verifiable offline — never a guess, never an authorization to act.">
+<meta property="og:image" content="raven-logo.svg">
+<link rel="stylesheet" href="_index-style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://ravenattest.com/#org",
+      "name": "Raven",
+      "url": "https://ravenattest.com/",
+      "logo": "https://ravenattest.com/raven-logo.svg",
+      "slogan": "Evidence, not advice.",
+      "description": "Raven is the signed preflight receipt before a Solana agent touches a token: a deterministic verifier that returns Ed25519-signed evidence with explicit findings and explicit coverage gaps. Anyone can verify a receipt locally. Raven never says safe, never signs transactions, never holds keys — it fails closed when evidence is missing.",
+      "sameAs": [
+        "https://x.com/Ravenattest",
+        "https://app.virtuals.io/virtuals/19323"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://ravenattest.com/#site",
+      "url": "https://ravenattest.com/",
+      "name": "Raven — signed Solana token verification for AI agents",
+      "publisher": { "@id": "https://ravenattest.com/#org" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://ravenattest.com/#verifier",
+      "name": "Raven hosted verifier",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any (HTTP API)",
+      "url": "https://ravenattest.com/",
+      "publisher": { "@id": "https://ravenattest.com/#org" },
+      "description": "One call before a Solana agent touches a token: submit a mint address, receive a signed evidence receipt with explicit finding codes, explicit coverage gaps, and an Ed25519 signature verifiable locally against a published public key and test vector. Virtuals ACP offering solana_verify_token exists in sandbox only; it is not publicly listed and not hireable today.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0.10",
+        "priceCurrency": "USD",
+        "description": "Intended sandbox price for solana_verify_token; not hireable from the public ACP registry today."
+      },
+      "featureList": [
+        "Deterministic signed evidence receipts — never the word safe",
+        "Explicit signed coverage gaps (the verifier states what it did NOT check)",
+        "Ed25519-signed receipts, locally verifiable via public test vector",
+        "Fail-closed when evidence is missing",
+        "No signer, no transaction submission, no custody"
+      ]
+    }
+  ]
+}
+</script>
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap">
+  <a class="logo" href="/" aria-label="Raven home"><img src="raven-logo.svg" alt="">RAVEN<span>.</span></a>
+  <div class="statusline">
+    <nav class="primary-nav" aria-label="Primary"><a href="agents.html">For agents</a><a href="workbench.html">Workbench</a><a href="evals.html">Evals</a></nav>
+    <div class="trust-status"><a href="https://raven-hosted-verifier.onrender.com/healthz">Verifier status</a><span aria-hidden="true">·</span><span>pinned key <span class="mono">rvk_c2997e90215279c2</span></span></div>
+  </div>
+</div></header>
+
+<div class="wrap">
+<main id="main">
+<div class="hero">
+  <div class="hero-grid">
+    <div class="copy">
+      <h1>Raven doesn't just scan. It issues <em>signed evidence receipts</em> that state their <em>own scope</em> and <em>declare what they miss</em>.</h1>
+      <p class="sub"><b class="lead-strong">Signed, scope-bounded evidence receipts for agent commerce.</b> Every receipt is derived from decoded on-chain bytes, states exactly which checks ran and which did not, declares its coverage gaps, and is verifiable offline against a signer key you pin yourself. When the evidence can't be established, Raven refuses and issues no receipt — it never guesses. A receipt is evidence, not a decision, and never an authorization to act.</p>
+      <p class="tagline">Name a token. We'll return a <span class="mono">signed</span> Raven evidence receipt.</p>
+      <div class="cta">
+        <a class="btn primary" href="request-access.html#token">Name a token</a>
+        <a class="btn ghost" href="request-access.html?beta=1">Request holder&#8209;beta access</a>
+        <a class="btn ghost" href="#evidence">See real signed receipts</a>
+      </div>
+    </div>
+    <div class="splash"><img src="raven-logo.svg" alt=""></div>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b>ed25519</b><span>signed, replayable attestations</span></div>
+  </div>
+</div>
+
+<section id="principles">
+  <h2>Three rules most scanners break</h2>
+  <p class="lead">Risk scores invite false confidence. Raven publishes findings, not vibes.</p>
+  <div class="principles">
+    <div class="principle"><h3>Fail closed</h3><p>If an account can't be fetched, a layout can't be decoded, or an extension isn't recognized, that becomes an explicit finding or coverage gap — never a silent all-clear. An unreadable token is reported as not verifiable, not "probably fine".</p></div>
+    <div class="principle"><h3>Signed &amp; replayable</h3><p>Every receipt ships with a domain-separated ed25519 signature over a canonical payload hash. Anyone can verify what Raven observed, about which mint, at which slot — offline, forever, against a key they pin themselves. Signature validity, key trust, and freshness stay three separate answers.</p></div>
+    <div class="principle"><h3>Coverage gaps declared</h3><p>Every receipt lists what was NOT evaluated (<span class="mono">coverageGaps</span>) alongside what was. Anything listed there is unverified — silence is never safety. New evidence never silently rewrites history: engine and rules versions are recorded, and changes are segmented from coverage expansion.</p></div>
+  </div>
+</section>
+
+<section id="evidence">
+  <h2>Archived signed evidence from the verifier</h2>
+  <p class="lead"><b>Legacy v2 captured examples.</b> Retained for historical comparison; these cards are not the current receipt-v1 contract and not a live trust/status viewer. New integrations use <span class="mono">POST /receipt/v1</span>.</p>
+  <p class="lead">These are archived compact receipt views derived from signed hosted-verifier responses, not a live status feed. Every card shows its issued date, observed slot, and current age so stale proof cannot masquerade as fresh evidence. Note USDC: Raven recorded active issuer authorities as triggered findings at issuance.</p>
+  <div class="cards" id="cards"><p class="evidence-empty">Archived receipt views could not be displayed. No freshness claim is being made.</p></div>
+  <p class="disclaimer">Raven verifies on-chain evidence. It does not predict price or guarantee safety.</p>
+  <div class="notice"><b>Why no live demo box?</b> Verification costs RPC budget and a signature. Signed receipts are for callers with keys — request access below and run your own.</div>
+</section>
+
+<section id="verify">
+  <h2>Verify a receipt yourself</h2>
+  <p class="lead">Trust comes from your own pin. Each receipt v1 signs a canonical payload hash under the <span class="mono">raven-receipt / v1</span> domain. Use the ratified-but-unpublished <span class="mono">raven-receipt-verifier</span> package name with the primary receipt-v1 test vector.</p>
+  <div class="steps">
+    <div class="step">Cross-check the served Ed25519 key bytes against your independently authenticated pin: <span class="mono">GET https://raven-hosted-verifier.onrender.com/pubkey</span> is discovery/cross-check only. Receipt-v1 signatures use domain <span class="mono">raven-receipt</span>, version <span class="mono">v1</span>; the registry's keyId/domain metadata belongs to legacy v2.</div>
+    <div class="step">Recompute <span class="mono">payloadHash</span> from the receipt-v1 body (canonical JSON; recipe + exact signed-preimage example in the public <a href="receipt-v1-test-vector.json" class="mono">receipt-v1 test vector</a>).</div>
+    <div class="step">Check <span class="mono">receiptId</span> matches the payload hash, then verify the ed25519 signature over the domain-separated receipt-v1 preimage.</div>
+    <div class="step">Re-run the same request later: same slot evidence → byte-identical findings. That's what deterministic means.</div>
+  </div>
+</section>
+
+<section id="integrate">
+  <h2>Three ways to call Raven</h2>
+  <div class="integ">
+    <div class="card"><h3>MCP — for Claude &amp; agent frameworks</h3>
+      <p>One tool: <span class="mono">raven_verify_token</span>. This local developer path is unsigned; use the hosted receipt-v1 API when you need a signed customer deliverable.</p>
+      <pre>npx raven-verify-mcp</pre>
+      <p><a href="mcp.html" rel="noopener">Quickstart →</a></p>
+    </div>
+    <div class="card"><h3>Hosted API — signed evidence receipts</h3>
+      <p>POST a mint, get a signed deliverable. Server-side RPC; callers never supply infrastructure.</p>
+      <pre>POST /receipt/v1
+x-api-key: &lt;your key&gt;
+{"mintAddress":"...",
+ "tokenProgramAddress":"..."}</pre>
+      <p>Primary customer path. Alpha — keys by request. <span class="mono">POST /verify</span> is legacy v2 compatibility only.</p>
+    </div>
+    <div class="card"><h3>ACP — agent-to-agent commerce</h3>
+      <p>RAVEN's Virtuals ACP integration is in <b>sandbox</b> and is <b>not publicly listed</b>. Sandbox agents are not discoverable in the ACP marketplace and cannot be hired from the public registry.</p>
+      <pre>offering: solana_verify_token</pre>
+      <p>Not graduated. Raven claims no public validation by the Virtuals ecosystem, and no live escrowed ACP jobs.</p>
+    </div>
+  </div>
+</section>
+
+<section id="access">
+  <h2>Request access</h2>
+  <p class="lead">Alpha keys are issued by hand while we keep the quality bar high. Tell us what you're building and the call volume you expect. Beta holder-concentration evidence (venue-adjusted: pump.fun curve and PumpSwap vaults excluded with on-chain proof) is available per key.</p>
+  <div class="cta">
+    <a class="btn primary" href="request-access.html">Request access</a>
+    <a class="btn ghost" href="contact.html">Contact us</a>
+  </div>
+</section>
+</main>
+</div>
+
+<footer><div class="wrap">
+  <p>Receipt-v1 signer cross-check (ed25519, domain <span class="mono">raven-receipt</span>, version <span class="mono">v1</span>):</p>
+  <p class="mono">rvk_c2997e90215279c2 · MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=</p>
+  <p class="footer-note">Raven verifies launch state from on-chain evidence. It does not predict prices and is not financial advice. Coverage gaps are listed in every response.</p>
+  <p class="footer-note">Raven learns from signed receipts, evals, and explicit coverage gaps — not from vibes or price charts. Agents can verify Raven before trusting Raven. Raven produces receipts for agent commerce; it does not give trading advice.</p>
+  <nav class="footer-nav" aria-label="Footer"><a href="agents.html">For agents</a> · <a href="agents.json" class="mono">agents.json</a> · <a href="openapi.json" class="mono">openapi.json</a> · <a href="workbench.html">Workbench</a> · <a href="evals.html">Evals</a> · <a href="integrate.html">Integrate</a> · <a href="security.html">Security</a> · <a href="receipts.html">Receipts</a> · <a href="mcp.html">MCP</a> · <a href="pricing.html">Access &amp; pricing</a> · <a href="demo.html">Demo</a> · <a href="/worldsfair/">World's Fair</a> · <a href="llms.txt" class="mono">llms.txt</a> · <a href="request-access.html">Request access</a> · <a href="contact.html">Contact</a></nav>
+</div></footer>
+
+<script defer src="/_vercel/insights/script.js"></script>
+<script src="_agent-events.js"></script>
+<script id="evidence-data" type="application/json">{"usdc":{"mintAddress":"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","tokenProgramAddress":"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA","verdict":"risk","engineOutcome":"risk","reason":"issuer_control_finding_present","findingCodes":["issuer_control.mint_authority_active","issuer_control.freeze_authority_active","venue.infrastructure_tier_immutable"],"coverageGaps":["liquidity","top_holders","deployer_outcomes"],"engineVersion":"raven-solana-live-scan@0.1.0","observedSlot":424327592,"issuedAt":"2026-06-04T21:46:17.980Z","replayHash":"sha256:7138cae394a76527bacef488583d2c1bb81ca35d547488460d259c3613384c6a","officialAttestationHash":"sha256:9c01d49a8c7887bb2136fc325c320e5e7c46ffcdb10b71a3e7b23da3fbbc1213","keyId":"rvk_c2997e90215279c2","signature":"wXKUnCWSqW4Od6k/dGA2uPcDU5HeBfX9fVI603GVEsu7K5TW1qq1gNFOLp8HKrIlyjwbeQVeeE3PsV6mLB8dBQ==","attestationPublicKey":"MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=","signatureAlg":"ed25519"},"fresh-pump":{"mintAddress":"CVueTzk4KdmFmi65CbckcTr2hxtS85jAyMeSJiF6pump","tokenProgramAddress":"TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb","verdict":"pass_with_info_finding","engineOutcome":"pass_with_info_finding","reason":"mutable_but_known_infrastructure_dependency","findingCodes":["token2022.metadata_pointer_present","token2022.token_metadata_present","venue.infrastructure_tier_mutable_but_known"],"coverageGaps":["liquidity","top_holders","deployer_outcomes"],"engineVersion":"raven-solana-live-scan@0.1.0","observedSlot":424327609,"issuedAt":"2026-06-04T21:46:24.706Z","replayHash":"sha256:dc290e91972ce2b7a48fa5b9796b5954aabb91849122e1c2de634a0c57538b11","officialAttestationHash":"sha256:e0e0c39950a4280a0c10c0f30331f66de4e42f4240a5dc51e0231d325fcf2fe4","keyId":"rvk_c2997e90215279c2","signature":"WFr8bp1+rjlL7FNYJKfsL0KW7FNqDPOi5nyDSPFlwebkcXxLkHyv23dZIae/SWcKzD91z5oPobFXL+ITqvRODg==","attestationPublicKey":"MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=","signatureAlg":"ed25519"},"risk-pump":{"mintAddress":"qEJQAbaUbAiZ1gbz22TPtc6xhKmRYQA1HXWDCdfKump","tokenProgramAddress":"TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb","verdict":"risk","engineOutcome":"risk","reason":"issuer_control_finding_present","findingCodes":["issuer_control.freeze_authority_active","token2022.metadata_pointer_present","token2022.token_metadata_present","venue.infrastructure_tier_mutable_but_known"],"coverageGaps":["liquidity","top_holders","deployer_outcomes"],"engineVersion":"raven-solana-live-scan@0.1.0","observedSlot":424327686,"issuedAt":"2026-06-04T21:46:55.189Z","replayHash":"sha256:844a1f7930e3fae71127ae52ef748c98bb343abb86c24d365aecfd7d899f6739","officialAttestationHash":"sha256:d0b48ee95375108b94ace9a3d66e51d6c73e976263e04c5663a145997726d6be","keyId":"rvk_c2997e90215279c2","signature":"QIDqP3FmUGqv0Pg3YUXRSVN9mG/hEArqZv1Yn/UE0WyGFN3J3TfrQX1iiY/Svvo96qDCU+sMIG6EuAvLJBGaDw==","attestationPublicKey":"MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=","signatureAlg":"ed25519"}}</script>
+<script type="module" src="_evidence-cards.mjs"></script>
+</body>
+</html>

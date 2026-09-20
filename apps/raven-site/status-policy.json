@@ -1,0 +1,35 @@
+{
+  "schema": "raven-status-policy/1",
+  "note": "Static dependency and fail-behavior disclosure — not a live uptime page. Current signed customer path: POST /receipt/v1. POST /verify is legacy v2 compatibility.",
+  "components": {
+    "launch_console": "static, Vercel-hosted; no backend, no keys in browser code",
+    "hosted_verifier": "Render-hosted backend; the current POST /receipt/v1 path depends on its availability",
+    "legacy_v2": "POST /verify remains legacy v2 compatibility and is not recommended for new integrations",
+    "pubkey": "public, no auth; discovery/cross-check only, never the source of initial signer trust",
+    "healthz": "indicates verifier availability and signer presence",
+    "solana_rpc": "server-side only; network/RPC availability can affect checks; callers can never supply rpcUrl (rejected 400)"
+  },
+  "fail_behavior": {
+    "verifier_error": "fail closed — current receipt-v1 returns an unsigned refusal and issues no receipt, never guessed evidence",
+    "signer_unavailable": "current receipt-v1 returns an unsigned refusal and issues no receipt when signing cannot be completed",
+    "rate_limited": "429; back off (/receipt/v1 15/min/key; /verify 10/min/key, burst 4; 30/min/IP)",
+    "graceful_fallback": [
+      "retry later",
+      "request access at /request-access.html",
+      "use MCP local (npx -y raven-verify-mcp) only for unsigned developer output; it is not a signed receipt-v1 fallback"
+    ]
+  },
+  "hard_rules": [
+    "rejects user-supplied rpcUrl",
+    "rejects user-supplied issuerIdentity",
+    "no API keys in browser code",
+    "no secret logging — sanitized ledger only",
+    "no signatures/private keys/API keys in logs"
+  ],
+  "resilience": {
+    "backoff": "Integrators back off on 429, 5xx, and timeouts; repeated verifier failures should trigger operator escalation, not optimistic retries.",
+    "rateLimitsAreSafetyControls": "Per-key rate limits protect Raven and integrators from verification loops, quota exhaustion, and batch abuse - they are safety controls, not just cost controls.",
+    "unavailabilityIsBlocked": "Verifier unavailability is a blocked/deferred state for material action; /healthz indicates availability but is not a receipt.",
+    "cachedReceipts": "Cached exact receipts may be used only within staleness policy and never for a delayed material action without reverification."
+  }
+}

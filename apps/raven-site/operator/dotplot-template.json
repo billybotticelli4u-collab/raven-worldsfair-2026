@@ -1,0 +1,10 @@
+{
+  "schema": "raven-dotplot/1",
+  "note": "Copy to private/dotplot.json and fill with real callers. Cell values = verifies that day (number) or 'M' for a manual mark when usage isn't wired to logs yet.",
+  "windowDays": 30,
+  "rows": [
+    { "caller": "demo-lead-1 (beta key rvk_beta_xxxx…)", "holderBeta": true,  "days": { "2026-06-01": 3, "2026-06-02": 5, "2026-06-04": 8 } },
+    { "caller": "demo-lead-2 (email lead, no key yet)",  "holderBeta": false, "days": { "2026-06-03": "M" } },
+    { "caller": "demo-lead-3 (tried once)",              "holderBeta": false, "days": { "2026-05-28": 1 } }
+  ]
+}

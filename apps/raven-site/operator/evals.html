@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Operator — evals</title><link rel="stylesheet" href="../_shared-style.css"></head><body>
+<header><div class="wrap"><b>RAVEN / operator / evals</b></div></header>
+<div class="wrap"><h1>Eval health</h1>
+<p class="lead">Prime Intellect rule: evals are the quality engine. The public pack (<a href="../evals.json" class="mono">/evals.json</a>) is a contract — a failing eval is a build order (RAVEN_FOCUS.md source #4).</p>
+<div class="card"><h3>Run</h3><pre># public surface, no key:
+node scripts/raven-public-blackbox-eval.mjs
+# full pack (operator exports own key; never printed):
+RAVEN_HOSTED_API_KEY=&lt;key&gt; node scripts/raven-public-blackbox-eval.mjs</pre>
+<p>Paste the RESULT line into the daily brief. Any FAIL → triage with <a href="skills/eval-failure-triage.md">skills/eval-failure-triage.md</a>; log the decision.</p></div>
+<div class="card"><h3>Last known</h3><p class="mono" style="color:var(--pass)">2026-06-05: 8 pass, 0 fail, 0 skipped (keyed, vs production)</p><p style="font-size:12.5px">Update this line manually after each run, or let the daily brief script do it.</p></div>
+</div></body></html>

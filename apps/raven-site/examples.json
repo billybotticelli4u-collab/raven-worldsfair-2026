@@ -1,0 +1,85 @@
+{
+  "schema": "raven-examples/1",
+  "note": "ARCHIVED LEGACY V2 captured examples. These immutable-style samples preserve verdict, replayHash, officialAttestationHash, keyId, and signatureAlg from the historical POST /verify contract. They are not current receipt-v1 wire objects, not a live status feed, and not a production trust viewer. New integrations use POST /receipt/v1 and /receipt-v1-test-vector.json. No private user receipts; no endorsements implied.",
+  "examples": {
+    "usdc": {
+      "mintAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "tokenProgramAddress": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "verdict": "risk",
+      "engineOutcome": "risk",
+      "reason": "issuer_control_finding_present",
+      "findingCodes": [
+        "issuer_control.mint_authority_active",
+        "issuer_control.freeze_authority_active",
+        "venue.infrastructure_tier_immutable"
+      ],
+      "coverageGaps": [
+        "liquidity",
+        "top_holders",
+        "deployer_outcomes"
+      ],
+      "engineVersion": "raven-solana-live-scan@0.1.0",
+      "observedSlot": 424327592,
+      "issuedAt": "2026-06-04T21:46:17.980Z",
+      "replayHash": "sha256:7138cae394a76527bacef488583d2c1bb81ca35d547488460d259c3613384c6a",
+      "officialAttestationHash": "sha256:9c01d49a8c7887bb2136fc325c320e5e7c46ffcdb10b71a3e7b23da3fbbc1213",
+      "keyId": "rvk_c2997e90215279c2",
+      "signature": "wXKUnCWSqW4Od6k/dGA2uPcDU5HeBfX9fVI603GVEsu7K5TW1qq1gNFOLp8HKrIlyjwbeQVeeE3PsV6mLB8dBQ==",
+      "attestationPublicKey": "MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=",
+      "signatureAlg": "ed25519"
+    },
+    "risk-pump": {
+      "mintAddress": "qEJQAbaUbAiZ1gbz22TPtc6xhKmRYQA1HXWDCdfKump",
+      "tokenProgramAddress": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "verdict": "risk",
+      "engineOutcome": "risk",
+      "reason": "issuer_control_finding_present",
+      "findingCodes": [
+        "issuer_control.freeze_authority_active",
+        "token2022.metadata_pointer_present",
+        "token2022.token_metadata_present",
+        "venue.infrastructure_tier_mutable_but_known"
+      ],
+      "coverageGaps": [
+        "liquidity",
+        "top_holders",
+        "deployer_outcomes"
+      ],
+      "engineVersion": "raven-solana-live-scan@0.1.0",
+      "observedSlot": 424327686,
+      "issuedAt": "2026-06-04T21:46:55.189Z",
+      "replayHash": "sha256:844a1f7930e3fae71127ae52ef748c98bb343abb86c24d365aecfd7d899f6739",
+      "officialAttestationHash": "sha256:d0b48ee95375108b94ace9a3d66e51d6c73e976263e04c5663a145997726d6be",
+      "keyId": "rvk_c2997e90215279c2",
+      "signature": "QIDqP3FmUGqv0Pg3YUXRSVN9mG/hEArqZv1Yn/UE0WyGFN3J3TfrQX1iiY/Svvo96qDCU+sMIG6EuAvLJBGaDw==",
+      "attestationPublicKey": "MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=",
+      "signatureAlg": "ed25519"
+    },
+    "fresh-pump": {
+      "mintAddress": "CVueTzk4KdmFmi65CbckcTr2hxtS85jAyMeSJiF6pump",
+      "tokenProgramAddress": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "verdict": "pass_with_info_finding",
+      "engineOutcome": "pass_with_info_finding",
+      "reason": "mutable_but_known_infrastructure_dependency",
+      "findingCodes": [
+        "token2022.metadata_pointer_present",
+        "token2022.token_metadata_present",
+        "venue.infrastructure_tier_mutable_but_known"
+      ],
+      "coverageGaps": [
+        "liquidity",
+        "top_holders",
+        "deployer_outcomes"
+      ],
+      "engineVersion": "raven-solana-live-scan@0.1.0",
+      "observedSlot": 424327609,
+      "issuedAt": "2026-06-04T21:46:24.706Z",
+      "replayHash": "sha256:dc290e91972ce2b7a48fa5b9796b5954aabb91849122e1c2de634a0c57538b11",
+      "officialAttestationHash": "sha256:e0e0c39950a4280a0c10c0f30331f66de4e42f4240a5dc51e0231d325fcf2fe4",
+      "keyId": "rvk_c2997e90215279c2",
+      "signature": "WFr8bp1+rjlL7FNYJKfsL0KW7FNqDPOi5nyDSPFlwebkcXxLkHyv23dZIae/SWcKzD91z5oPobFXL+ITqvRODg==",
+      "attestationPublicKey": "MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=",
+      "signatureAlg": "ed25519"
+    }
+  }
+}

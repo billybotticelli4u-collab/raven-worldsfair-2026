@@ -1,0 +1,71 @@
+{
+  "schema": "raven-receipt-storage-guide/1",
+  "contractBoundary": "The patterns below preserve the legacy v2 storage envelope. Current receipt-v1 integrations store the exact receipt-v1 object plus their local verifier result; see /receipt-v1-test-vector.json. Do not translate current fields into replayHash, officialAttestationHash, or keyId.",
+  "patterns": {
+    "local_file": "receipts/solana/mainnet/{mintAddress}/{replayHash}.json",
+    "database_columns": [
+      "chain",
+      "network",
+      "mintAddress",
+      "replayHash",
+      "officialAttestationHash",
+      "observedSlot",
+      "engineVersion",
+      "keyId",
+      "verdict",
+      "findings",
+      "coverageGaps",
+      "createdAt"
+    ],
+    "decentralized_or_encrypted": {
+      "namespace": "solana/mainnet/{mintAddress}/receipts",
+      "objectKey": "{replayHash}.json",
+      "rule": "store only the signed receipt + verification metadata; encrypt before upload"
+    }
+  },
+  "retention": [
+    "store the exact signed response",
+    "store the /pubkey response used for verification",
+    "store verifier URL and date checked",
+    "store coverage gaps, not just the verdict",
+    "replay before high-risk actions if the receipt is stale",
+    "append-only: later receipts are new evidence, not replacement truth"
+  ],
+  "never_store": [
+    "API keys",
+    "private keys",
+    "bearer tokens",
+    "delegate keys",
+    "service keys",
+    "RPC secrets"
+  ],
+  "note": "Legacy v2 compatibility storage guidance. Storage-agnostic. Walrus/Harbor-style storage may be used by integrators; Raven does not require it and does not run storage for users. The linked /receipt-schema.json is legacy v2, not the current receipt-v1 wire contract.",
+  "memoryPolicy": {
+    "sourceOfTruth": "signed_receipt",
+    "summaryIsNotAuthority": true,
+    "memoryAllowed": [
+      "user preferences",
+      "past interaction notes",
+      "pointers/hashes to exact receipts"
+    ],
+    "memoryForbidden": [
+      "natural-language summaries as the only record",
+      "letting a remembered pass authorize a NEW material action",
+      "secrets of any kind"
+    ],
+    "requiredStoredFields": [
+      "receipt",
+      "receiptHash",
+      "signature",
+      "keyId",
+      "engineVersion",
+      "observedSlot",
+      "actionContext",
+      "decisionPolicyVersion",
+      "timestampStored",
+      "finalAction",
+      "escalationReason (if any)"
+    ],
+    "staleMemoryRule": "If an agent recalls a token was checked before, it must re-open the exact receipt and apply the staleness policy — memory must not turn a previous pass into a future pass."
+  }
+}

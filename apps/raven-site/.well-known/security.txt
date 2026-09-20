@@ -1,0 +1,8 @@
+# Raven security disclosure policy (RFC 9116)
+# Report vulnerabilities privately. Never include private keys, seed
+# phrases, API keys, or customer data in an initial report — we will never
+# ask for them.
+Contact: mailto:security@ravenattest.com
+Expires: 2027-08-19T00:00:00.000Z
+Canonical: https://ravenattest.com/.well-known/security.txt
+Policy: https://ravenattest.com/security.html

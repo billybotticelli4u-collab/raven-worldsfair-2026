@@ -1,0 +1,102 @@
+{
+  "schema": "raven-storage-adapters/1",
+  "note": "Adapter types for storing Raven receipts. ALL entries are documented_only — Raven implements none of them and requires none of them. For current receipt-v1, store the exact object plus the separate verifier result and index mintAddress, tokenProgramAddress, rulesVersion, slot, payloadHash and receiptId. Legacy v2 index examples are explicitly labelled. Verification works without storage.",
+  "adapters": [
+    {
+      "name": "local_file",
+      "status": "documented_only",
+      "suitable_for": "single agent, dev, audit folders",
+      "stores_raw_receipt": true,
+      "supports_namespace": "via directory layout",
+      "supports_revocation": "filesystem permissions",
+      "supports_signature_verification": true,
+      "secrets_required": "none",
+      "browser_safe": false,
+      "notes": "Simplest honest default: one JSON file per receipt, path = namespace."
+    },
+    {
+      "name": "sqlite",
+      "status": "documented_only",
+      "suitable_for": "single-host bots, deterministic lookup",
+      "stores_raw_receipt": true,
+      "supports_namespace": "column",
+      "supports_revocation": "row delete / app-level",
+      "supports_signature_verification": true,
+      "secrets_required": "none",
+      "browser_safe": false,
+      "notes": "Current receipt-v1: index on (mintAddress, tokenProgramAddress, rulesVersion, slot, payloadHash, receiptId). Legacy v2 compatibility only: (mintAddress, engineVersion, keyId, replayHash)."
+    },
+    {
+      "name": "postgres",
+      "status": "documented_only",
+      "suitable_for": "teams, multi-agent fleets",
+      "stores_raw_receipt": true,
+      "supports_namespace": "schema/column + row-level security",
+      "supports_revocation": "grants",
+      "supports_signature_verification": true,
+      "secrets_required": "DB credentials (server-side only)",
+      "browser_safe": false,
+      "notes": "JSONB for rawResponse; never expose credentials to clients."
+    },
+    {
+      "name": "object_storage",
+      "status": "documented_only",
+      "suitable_for": "long-term archives",
+      "stores_raw_receipt": true,
+      "supports_namespace": "key prefixes",
+      "supports_revocation": "IAM",
+      "supports_signature_verification": true,
+      "secrets_required": "cloud credentials (server-side only)",
+      "browser_safe": false,
+      "notes": "Immutable buckets pair well with receipts."
+    },
+    {
+      "name": "vector_memory",
+      "status": "documented_only",
+      "suitable_for": "semantic recall of derivedExplanation ONLY",
+      "stores_raw_receipt": false,
+      "supports_namespace": "collection",
+      "supports_revocation": "app-level",
+      "supports_signature_verification": false,
+      "secrets_required": "provider key (server-side only)",
+      "browser_safe": false,
+      "notes": "NEVER the source of truth: embeddings are derived. Keep rawResponse elsewhere; deterministic lookup beats fuzzy recall for receipts."
+    },
+    {
+      "name": "decentralized_storage",
+      "status": "documented_only",
+      "suitable_for": "durable, censorship-resistant archives",
+      "stores_raw_receipt": true,
+      "supports_namespace": "app-level",
+      "supports_revocation": "encryption-key rotation (content itself may be permanent)",
+      "supports_signature_verification": true,
+      "secrets_required": "wallet/provider keys (server-side only)",
+      "browser_safe": false,
+      "notes": "Encrypt before upload; receipts may contain caller context."
+    },
+    {
+      "name": "walrus_harbor_optional",
+      "status": "documented_only",
+      "suitable_for": "future durable/namespaced agent-memory storage IF a real beta user asks",
+      "stores_raw_receipt": true,
+      "supports_namespace": "native namespaces",
+      "supports_revocation": "delegate-key revocation",
+      "supports_signature_verification": true,
+      "secrets_required": "provider keys — server-side proxy REQUIRED if ever used",
+      "browser_safe": false,
+      "notes": "OPTIONAL FUTURE ADAPTER. No production integration exists and none is claimed. Raven does not depend on Walrus, Harbor, or Sui. Interface lesson only: namespaces, delegated access, restore-and-verify."
+    },
+    {
+      "name": "custom_agent_memory",
+      "status": "documented_only",
+      "suitable_for": "frameworks with built-in memory",
+      "stores_raw_receipt": true,
+      "supports_namespace": "framework-dependent",
+      "supports_revocation": "framework-dependent",
+      "supports_signature_verification": true,
+      "secrets_required": "none from Raven",
+      "browser_safe": false,
+      "notes": "Follow /receipt-memory-policy.md: raw receipt intact, gaps visible, no secrets in memory."
+    }
+  ]
+}

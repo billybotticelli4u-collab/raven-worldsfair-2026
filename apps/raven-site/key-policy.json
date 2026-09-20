@@ -1,0 +1,86 @@
+{
+  "schema": "raven-key-policy/1",
+  "service": "Raven",
+  "publicKeyEndpoint": "https://raven-hosted-verifier.onrender.com/pubkey",
+  "currentSignatureAlgorithm": "ed25519",
+  "trustBoundary": "The same-host /pubkey endpoint is discovery/cross-check only. Initial signer trust comes from an independently authenticated customer handoff or pin.",
+  "currentReceipt": {
+    "endpoint": "POST /receipt/v1",
+    "domain": "raven-receipt",
+    "version": "v1",
+    "testVector": "https://ravenattest.com/receipt-v1-test-vector.json",
+    "verificationRequiredFields": [
+      "rulesVersion",
+      "findings",
+      "coverageGaps",
+      "timestamp",
+      "slot",
+      "payloadHash",
+      "receiptId",
+      "signerPublicKey",
+      "signature"
+    ],
+    "signerRule": "Verify the signature and match signerPublicKey to the independently authenticated pin. An embedded or same-host-served key is not trust by itself."
+  },
+  "legacyV2": {
+    "endpoint": "POST /verify",
+    "status": "legacy_v2_compatibility_not_for_new_integrations",
+    "domain": "raven-official-attestation",
+    "attestationVersion": "v2",
+    "keyId": "rvk_c2997e90215279c2",
+    "testVector": "https://ravenattest.com/receipt-test-vector.json",
+    "verificationRequiredFields": [
+      "keyId",
+      "signatureAlg",
+      "signature",
+      "replayHash",
+      "officialAttestationHash",
+      "engineVersion",
+      "issuedAt",
+      "rpc.observedSlot",
+      "coverageGaps",
+      "verdict",
+      "findingCodes"
+    ]
+  },
+  "keyStates": {
+    "active": "signs new receipts; public material may be cross-checked at /pubkey",
+    "retired": "no longer signs; remains published so historical receipts verify",
+    "revoked": "compromise suspected; blocks future trust; historical receipts require case-by-case review",
+    "retiring": "announced for retirement; still signs during transition window; agents should prepare to accept its successor"
+  },
+  "rotationPolicy": {
+    "oldReceipts": "remain tied to the signer identity carried by their versioned receipt contract",
+    "agentRule": "match receipt-v1 signerPublicKey to the independently authenticated pin; for legacy v2, match keyId under the legacy policy",
+    "revokedKeys": "block future trust; historical receipts signed by them require review",
+    "automation": "no automated rotation; rotation is a human-approved operator action"
+  },
+  "futureAlgorithmAgility": {
+    "plan": "future receipt versions and algorithms may be added under new keyIds; migration is additive and never rewrites historical receipts",
+    "postQuantum": "design principle only — no post-quantum security guarantee is currently claimed"
+  },
+  "disclaimer": "Raven signs on-chain evidence. It does not predict price and is not financial advice.",
+  "quantumSafeClaim": false,
+  "postQuantumClaim": false,
+  "rotationTriggers": [
+    "scheduled rotation",
+    "suspected exposure (-> revoked, not retired)",
+    "algorithm migration (additive, new keyId + receipt version)"
+  ],
+  "futureMigrationPrinciples": [
+    "additive only — new keyId + new receipt/attestation version",
+    "versioned and test-covered before any switch",
+    "historical receipt verification never silently changes",
+    "dual-signature/hybrid envelopes are a documented possibility, NOT implemented"
+  ],
+  "trustMargin": "Raven documents what signature scheme protects the receipt today (Ed25519 under the published key). It does not promise indefinite cryptographic certainty — agility, not slogans.",
+  "prohibitedClaims": [
+    "quantum-safe",
+    "post-quantum secure",
+    "future-proof",
+    "unbreakable",
+    "safe token",
+    "rug-proof",
+    "guaranteed"
+  ]
+}

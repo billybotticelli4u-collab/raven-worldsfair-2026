@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Operator — receipts</title><link rel="stylesheet" href="../_shared-style.css"></head><body>
+<header><div class="wrap"><b>RAVEN / operator / receipts</b></div></header>
+<div class="wrap"><h1>Receipts log</h1>
+<p class="lead">Every verdict sent to a lead is a signed receipt; record hash + keyId + slot in the lead row so any future dispute is settled by replay, not memory.</p>
+<div class="card"><h3>Per-lead record (in private/leads.json)</h3><pre>"verdict": "risk",
+"receiptHash": "sha256:…officialAttestationHash…",
+"keyId": "rvk_c2997e90215279c2",
+"observedSlot": 424327592</pre></div>
+<div class="card"><h3>Verify any stored receipt</h3><p>Follow <a href="skills/receipt-verification.md">skills/receipt-verification.md</a> (pubkey → replayHash → signature → re-run). Public samples: <a href="../receipts.html">/receipts.html</a>.</p></div>
+<div class="card"><h3>Quality Ledger</h3><p>Hosted calls append sanitized entries server-side (Render). Operator reads it during Render maintenance windows only; nothing here touches it.</p></div>
+</div></body></html>

@@ -1,0 +1,135 @@
+{
+  "schema": "raven-prompt-recipes/1",
+  "note": "Copyable, terse prompts for the current POST /receipt/v1 customer contract. No keys included; operator supplies credentials out of band. POST /verify and replayHash/officialAttestationHash/keyId recipes are legacy v2 compatibility only. Local MCP output is unsigned developer output.",
+  "recipes": [
+    {
+      "name": "verify_token",
+      "purpose": "Run a full Raven verification and report it honestly.",
+      "input_fields": [
+        "mintAddress",
+        "tokenProgramAddress"
+      ],
+      "prompt_template": "Request a current Raven receipt-v1 for this Solana token (mint {mintAddress}, program {tokenProgramAddress}). Return rulesVersion, findings, coverageGaps, timestamp, slot, payloadHash, receiptId, signerPublicKey, signature, and a one-paragraph audit note. Verify it locally against an independently authenticated signer pin. If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, price prediction, or buy/sell recommendation.",
+      "expected_output": "exact receipt-v1 fields + separate verifier result + audit note",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "explain_receipt",
+      "purpose": "Explain a stored Raven receipt in plain language without inflating it.",
+      "input_fields": [
+        "receipt_json"
+      ],
+      "prompt_template": "Explain this Raven receipt: {receipt_json}. State what was found, what was NOT evaluated (coverageGaps), which key signed it, and at which slot. If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation.",
+      "expected_output": "plain-language explanation preserving all gaps",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "check_coverage_gaps",
+      "purpose": "Decide whether listed gaps matter for a specific policy.",
+      "input_fields": [
+        "receipt_json",
+        "policy_description"
+      ],
+      "prompt_template": "Given this Raven receipt {receipt_json} and this policy {policy_description}: list each coverage gap and whether the policy tolerates it. If any intolerable gap exists, recommend block or human review. If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation.",
+      "expected_output": "per-gap tolerance table + decision",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "produce_audit_note",
+      "purpose": "One-paragraph audit trail entry for an action gated by a receipt.",
+      "input_fields": [
+        "receipt_json",
+        "action_taken"
+      ],
+      "prompt_template": "Write a 4-sentence audit note for current receipt-v1: mint {mintAddress}, slot {slot}, rulesVersion {rulesVersion}, receiptId {receiptId}; verifier integrity/trust/freshness/subject results; findings and gaps; the action taken ({action_taken}) and why consumer policy allowed it. If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, price prediction, or buy/sell recommendation.",
+      "expected_output": "audit note with receipt identifiers",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "prepare_human_escalation",
+      "purpose": "Package signed findings, coverage gaps, and local verification status for human review.",
+      "input_fields": [
+        "receipt_json",
+        "context"
+      ],
+      "prompt_template": "Prepare a human escalation for this current receipt-v1 {receipt_json}. Include the exact finding codes with one-line plain meanings, coverage gaps, rulesVersion, slot and timestamp, the separate local verifier integrity/trust/freshness/subject status, what the human must decide, and receiptId for verification. If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation.",
+      "expected_output": "escalation summary for a human owner",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "compare_two_receipts",
+      "purpose": "Diff two receipts for the same mint across time/engine versions.",
+      "input_fields": [
+        "receipt_a",
+        "receipt_b"
+      ],
+      "prompt_template": "Compare these two current Raven receipt-v1 objects for the same signed subject: {receipt_a} vs {receipt_b}. Verify each first, then diff findings, coverageGaps, scopeChecksPerformed, scopeChecksNotPerformed, rulesVersion, and slot. Distinguish coverage/rules expansion from on-chain state change. If gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, price prediction, or buy/sell recommendation.",
+      "expected_output": "structured diff + interpretation",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "request_access",
+      "purpose": "Draft an access request for a hosted API key.",
+      "input_fields": [
+        "project",
+        "use_case",
+        "expected_volume"
+      ],
+      "prompt_template": "Draft a Raven access request via https://ravenattest.com/request-access.html for project {project}, use case {use_case}, volume {expected_volume}. Name one token to check and the decision the receipt would inform.",
+      "expected_output": "filled request",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "use_mcp",
+      "purpose": "Wire Raven into an MCP-capable agent.",
+      "input_fields": [],
+      "prompt_template": "Install the Raven MCP server (npx -y raven-verify-mcp) and register tool raven_verify_token as unsigned local developer output per /raven-agent-skill.md. Do not call its output a signed receipt-v1 or use it as production trust verification. For a signed deliverable, use the hosted POST /receipt/v1 path.",
+      "expected_output": "working MCP wiring with the unsigned-output boundary preserved",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "use_hosted_api",
+      "purpose": "Call the hosted verifier correctly.",
+      "input_fields": [
+        "mintAddress",
+        "tokenProgramAddress"
+      ],
+      "prompt_template": "POST https://raven-hosted-verifier.onrender.com/receipt/v1 with x-api-key header and JSON {mintAddress, tokenProgramAddress}. Never send rpcUrl or issuerIdentity. Preserve the exact receipt-v1 object, verify it locally with an independently authenticated signer pin, and store the separate verifier result. Contract: /openapi.json. If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, price prediction, or buy/sell recommendation.",
+      "expected_output": "signed receipt stored",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation."
+    },
+    {
+      "name": "use_acp",
+      "purpose": "NOT AVAILABLE TODAY: Raven's ACP offering is sandbox-only and not publicly listed.",
+      "input_fields": [
+        "mintAddress",
+        "tokenProgramAddress"
+      ],
+      "prompt_template": "Do not attempt to hire RAVEN via Virtuals ACP: the offering is sandbox-only and is not discoverable or hireable in the public ACP marketplace. Use the hosted signed POST /receipt/v1 API (requires an API key), or local MCP only when unsigned developer output is sufficient.",
+      "expected_output": "no ACP job; use hosted receipt-v1 or explicitly unsigned local MCP",
+      "refusal_rules": "If coverage gaps remain, say: not enough evidence for a full pass. Never call the token safe. No trading advice, no price prediction, no buy/sell recommendation.",
+      "status": "unavailable_sandbox_not_listed"
+    },
+    {
+      "name": "verify_signature",
+      "purpose": "Independently verify a receipt signature.",
+      "input_fields": [
+        "receipt_json"
+      ],
+      "prompt_template": "Verify this current Raven receipt-v1 offline: recompute payloadHash from the canonical 14-field body, check receiptId = 'raven-receipt-v1:' + payloadHash, verify the Ed25519 signature over canonicalJson({domain:'raven-receipt',version:'v1',payloadHash}) with signerPublicKey, then match signerPublicKey to the independently authenticated pin. Use GET /pubkey only as a cross-check. Separately report integrity, signer trust, freshness, rules, and expected-subject match; never collapse them into one boolean.",
+      "expected_output": "VERIFIED | MISMATCH(step)",
+      "refusal_rules": "Never report VERIFIED on partial checks."
+    },
+    {
+      "name": "store_receipt",
+      "purpose": "Persist a receipt next to the action it gates.",
+      "input_fields": [
+        "receipt_json",
+        "action_id"
+      ],
+      "prompt_template": "Store this exact current receipt-v1 {receipt_json} next to action {action_id}, preserving rulesVersion, findings, coverageGaps, slot, timestamp, payloadHash, receiptId, signerPublicKey, signature, and the separate local verifier result. Do not translate it into legacy v2 replayHash/officialAttestationHash/keyId fields. Store the authenticated pin source separately; /pubkey is only a cross-check.",
+      "expected_output": "stored receipt record",
+      "refusal_rules": "Never truncate signature or hash fields."
+    }
+  ]
+}

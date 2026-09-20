@@ -1,0 +1,43 @@
+{
+  "policyName": "raven-language-policy",
+  "version": "1",
+  "bannedPhrases": [
+    "safe",
+    "verified safe",
+    "rug-proof",
+    "guaranteed",
+    "quantum-safe",
+    "post-quantum secure",
+    "future-proof",
+    "unbreakable",
+    "moon",
+    "buy now"
+  ],
+  "requiredPhrases": {
+    "gapsRemain": "not enough evidence for a full pass"
+  },
+  "verdictGlossary": {
+    "pass": "the deterministic checks covered by the current engine passed for the supplied evidence \u2014 NOT 'safe'",
+    "pass_with_info_finding": "passed with informational findings attached",
+    "warning": "proceed only with human approval or policy escalation",
+    "risk": "block or escalate",
+    "unknowable": "Raven could not verify enough evidence; do not treat as verified"
+  },
+  "coverageGapGlossary": "A coverage gap means Raven lacked evidence or support for a check. It is not proof of safety and not proof of fraud \u2014 it is unverified.",
+  "precisionRules": [
+    "liquidity evidence is not price prediction",
+    "pool evidence present does not mean liquidity is good",
+    "metadata present does not mean the project is trustworthy",
+    "signed receipt means Raven signed its verdict, not that Raven endorses the token",
+    "'clean' only when scoped: 'no Raven finding was triggered under this evidence set'"
+  ],
+  "safeReplacementLanguage": {
+    "is it safe?": "no risk findings on checked surfaces; gaps: <list> \u2014 not enough evidence for a full pass",
+    "is liquidity good?": "pool evidence shows <facts>; Raven does not rate liquidity quality"
+  },
+  "examples": {
+    "wrong": "Raven says this token is safe to buy.",
+    "right": "No listed finding triggered under rules <engineVersion> at slot <slot>. Findings: <codes>. Not evaluated: liquidity, deployer_outcomes \u2014 not enough evidence for a full pass. Not financial advice."
+  },
+  "contextRule": "Agent context is not evidence unless Raven explicitly receives supported fields and includes them in the signed receipt. Context can help an agent decide what to ask Raven, but only the signed receipt states what Raven actually checked."
+}

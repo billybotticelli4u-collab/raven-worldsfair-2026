@@ -1,0 +1,122 @@
+{
+  "schema": "raven-quality-ledger/1",
+  "contractBoundary": "Metrics that name verdict refer to the legacy v2 engine/policy projection. Current receipt-v1 publishes findings and coverage gaps and is evaluated through separate integrity, signer-trust, subject, rules, freshness and coverage axes; it has no verdict field.",
+  "engineVersion": "raven-solana-live-scan@0.1.0 (vocabulary v4)",
+  "activeKeyId": "rvk_c2997e90215279c2",
+  "evalSuite": "https://ravenattest.com/evals.json",
+  "latestPublicBlackboxRun": {
+    "date": "2026-06-05",
+    "result": "9 pass, 0 fail, 0 skipped (keyed, vs production)"
+  },
+  "latestSiteTestCount": 50,
+  "knownLimitations": [
+    "holder concentration evidence is key-gated beta, not globally enabled",
+    "deployer history not yet live (listed coverage gap)",
+    "liquidity gap may remain without pool evidence",
+    "Raydium v4 / CEX custody reported unadjusted",
+    "no price prediction, no trading advice — by design"
+  ],
+  "sanctionedEngineWorkSources": [
+    "measured feedback",
+    "beta users",
+    "explicit coverage gaps",
+    "eval failures"
+  ],
+  "rules": [
+    "a failing eval becomes a build order",
+    "new capabilities must ship with evals",
+    "no undocumented trust expansion"
+  ],
+  "goodMetrics": [
+    "receiptsIssued",
+    "receiptSignatureVerificationRate",
+    "externalReceiptReuseCount",
+    "verdictStabilityAcrossRechecks",
+    "coverageGapResolutionRate",
+    "falsePositiveReports",
+    "falseNegativeReports",
+    "verifierErrorRate",
+    "staleReceiptReverificationRate",
+    "actionsBlockedByPolicy",
+    "actionsEscalatedByPolicy",
+    "tamperedReceiptRejectionRate",
+    "publicBlackboxEvalPassRate"
+  ],
+  "badMetrics": [
+    "tokensConsumed",
+    "numberOfAgentSteps",
+    "numberOfModelCalls",
+    "linesOfCodeGenerated",
+    "pullRequestsOpened",
+    "modelBrandUsed",
+    "chainOfThoughtLength",
+    "promptLength",
+    "userInterfaceBadgeWithoutReceipt",
+    "socialMentions",
+    "'AI said it was safe'"
+  ],
+  "prohibitedQualityClaims": [
+    "safe",
+    "guaranteed",
+    "approved to buy",
+    "profitable",
+    "low risk because the model says so",
+    "verified because an agent checked it",
+    "verified because a UI badge or screenshot says so"
+  ],
+  "modelNeutrality": {
+    "modelNeutral": true,
+    "verdictDependsOnLLM": false,
+    "agentCanExplainReceipt": true,
+    "agentCanOverrideReceipt": false,
+    "providerSwapChecklist": [
+      "re-run signature verification tests",
+      "re-run stale receipt tests",
+      "re-run risk/warning/unknowable action tests",
+      "re-run coverage gap summary tests",
+      "re-run no-safe-language tests",
+      "verify exact receipt JSON storage",
+      "verify no key leakage",
+      "verify no model-generated verdict mutation"
+    ]
+  },
+  "deterministicFirst": {
+    "rule": "If a check can be deterministic decoding, policy, signature verification, or state-machine logic, Raven does not use an LLM for it. The verdict path is and stays deterministic.",
+    "deterministicChecks": [
+      "token program decoding",
+      "metadata decoding where supported",
+      "pool/venue evidence where supported",
+      "holder evidence where enabled",
+      "receipt schema validation",
+      "ed25519 signature verification",
+      "staleness calculation",
+      "decision policy mapping",
+      "coverage gap rendering",
+      "public key lookup"
+    ]
+  },
+  "costLatency": {
+    "principle": "Raven optimizes for evidence per action, not tokens consumed. A token-touching agent should pay for a crisp signed preflight artifact, not an unbounded reasoning loop.",
+    "latencyGuidance": [
+      "the verifier fails closed rather than hanging indefinitely; agents apply their own timeout and retry policy",
+      "pre-spend and pre-listing actions reverify immediately; delayed execution reverifies at execution time"
+    ],
+    "costGuidance": [
+      "deterministic checks require no LLM calls",
+      "repeated deterministic policy decisions belong in code",
+      "do not call a frontier reasoning model to decide whether a signed receipt is valid - ed25519 verification is a deterministic function",
+      "machine-readable policy files exist so agents can apply Raven policy cheaply"
+    ]
+  },
+  "securityOutcomeMetrics": [
+    "tamperedReceiptRejectionTestsPassed",
+    "promptInjectionDrillPassRate",
+    "contextPoisoningDrillPassRate",
+    "verifierUnavailableDrillPassRate",
+    "rateLimitBackoffDrillPassRate",
+    "walletSignerSeparationTestsPassed",
+    "secretScanTestsPassed",
+    "forbiddenClaimsTestsPassed",
+    "exactReceiptStorageTested"
+  ]
+}

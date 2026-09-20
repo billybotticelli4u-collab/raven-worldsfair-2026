@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skills — install Raven as a reflex</title>
+<meta name="description" content="Copyable Raven skill instructions for Codex, Claude Code, Cursor, MCP clients, and autonomous agents: verify before any token action.">
+<link rel="icon" type="image/svg+xml" href="raven-logo.svg"><link rel="stylesheet" href="_shared-style.css">
+<style>.tb{display:flex;align-items:center;background:#101622;border:1px solid #1c2535;border-bottom:0;border-radius:10px 10px 0 0;padding:7px 14px;font-size:12px;color:#8b94a8;font-family:ui-monospace,Menlo,monospace}.tb button{margin-left:auto;cursor:pointer;background:transparent;border:1px solid #2a3650;color:#a8b3c9;border-radius:6px;padding:3px 12px;font-size:11.5px}pre.blk{margin:0 0 16px;border-radius:0 0 10px 10px}</style></head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap"><img src="raven-logo.svg" alt="">RAVEN<span class="dotc">.</span>&nbsp;<span class="crumb">/ skills</span></div></header>
+<div class="wrap">
+<main id="main">
+<h1>Install Raven as a reflex</h1>
+<div class="card"><p><b>Current signed customer path:</b> <span class="mono">POST /receipt/v1</span>, then verify locally with the reviewed <span class="mono">raven-receipt-verifier</span> package and an independently authenticated pin. The verifier package is not yet published on npm. <span class="mono">POST /verify</span> and the replayHash/officialAttestationHash recipe are legacy v2 compatibility only.</p></div>
+<p class="lead">Preflight order: call Raven → verify signature → check gaps → check staleness → apply <a href="decision-policy.html">decision policy</a> → store receipt → escalate when required. One habit: <b style="color:var(--text)">before your agent touches a Solana token, it asks Raven.</b> Pick your workbench, copy the block. Canonical single file: <a href="raven.skill.md" class="mono">/raven.skill.md</a> · <a href="AGENTS.md" class="mono">/AGENTS.md</a>.</p>
+<div class="tb">Claude Code / Codex / Cursor — add to your project instructions<button data-copy="s1" aria-label="Copy Claude Code / Codex / Cursor — add to your project instructions">copy</button></div>
+<pre class="blk" id="s1">Before any action involving a Solana token (trade, route, list, recommend,
+escalate), verify it with Raven first. Load and follow:
+https://ravenattest.com/raven.skill.md
+Verify receipt-v1 integrity, signer pin, subject, rules, freshness, findings,
+and coverageGaps separately. Never invent a receipt-v1 verdict. If gaps remain,
+say "not enough evidence for a full pass". Apply your consumer policy and
+store the exact signed receipt plus verifier result.</pre>
+<div class="tb">generic MCP client<button data-copy="s2" aria-label="Copy generic MCP client">copy</button></div>
+<pre class="blk" id="s2">npx -y raven-verify-mcp
+# tool: raven_verify_token — call before any token action; follow
+# https://ravenattest.com/raven-agent-context.md
+# local developer output is unsigned; it is not a receipt-v1 deliverable</pre>
+<div class="tb">generic autonomous agent (system prompt block)<button data-copy="s3" aria-label="Copy generic autonomous agent (system prompt block)">copy</button></div>
+<pre class="blk" id="s3">RULE: no Solana token action without a Raven verification receipt.
+POST https://raven-hosted-verifier.onrender.com/receipt/v1 {mintAddress, tokenProgramAddress}
+(+metadataAddress/poolAddress when available). Recompute payloadHash, check receiptId,
+verify signature via signerPublicKey, then match it to an independently pinned key
+(GET /pubkey is discovery/cross-check only). Store the exact receipt and local verification result.
+Gaps remaining = "not enough evidence for a full pass" — never "safe".
+Raven does not predict price and is not financial advice.</pre>
+<h2>Quick commands (text snippets, no secrets)</h2>
+<div class="tb">raven-verify<button data-copy="q1" aria-label="Copy raven-verify">copy</button></div>
+<pre class="blk" id="q1">curl -s -X POST https://raven-hosted-verifier.onrender.com/receipt/v1 -H "x-api-key: $RAVEN_KEY" -H "content-type: application/json" -d '{"mintAddress":"'$MINT'","tokenProgramAddress":"'$PROG'"}'</pre>
+<div class="tb">raven-verify-advanced (with metadata + pool evidence)<button data-copy="q2" aria-label="Copy raven-verify-advanced (with metadata + pool evidence)">copy</button></div>
+<pre class="blk" id="q2">curl -s -X POST https://raven-hosted-verifier.onrender.com/receipt/v1 -H "x-api-key: $RAVEN_KEY" -H "content-type: application/json" -d '{"mintAddress":"'$MINT'","tokenProgramAddress":"'$PROG'","metadataAddress":"'$META'","poolAddress":"'$POOL'"}'</pre>
+<div class="tb">raven-store-receipt<button data-copy="q3" aria-label="Copy raven-store-receipt">copy</button></div>
+<pre class="blk" id="q3">mkdir -p receipts/solana/mainnet/$MINT && jq . response.json > receipts/solana/mainnet/$MINT/$(jq -r .payloadHash response.json | tr -d 'sha256:').json</pre>
+<div class="tb">raven-escalate-on-gaps<button data-copy="q4" aria-label="Copy raven-escalate-on-gaps">copy</button></div>
+<pre class="blk" id="q4">jq -r 'if (.coverageGaps|length) > 0 then "ESCALATE: not enough evidence for a full pass — gaps: " + (.coverageGaps|join(", ")) else "no gaps listed" end' response.json</pre>
+<span id="copy-status" role="status" aria-live="polite" class="vh"></span>
+</main>
+<footer><a href="index.html">Console</a> · <a href="agent-pack.html">Agent pack</a> · <a href="evals.html">Evals</a> · not financial advice</footer>
+</div>
+<script defer src="/_vercel/insights/script.js"></script><script src="_agent-events.js"></script>
+<script>var copyStatus=document.getElementById("copy-status");document.querySelectorAll("[data-copy]").forEach(function(b){b.addEventListener("click",function(){navigator.clipboard.writeText(document.getElementById(b.dataset.copy).textContent);b.textContent="copied ✓";setTimeout(function(){b.textContent="copy"},1500);copyStatus.textContent="Copied: "+(b.getAttribute("aria-label")||"").replace(/^Copy /,"");});});</script>
+</body></html>

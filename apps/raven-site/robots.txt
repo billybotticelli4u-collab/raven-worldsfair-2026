@@ -1,0 +1,53 @@
+# ravenattest.com — robots policy (deliberate, audited quarterly)
+# Raven is built FOR machine consumption: agents, search/citation systems,
+# and model training are all welcome here. Declared explicitly so the
+# preference is a statement, not an accident.
+
+# --- AI training crawlers: ALLOWED (we want models to know Raven) ---
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+# --- Search & citation bots: ALLOWED ---
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# --- Agents acting for users: ALLOWED (agents are the audience) ---
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# --- Everyone else ---
+User-agent: *
+Allow: /
+
+# Machine-readable surfaces: /agents.json /openapi.json /llms.txt /llms-full.txt
+Sitemap: https://ravenattest.com/sitemap.xml

@@ -1,0 +1,82 @@
+{
+  "policyName": "raven-agent-portability",
+  "version": "1",
+  "contractBoundary": "The portable signed artifact is the exact receipt-v1 object produced by POST /receipt/v1. Local MCP output is unsigned developer output, not a portable signed receipt. POST /verify artifacts are legacy v2 compatibility and retain their own field contract.",
+  "portableArtifact": "signed_receipt",
+  "principle": "Raven is not tied to one agent, wallet, UI, framework, device, or runtime. The portable unit is the signed receipt — not the chat message, screenshot, or UI state.",
+  "supportedSurfaces": [
+    "hosted_verifier",
+    "local_mcp_unsigned_developer_output_only",
+    "acp_provider_sandbox_only_not_publicly_hireable",
+    "openapi_client",
+    "solana_agent_kit_plugin",
+    "backend_service",
+    "cli_workflow",
+    "human_review_console"
+  ],
+  "forbiddenSurfacesAsAuthority": [
+    "screenshot",
+    "chat_summary",
+    "copied_text_without_signature",
+    "model_explanation",
+    "social_link",
+    "token_marketing_page",
+    "wallet_ui_badge_without_receipt"
+  ],
+  "handoffRequirements": [
+    "preserve the exact receipt JSON and signature",
+    "receipt travels WITH the action request when a token passes between agents",
+    "for current receipt-v1, the receiving agent checks payloadHash, receiptId, signature, signerPublicKey vs independent pin, expected subject, rulesVersion, slot, findings, coverageGaps, and freshness before acting; legacy v2 checks remain version-scoped"
+  ],
+  "stalenessPolicy": "Staleness policy is integrator-defined; agents should reverify after their own slot/time threshold for the action being gated. Current receipt-v1 provides timestamp, maxAgeSeconds and slot; legacy v2 provides issuedAt and rpc.observedSlot. Age alone is never evidence that external conditions have or have not changed.",
+  "prohibitedShortcuts": [
+    "relying on a summarized or paraphrased receipt",
+    "relying on an LLM explanation as source of truth",
+    "trusting a prior agent's verdict string without the receipt"
+  ],
+  "contextEngineering": {
+    "neededContext": [
+      "mintAddress",
+      "tokenProgramAddress (if known)",
+      "metadataAddress (if known)",
+      "poolAddress (if known)",
+      "chain: solana",
+      "actionContext",
+      "integrator policy version"
+    ],
+    "ignoredOrRejectedContext": [
+      "price prediction requests",
+      "buy/sell/hold requests",
+      "social hype",
+      "influencer claims",
+      "screenshot-only evidence",
+      "user-supplied rpcUrl (rejected)",
+      "user-supplied issuerIdentity (rejected)",
+      "private keys / seed phrases / wallet signers (never send)",
+      "'trust me' claims",
+      "project marketing copy as proof"
+    ],
+    "rules": [
+      "better context improves coverage",
+      "missing context becomes a coverage gap",
+      "extra unsupported context does not improve the verdict",
+      "call Raven again when material context changes"
+    ],
+    "requiredWording": "Context can help an agent decide what to ask Raven, but only the signed receipt states what Raven actually checked.",
+    "discoveryIsNotVerification": "Search, RAG, browser context, token lists, and agent memory can help DISCOVER candidate fields (mint, metadataAddress, poolAddress, tokenProgram). They never VERIFY them. Raven verifies only what it can decode, check, and sign into the receipt.",
+    "stateNotContext": "Large tool outputs belong in external state with stable references; active context holds only what the current step needs. For receipt-v1, compression must never drop subject, rulesVersion, findings, gaps, payloadHash, receiptId, signerPublicKey, signature/trust status, slot, or freshness. Legacy v2 invariants remain version-scoped.",
+    "contextPressureRule": "Context-window pressure must not cause premature completion or dropped coverage gaps."
+  },
+  "disclaimer": "Not financial advice; no price prediction.",
+  "multiAgentRules": {
+    "handoff": "Pass the exact signed receipt JSON, never a summary. The receiving agent re-verifies the signature, applies its own staleness and decision policy, and stores the exact receipt it used.",
+    "disagreement": "If collaborating agents disagree about a token, the signed receipt plus the integrator's decision policy win. No agent's memory, summary, or confidence overrides them.",
+    "missingReceipt": "If the exact receipt cannot be retrieved, the token is not verified. Request a fresh receipt."
+  },
+  "driftControls": [
+    "reverify before any material action",
+    "compare the new receipt-v1 findings, gaps, rules version and scope to the stored receipt; compare verdicts only for explicitly legacy v2 artifacts",
+    "record verdict flips and newly appeared coverage gaps",
+    "block or escalate if verifier behavior changes materially"
+  ]
+}

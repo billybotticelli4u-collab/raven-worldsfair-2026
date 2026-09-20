@@ -1,0 +1,619 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Raven Hosted Verifier",
+    "description": "Signed, scope-bounded evidence receipts for Solana tokens. A receipt v1 records which checks were performed, which were deliberately not performed, and which surfaces Raven cannot attest to at all (coverageGaps) — then signs that body under the domain-separated `raven-receipt` / v1 envelope so any consumer can verify it offline against a signer key they pin themselves. POST /receipt/v1 is the primary integration path and fails closed: when required evidence cannot be established it returns an unsigned 422 receipt_unavailable refusal and issues no receipt. A receipt is evidence, never a decision and never an authorization: receipt integrity, signer trust, freshness, coverage, and consumer policy are separate axes and are never collapsed into a single boolean. Raven never declares a token safe. Server-side RPC; callers never supply infrastructure. POST /verify remains available for legacy v2 attestation compatibility. Not financial advice.",
+    "version": "v2",
+    "contact": {
+      "url": "https://ravenattest.com/request-access.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://raven-hosted-verifier.onrender.com"
+    }
+  ],
+  "paths": {
+    "/receipt/v1": {
+      "post": {
+        "summary": "Primary: issue a fail-closed signed receipt v1",
+        "description": "Issues a scope-bounded, liability-safe receipt v1 (`raven-receipt` / v1). The response body IS the receipt object; there is no wrapper envelope on success.\n\nSeparation of concerns — these five questions are answered independently and MUST NOT be collapsed:\n1. **Receipt integrity** — recompute `payloadHash` over the canonical JSON of the body minus {signature, signerPublicKey, payloadHash, receiptId}, confirm `receiptId` equals \"raven-receipt-v1:\" + payloadHash, then verify the ed25519 `signature` over canonicalJson({domain:\"raven-receipt\",version:\"v1\",payloadHash}). This establishes receipt integrity and control of the signing key — nothing more; attribution to Raven is the separate signer-trust axis below.\n2. **Signer trust** — whether you accept `signerPublicKey` is YOUR policy. Pin the key independently and out-of-band; a receipt vouching for its own key proves nothing. This axis is orthogonal to integrity.\n3. **Freshness** — compute age = now - `timestamp` and compare against the signed `maxAgeSeconds`. A stale receipt is still cryptographically valid; staleness means old, never tampered. You MAY apply a stricter budget, never a looser one.\n4. **Coverage** — `scopeChecksPerformed`, `scopeChecksNotPerformed`, and `coverageGaps` bound what the receipt does and does not claim. Silence is never safety. Anything in `coverageGaps` is unverified, full stop.\n5. **Consumer policy and authorization** — whether the evidence is sufficient, and whether any action is permitted, is entirely the consumer's decision. Raven issues evidence; it does not decide and does not authorize. A valid, fresh, fully covered receipt is still not permission to act.\n\nThe signing domain is separate from the v2 attestation domain: a v2 verifier MUST NOT accept a receipt-v1 signature and a receipt-v1 verifier MUST NOT accept a v2 signature, even when the same key signs both.",
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "mintAddress",
+                  "tokenProgramAddress"
+                ],
+                "description": "Callers never supply infrastructure: rpcUrl and issuerIdentity are rejected with 400.",
+                "properties": {
+                  "request_id": {
+                    "type": "string",
+                    "description": "Optional caller-supplied request identifier used for correlation during processing. Never required. It is not part of the signed receipt body and is not echoed in the response."
+                  },
+                  "mintAddress": {
+                    "type": "string",
+                    "description": "Token mint address (base58)."
+                  },
+                  "tokenProgramAddress": {
+                    "type": "string",
+                    "description": "Owning token program: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA (SPL) or TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb (Token-2022)."
+                  },
+                  "metadataAddress": {
+                    "type": "string",
+                    "description": "Optional Metaplex metadata account."
+                  },
+                  "poolAddress": {
+                    "type": "string",
+                    "description": "Optional Raydium CPMM pool for liquidity/vault evidence."
+                  },
+                  "commitment": {
+                    "type": "string",
+                    "enum": [
+                      "finalized",
+                      "confirmed",
+                      "processed"
+                    ],
+                    "default": "finalized"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed receipt v1. The body is the receipt object itself. The optional RPC status header is unauthenticated operational provenance and is not part of the receipt signature.",
+            "headers": {
+              "Raven-RPC-Core-Status": {
+                "description": "Optional, unauthenticated operational provenance for core-account acquisition. It sits outside the receipt body and outside the signature: intermediaries may strip or alter it without invalidating the receipt. Consumers MUST NOT treat it as receipt authority, as proof of truth, or as an input to a trust decision.",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "corroborated",
+                    "single_witness",
+                    "no_witnesses",
+                    "data_divergence",
+                    "owner_divergence",
+                    "presence_divergence",
+                    "slot_skew"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptV1"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request — malformed addresses, or the forbidden fields rpcUrl / issuerIdentity were supplied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized — missing or unknown API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "receipt_unavailable — the request was well-formed, but the chain state required to satisfy it could not be established. This is the fail-closed refusal: the response is UNSIGNED and no receipt is issued. The body deliberately carries no signature, signerPublicKey, receiptId, findings, or slot — nothing a consumer could mistake for a receipt. A consumer MUST treat this as 'no evidence', never as a negative result about the token and never as a soft pass.",
+            "headers": {
+              "Raven-RPC-Core-Status": {
+                "description": "Optional, unauthenticated operational provenance; not receipt authority and never an input to a trust decision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptUnavailable"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate limited (alpha: 15/min per key).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "cannot_issue_receipt — the receipt could not be produced or signed (including a producer-side forbidden-word fail-closed or canonicalization failure). No unsigned receipt is ever served in its place.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "engine_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "signer_unavailable — fail-closed: an official verifier that cannot sign does not serve.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "engine_timeout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verify": {
+      "post": {
+        "summary": "Legacy compatibility: v2 signed attestation",
+        "description": "LEGACY COMPATIBILITY SURFACE. Retained unchanged for integrations built against the `raven-official-attestation` / v2 envelope; its shape, two-layer hash (replayHash + officialAttestationHash), and signing rules are frozen. New integrations should use POST /receipt/v1, which is the primary path and carries explicit scope and coverage as first-class signed fields.\n\nThe v2 `verdict` enum is a legacy engine outcome label. It is not a safety rating, not a score, and not an authorization: it does not tell a caller what to do, and consumer policy remains the caller's own. `coverageGaps` bounds every response — anything listed there is unverified regardless of the verdict value.",
+        "deprecated": false,
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "mintAddress",
+                  "tokenProgramAddress"
+                ],
+                "description": "Callers never supply infrastructure: rpcUrl and issuerIdentity are rejected with 400.",
+                "properties": {
+                  "mintAddress": {
+                    "type": "string",
+                    "description": "Token mint address (base58)."
+                  },
+                  "tokenProgramAddress": {
+                    "type": "string",
+                    "description": "Owning token program: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA (SPL) or TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb (Token-2022)."
+                  },
+                  "metadataAddress": {
+                    "type": "string",
+                    "description": "Optional Metaplex metadata account."
+                  },
+                  "poolAddress": {
+                    "type": "string",
+                    "description": "Optional Raydium CPMM pool for liquidity/vault evidence."
+                  },
+                  "commitment": {
+                    "type": "string",
+                    "enum": [
+                      "finalized",
+                      "confirmed",
+                      "processed"
+                    ],
+                    "default": "finalized"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed deliverable (legacy v2 attestation envelope)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "verdict": {
+                      "type": "string",
+                      "enum": [
+                        "pass",
+                        "pass_with_info_finding",
+                        "warning",
+                        "risk",
+                        "unknowable"
+                      ],
+                      "description": "Legacy v2 engine outcome label. Not a safety claim, not a score, not an authorization to act."
+                    },
+                    "engineOutcome": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "findingCodes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "findings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "coverageGaps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Surfaces NOT evaluated for this response. Always present, always honest. Anything listed here is unverified."
+                    },
+                    "engineVersion": {
+                      "type": "string"
+                    },
+                    "replayHash": {
+                      "type": "string",
+                      "description": "sha256 over the canonical replay input."
+                    },
+                    "officialAttestationHash": {
+                      "type": "string"
+                    },
+                    "keyId": {
+                      "type": "string",
+                      "example": "rvk_c2997e90215279c2"
+                    },
+                    "signature": {
+                      "type": "string",
+                      "description": "ed25519 over the domain-separated v2 preimage; verify against an independently pinned signer key (GET /pubkey is discovery/cross-check only; accept its material only if it matches your pin or chains from it). This signature is NOT valid for receipt v1 and vice versa."
+                    },
+                    "signatureAlg": {
+                      "type": "string",
+                      "example": "ed25519"
+                    },
+                    "issuedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rpc": {
+                      "type": "object",
+                      "description": "Observed slot + request echo for replay."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request (bad addresses, forbidden fields rpcUrl/issuerIdentity)"
+          },
+          "401": {
+            "description": "unauthorized (missing/unknown API key)"
+          },
+          "429": {
+            "description": "rate limited (alpha: 10/min per key, burst 4)"
+          },
+          "502": {
+            "description": "engine_error"
+          },
+          "503": {
+            "description": "signer_unavailable (fail-closed: an official verifier that cannot sign does not serve)"
+          },
+          "504": {
+            "description": "engine_timeout"
+          }
+        }
+      }
+    },
+    "/pubkey": {
+      "get": {
+        "summary": "Published v2 attestation key(s)",
+        "description": "Publishes the key(s) for the legacy `raven-official-attestation` / v2 domain. Receipt v1 carries its own `signerPublicKey` in the receipt body and is verified against a key the consumer pins independently — publication here is not, by itself, a trust decision for any consumer.",
+        "responses": {
+          "200": {
+            "description": "keys[] with keyId, publicKeyBase64 (ed25519 SPKI), domain raven-official-attestation, version v2"
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "summary": "Always-200 liveness, signer and RPC reachability",
+        "responses": {
+          "200": {
+            "description": "Always HTTP 200. With dual RPC enabled, rpcWitnesses reports configured/reachable paths only and does not claim per-request corroboration."
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "summary": "Strict service readiness",
+        "responses": {
+          "200": {
+            "description": "Signer available and at least one RPC reachable. One of two reachable is explicitly degraded."
+          },
+          "503": {
+            "description": "No signer, zero reachable RPCs, or bounded active core-account divergence latch."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Invite-gated alpha. Request at https://ravenattest.com/request-access.html. Bearer auth also accepted."
+      }
+    },
+    "schemas": {
+      "ReceiptV1": {
+        "type": "object",
+        "description": "Scope-bounded, liability-safe receipt v1. Every field below except signature, signerPublicKey, payloadHash and receiptId is part of the signed preimage. Findings carry no severity: the receipt conveys observed on-chain state and nothing beyond it.",
+        "required": [
+          "chain",
+          "mintAddress",
+          "tokenProgramAddress",
+          "slot",
+          "timestamp",
+          "rulesVersion",
+          "findingTaxonomyVersion",
+          "scopeChecksPerformed",
+          "scopeChecksNotPerformed",
+          "coverageGaps",
+          "findings",
+          "interpretations",
+          "maxAgeSeconds",
+          "disclaimer",
+          "payloadHash",
+          "receiptId",
+          "signature",
+          "signerPublicKey"
+        ],
+        "properties": {
+          "chain": {
+            "type": "string",
+            "example": "solana-mainnet"
+          },
+          "mintAddress": {
+            "type": "string",
+            "description": "Base58 mint the receipt describes."
+          },
+          "tokenProgramAddress": {
+            "type": "string",
+            "description": "Base58 owning token program."
+          },
+          "slot": {
+            "type": "integer",
+            "description": "On-chain slot the observation reflects."
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Observation time (estimated block time of slot). Basis for the freshness axis."
+          },
+          "rulesVersion": {
+            "type": "string",
+            "pattern": "^raven-rules@[0-9]+\\.[0-9]+\\.[0-9]+$",
+            "description": "Exact rules identity used. Dispatch is exact string equality; a verifier MUST NOT parse it numerically and apply newer rules to an older artifact."
+          },
+          "findingTaxonomyVersion": {
+            "type": "string",
+            "example": "raven-taxonomy@1.0.0"
+          },
+          "scopeChecksPerformed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Stable codes for every check that WAS run. Sorted ascending."
+          },
+          "scopeChecksNotPerformed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Stable codes for in-catalogue checks deliberately NOT run for this receipt. Sorted ascending. Stated as loudly as what was performed — silence is never safety."
+          },
+          "coverageGaps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Authoritative limitation list: surfaces Raven cannot attest to at all. Anything here is unverified. Sorted ascending."
+          },
+          "findings": {
+            "type": "array",
+            "description": "Fact-only evidence objects, sorted by code. No severity field exists by design.",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "source"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "issuer_control.freeze_authority_active"
+                },
+                "source": {
+                  "type": "string",
+                  "example": "mint_account_evidence"
+                },
+                "subject": {
+                  "type": "string",
+                  "description": "Optional subject address/identifier."
+                },
+                "evidence": {
+                  "type": "object",
+                  "description": "Raw on-chain evidence backing the finding."
+                }
+              }
+            }
+          },
+          "interpretations": {
+            "type": "array",
+            "description": "Fact-only plain-language restatements of findings, sorted by code. Never a prediction, score, or recommendation.",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "text",
+                "lang"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "lang": {
+                  "type": "string",
+                  "description": "BCP-47 tag, e.g. en | it."
+                }
+              }
+            }
+          },
+          "maxAgeSeconds": {
+            "type": "integer",
+            "description": "Producer-stated, signed freshness budget. Consumers SHOULD treat the receipt as stale when now - timestamp exceeds it, MAY apply a stricter budget, and MUST NOT silently relax it."
+          },
+          "disclaimer": {
+            "type": "string",
+            "description": "Mandatory exact string, part of the signed preimage. Verifiers MUST compare byte-for-byte and reject any deviation. Renderers MUST display it and MUST NOT truncate, paraphrase, or de-emphasize it.",
+            "example": "This attestation reports on-chain state within the defined scope at the stated slot. It is not a prediction, recommendation, or declaration of safety."
+          },
+          "payloadHash": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "description": "sha256 over the canonical preimage (body minus signature, signerPublicKey, payloadHash, receiptId). Not itself in the preimage."
+          },
+          "receiptId": {
+            "type": "string",
+            "description": "\"raven-receipt-v1:\" + payloadHash. Derived after payloadHash, so there is no circularity. Strict deduplication uses the full payloadHash.",
+            "example": "raven-receipt-v1:sha256:<hex>"
+          },
+          "signature": {
+            "type": "string",
+            "description": "base64 ed25519 over the UTF-8 bytes of canonicalJson({domain:\"raven-receipt\",version:\"v1\",payloadHash}). Domain-separated: never valid under the v2 attestation domain."
+          },
+          "signerPublicKey": {
+            "type": "string",
+            "description": "base64 SPKI DER ed25519 public key the signature verifies against. Whether to TRUST this key is a separate, consumer-side decision — pin it independently and out-of-band."
+          }
+        }
+      },
+      "ReceiptUnavailable": {
+        "type": "object",
+        "description": "Unsigned fail-closed refusal. No receipt was issued. Carries no signature, signerPublicKey, receiptId, findings, or slot by design.",
+        "required": [
+          "ok",
+          "error",
+          "reason"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "string",
+            "enum": [
+              "receipt_unavailable"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Exact machine-readable cause of the refusal.",
+            "enum": [
+              "underlying_verification_unknowable",
+              "engine_outcome_unavailable",
+              "verification_not_replayable",
+              "observed_slot_unavailable",
+              "coverage_gaps_malformed",
+              "rpc_evidence_timeout",
+              "holder_provenance_invalid",
+              "holder_attempt_not_executed",
+              "holder_attempt_not_completed",
+              "holder_evidence_unavailable",
+              "holder_rules_version_requires_1_1_4"
+            ]
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional supporting reason strings; may be an empty array."
+          }
+        }
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "required": [
+          "ok",
+          "error"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "string",
+            "description": "Stable error code, e.g. invalid_request, unauthorized, signer_unavailable, engine_error, engine_timeout, cannot_issue_receipt."
+          },
+          "detail": {
+            "description": "Optional human-readable or structured detail."
+          }
+        }
+      }
+    }
+  }
+}

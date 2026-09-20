@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravenattest.com/receipt-wire-schema.json",
+  "title": "LEGACY V2 Raven Wire Receipt (NOT receipt-v1)",
+  "description": "LEGACY V2 COMPATIBILITY schema for the signed object returned by POST /verify and archived in /receipt-test-vector.json (vector.receipt). It is not the current receipt-v1 customer wire contract and is not recommended for new integrations. Current integrations use POST /receipt/v1 and /receipt-v1-test-vector.json with the maintained raven-receipt-verifier. For persisting an archived legacy v2 receipt, use /receipt-schema.json. The legacy signing contract is unchanged: its ed25519 signature covers the canonical preimage recipe published in the legacy vector, not this document.",
+  "$comment": "LEGACY V2 only. Forward-compatible: additionalProperties stays true so future informational legacy fields do not break third-party validators. The one hard prohibition: 'unsigned' must NEVER appear inside the legacy receipt object. In POST /verify, 'unsigned' appears as a sibling key alongside the receipt fields — the object that this schema validates is the response body WITH that top-level annotation removed. The annotation carries no receipt authority.",
+  "type": "object",
+  "required": [
+    "ok",
+    "verdict",
+    "findingCodes",
+    "coverageGaps",
+    "engineVersion",
+    "replayHash",
+    "officialAttestationHash",
+    "keyId",
+    "issuedAt",
+    "signature",
+    "signatureAlg"
+  ],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "verdict": {
+      "enum": ["pass", "pass_with_info_finding", "warning", "risk", "unknowable"]
+    },
+    "engineOutcome": {
+      "type": ["string", "null"],
+      "description": "The engine's pass/fail outcome, or null. A legitimate \"unknowable\" receipt (e.g. RPC unreachable) carries engineOutcome:null — see SolanaEngineOutcome | null in the contract — so null MUST validate here."
+    },
+    "reason": { "type": "string" },
+    "findingCodes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "triggeringFindingCodes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Finding codes that determined the verdict. Informational-only evidence (e.g. launch.*) must never appear here."
+    },
+    "findings": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "coverageGaps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Normative. Must never be summarized away. The authoritative limitation list for this receipt."
+    },
+    "replayable": { "type": "boolean" },
+    "rpc": {
+      "type": "object",
+      "description": "Read context for the verification. observedSlot lives HERE (rpc.observedSlot), not at the receipt top level.",
+      "properties": {
+        "commitment": { "type": "string" },
+        "mintAddress": { "type": "string" },
+        "metadataAddress": { "type": ["string", "null"] },
+        "observedSlot": { "type": "integer" }
+      }
+    },
+    "engineVersion": { "type": "string" },
+    "raven_version": { "type": "string" },
+    "replayHash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "officialAttestationHash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "keyId": { "type": "string" },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "signature": {
+      "type": "string",
+      "description": "Base64 ed25519 signature over the published canonical preimage recipe. Verify against an independently pinned signer key — the embedded attestationPublicKey is convenience-only and MUST be cross-checked against the pinned key, never trusted alone. GET /pubkey (see agents.json attestation.publicKeyEndpoint) is same-host discovery/cross-check material only."
+    },
+    "attestationPublicKey": {
+      "type": "string",
+      "description": "Convenience copy of the signing public key (base64 SPKI DER). NOT an authority by itself: cross-check keyId and served key material against your independently pinned key before trusting; /pubkey alone is discovery, not a trust root."
+    },
+    "signatureAlg": { "const": "ed25519" },
+    "served_at": { "type": "string", "format": "date-time" },
+    "unsigned": false
+  },
+  "additionalProperties": true
+}

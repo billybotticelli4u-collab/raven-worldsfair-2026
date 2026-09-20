@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Operator — feedback</title><link rel="stylesheet" href="../_shared-style.css"></head><body>
+<header><div class="wrap"><b>RAVEN / operator / feedback</b></div></header>
+<div class="wrap"><h1>Feedback classifier</h1>
+<p class="lead">Deterministic rules, no LLM, no vibes. Same logic as <span class="mono">scripts/raven-feedback-classifier.mjs</span> — paste lead fields, get the bucket and the build/docs/out-of-scope flags.</p>
+<div class="card">
+<label style="font-size:13px;color:var(--dim)">role<br><input id="role" style="width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px;border-radius:6px"></label><br><br>
+<label style="font-size:13px;color:var(--dim)">use case + decision + notes (free text)<br><textarea id="text" style="width:100%;min-height:90px;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px;border-radius:6px"></textarea></label><br><br>
+<label style="font-size:13px;color:var(--dim)">missing evidence (comma-sep: liquidity, holders, deployer history, Token-2022, other)<br><input id="ev" style="width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:8px;border-radius:6px"></label><br><br>
+<button id="go" style="cursor:pointer;background:var(--accent);border:0;color:#0b0e14;font-weight:600;padding:10px 18px;border-radius:8px">Classify</button>
+<pre id="out" style="margin-top:14px"></pre></div></div>
+<script type="module">
+import { classifyFeedback } from "../scripts/raven-feedback-classifier.mjs";
+document.getElementById("go").addEventListener("click", () => {
+  const r = classifyFeedback({
+    role: document.getElementById("role").value,
+    useCase: document.getElementById("text").value,
+    missingEvidence: document.getElementById("ev").value.split(",").map(s=>s.trim()).filter(Boolean),
+    notes: "" , decisionSupported: "", tokenRequested: ""
+  });
+  document.getElementById("out").textContent = JSON.stringify(r, null, 2);
+});
+</script></body></html>

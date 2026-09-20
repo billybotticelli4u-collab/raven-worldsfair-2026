@@ -1,0 +1,63 @@
+{
+  "policyName": "raven-agentic-research-boundary-policy",
+  "version": "1.0",
+  "contractBoundary": "Current receipt-v1 fields are subject, rulesVersion, findings, coverageGaps, timestamp, slot, payloadHash, receiptId, signerPublicKey and signature. Verdict/keyId/observedSlot are legacy v2 compatibility fields.",
+  "researchIs": "retrieval, comparison, summarization, and explanation of Raven receipts and public policy",
+  "researchIsNot": [
+    "verification",
+    "a receipt",
+    "signature proof",
+    "authority over current receipt-v1 findings, gaps, signer trust, subject, rules or staleness (or legacy v2 verdict/keyId)"
+  ],
+  "corePrinciple": "An agent may retrieve, summarize, compare, and explain Raven receipts. It must not replace exact receipt verification with retrieved text, model memory, tool summaries, screenshots, citations, or generated prose. If a retrieved snippet conflicts with signed receipt JSON, the receipt wins. If the exact receipt cannot be retrieved, fail closed for material action.",
+  "clarificationRules": {
+    "clarifyBefore": [
+      "chain",
+      "mint address",
+      "requested action (display / explain / compare / gate / material action)",
+      "required evidence scope (metadata? pool?)",
+      "maximum acceptable receipt age",
+      "whether coverage gaps block or only warn"
+    ],
+    "rules": [
+      "if mint is missing or ambiguous: ask or fail closed - never infer a mint",
+      "if chain is ambiguous for a material action: ask - never infer",
+      "if the user asks 'is it safe': answer in Raven's bounded language; never say safe",
+      "prefer deterministic fields, enums, and schema inputs over model inference",
+      "do not run broad research when deterministic identifiers are missing"
+    ]
+  },
+  "researchLoopRules": [
+    "loop: parse structured request -> retrieve exact receipt/evidence -> validate schema -> verify signature/key/staleness outside the LLM -> evaluate completeness against requested scope -> retry within limits or stop with explicit coverage gaps",
+    "missing evidence becomes a coverage gap, never a model guess; the LLM cannot fill missing evidence",
+    "repeated identical retrievals stop at the loop limit; retrieval failure never converts into pass",
+    "completeness is an eval against the requested scope, not a model feeling; premature 'done' without the completeness check is a failure"
+  ],
+  "contextEngineeringRules": [
+    "store large tool outputs in state with stable references (receipt hash/ID); do not stuff raw evidence into active context",
+    "context compression must never drop current receipt-v1 invariants: subject, rulesVersion, findings, coverage gaps, payloadHash, receiptId, signerPublicKey/trust, signature status, slot, and staleness; legacy v2 invariants remain version-scoped",
+    "if the exact receipt cannot fit in context, reference the stored receipt and verify it directly outside the LLM",
+    "context-window pressure must not mark a task complete",
+    "bind only the tools the current step needs; tool overload (wrong-tool loops, irrelevant-domain retrieval) triggers stop-and-rescope"
+  ],
+  "writerRules": [
+    "researcher is not writer; writer is not verifier",
+    "the writer receives structured verified fields + coverage gaps + allowed language; it may not invent evidence, omit blocking gaps, or convert 'not verified' into anything stronger",
+    "draft reflection before display checks: no safety-affirming language, no price/trading advice, current findings/gaps unchanged and no invented verdict, staleness and signature/trust status present",
+    "synthesis gap (draft misused available evidence) -> rewrite with the same evidence; research gap (evidence missing) -> retrieve within limits or state the gap explicitly",
+    "writer output is display-only unless paired with exact receipt verification"
+  ],
+  "citationRules": [
+    "citations are references, not verification - a page citation never replaces ed25519 signature verification",
+    "authoritative references: exact receipt JSON, receipt hash, verifier response",
+    "invalid as authority: model memory, chat-history summaries, screenshots, badges, MCP/tool output without verification, remote-agent claims, social posts, generated prose"
+  ],
+  "materialActionRule": "Every material downstream action requires exact receipt verification, staleness check, coverage-gap check, and decision-policy application - regardless of what research, RAG, memory, or summaries say.",
+  "prohibitedClaims": [
+    "verified by summary",
+    "verified by citation",
+    "verified by memory",
+    "verified by RAG",
+    "verified by agent research"
+  ]
+}

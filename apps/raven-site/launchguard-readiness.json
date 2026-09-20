@@ -1,0 +1,83 @@
+{
+  "schema": "raven-launchguard-readiness/1",
+  "purpose": "Practical integration checklist for agent teams, toolkits, launchpads, and bots. Answer these before wiring Raven in.",
+  "checklist": [
+    {
+      "q": "What action follows Raven?",
+      "options": [
+        "display",
+        "list",
+        "route",
+        "spend",
+        "trade",
+        "escalate",
+        "block"
+      ]
+    },
+    {
+      "q": "What evidence will you pass?",
+      "options": [
+        "mintAddress + tokenProgramAddress (required)",
+        "metadataAddress (optional)",
+        "poolAddress (optional, Raydium CPMM)"
+      ]
+    },
+    {
+      "q": "What evidence may be missing?",
+      "note": "Missing optional evidence = coverage gap, never a pass."
+    },
+    {
+      "q": "Which coverage gaps does YOUR policy accept?",
+      "note": "Write them down; the preflight gate example takes them as a list."
+    },
+    {
+      "q": "Which verdicts require human approval?",
+      "note": "Default: warning, risk, unknowable (see /decision-policy.json)."
+    },
+    {
+      "q": "What is your receipt staleness window?",
+      "note": "Pre-trade/spend/list = re-verify immediately; delayed execution = re-verify at execution time."
+    },
+    {
+      "q": "Where are receipts stored?",
+      "note": "Per /receipt-schema.json; append-only; never store secrets."
+    },
+    {
+      "q": "Who owns policy changes?",
+      "note": "Name a human. Agents recommend; humans own."
+    },
+    {
+      "q": "How are eval failures handled?",
+      "note": "A failing eval is a build order — report via /integrator-feedback.html."
+    },
+    {
+      "q": "Verifier unavailable?",
+      "note": "Fail closed; retry; local MCP fallback where applicable."
+    },
+    {
+      "q": "Signature verification fails?",
+      "note": "Incident: do not trust the receipt; re-run; report."
+    },
+    {
+      "q": "Token unsupported?",
+      "note": "400 invalid_request -> treat as not verified."
+    },
+    {
+      "q": "Pilot scope?",
+      "note": "One workflow, one namespace, accepted-gaps list, staleness window."
+    },
+    {
+      "q": "Scale path?",
+      "note": "Pilot -> beta key (higher limits, optional holder-beta) -> integration tier."
+    }
+  ],
+  "pilotPackage": {
+    "day0": "Integrate the read-only Raven call (hosted or MCP). No wallet access needed.",
+    "day1": "Verify signatures against an independently pinned key (/pubkey is a cross-check); store exact receipts per schema.",
+    "day2": "Apply /decision-policy.json (proceed/block/escalate + accepted gaps).",
+    "day3": "Run eval fixtures (/evals.json) and the public smoke checks against your wiring.",
+    "day4": "Review coverage gaps hit and any disagreements with your own data.",
+    "day5": "Decide: request beta key / expand usage / send integrator feedback."
+  },
+  "noPromises": "No revenue, trading-performance, safety, or rug-prevention promises. Signed evidence and explicit gaps only."
+}

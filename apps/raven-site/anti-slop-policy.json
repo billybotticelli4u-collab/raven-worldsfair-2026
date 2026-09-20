@@ -1,0 +1,104 @@
+{
+  "policyName": "raven-anti-slop-policy",
+  "version": "1",
+  "contractBoundary": "Current receipt-v1 carries signed findings and coverage gaps, not verdict/keyId/observedSlot fields. The current summary contract appears in currentReceiptV1SummaryContract below. legacyV2SummaryContract preserves the historical policy projection separately.",
+  "principle": "Agents can generate convincing text, code, summaries, and UI. None of those are launch evidence unless Raven checks the supported evidence and signs a receipt. Raven forces a crisp boundary between 'the agent said' and 'the verifier checked'.",
+  "slopRisks": [
+    "confident_summary_without_receipt",
+    "hidden_coverage_gap",
+    "stale_receipt_reused_as_current",
+    "model_upgraded_warning_to_pass",
+    "model_called_token_safe",
+    "screenshot_badge_treated_as_verification",
+    "social_hype_treated_as_evidence",
+    "missing_pool_evidence_treated_as_liquidity",
+    "missing_metadata_evidence_treated_as_identity"
+  ],
+  "llmAllowedActions": [
+    "explain a receipt",
+    "summarize findings (preserving the contract below)",
+    "draft docs and candidate evals",
+    "help collect candidate context to ASK Raven about"
+  ],
+  "llmForbiddenActions": [
+    "alter a receipt",
+    "upgrade a verdict",
+    "remove or soften coverage gaps",
+    "convert pass into 'safe'",
+    "treat missing evidence as a pass",
+    "override staleness policy",
+    "authorize a token action after risk/warning/unknowable without explicit integrator escalation policy"
+  ],
+  "downgradeOnlyRule": "Derived interpretations may only hold or downgrade confidence relative to the receipt — never upgrade it.",
+  "summaryContract": {
+    "status": "legacy_v2_compatibility",
+    "summaryIsAuthority": false,
+    "receiptIsAuthority": true,
+    "requiredSummaryFields": [
+      "verdict",
+      "findingCodes",
+      "coverageGaps",
+      "keyId",
+      "engineVersion",
+      "observedSlot",
+      "signature verification status",
+      "staleness status",
+      "policy action (proceed/block/escalate/reverify)"
+    ],
+    "forbiddenSummaryTransformations": [
+      "omit coverage gaps",
+      "replace finding codes with vague language",
+      "say safe/approved/good to buy",
+      "hide signature failure, verifier error, stale receipt, or missing optional evidence",
+      "convert unknowable into pass",
+      "use token marketing copy as evidence"
+    ],
+    "requiredPhrases": [
+      "not enough evidence for a full pass (when gaps remain)"
+    ]
+  },
+  "currentReceiptV1SummaryContract": {
+    "summaryIsAuthority": false,
+    "receiptIsAuthority": true,
+    "requiredSummaryFields": [
+      "signed subject",
+      "rulesVersion",
+      "findings",
+      "coverageGaps",
+      "slot",
+      "payloadHash",
+      "receiptId",
+      "signerPublicKey trust status",
+      "signature/integrity status",
+      "freshness status",
+      "consumer policy action"
+    ],
+    "rule": "Never invent a verdict for receipt-v1; never collapse integrity, signer trust, subject, rules, freshness, coverage, and policy into one boolean."
+  },
+  "generatedCodePolicy": {
+    "generatedCodeTrustLevel": "untrusted_until_tests_pass",
+    "humanApprovalRequired": true,
+    "publishGate": "no npm publish / plugin claim without passing tests and human approval",
+    "requiredTests": [
+      "verifies valid receipt signature",
+      "rejects tampered receipt",
+      "rejects missing signature",
+      "rejects receipt-v1 signerPublicKey that does not match the independent pin (and rejects unknown keyId for legacy v2)",
+      "fails closed on verifier_error",
+      "handles stale receipts",
+      "preserves coverage gaps",
+      "maps risk->block/escalate, warning->approval, unknowable->not verified",
+      "never says safe",
+      "never logs secrets or exposes keys in browsers",
+      "never requests wallet signer permission"
+    ],
+    "note": "Raven practices this on itself: raven-solana-agent-kit-plugin shipped only after fixture + live tests."
+  },
+  "requiredRefusalLanguage": [
+    "I can explain the receipt, but I cannot upgrade the verdict.",
+    "This is not enough evidence for a full pass.",
+    "The signed receipt must be reverified before a material action.",
+    "Raven does not say this token is safe.",
+    "Raven does not provide trading, investment, treasury, or portfolio advice."
+  ]
+}

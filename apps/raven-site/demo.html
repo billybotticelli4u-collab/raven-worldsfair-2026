@@ -1,0 +1,140 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raven — 45 second demo</title><link rel="icon" type="image/svg+xml" href="raven-logo.svg">
+<style>
+body{margin:0;background:#07090d;color:#dbe2f0;font-family:ui-monospace,Menlo,monospace;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center}
+.frame{width:min(960px,94vw)}
+.title{font:600 17px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#8b94a8;text-align:center;margin:14px 0}
+.title b{color:#dbe2f0}
+.term{background:#0b0f16;border:1px solid #1c2535;border-radius:12px;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.5)}
+.tbar{display:flex;gap:7px;background:#101622;border-bottom:1px solid #1c2535;padding:10px 14px}
+.d{width:11px;height:11px;border-radius:50%}.r{background:#ff5d73}.y{background:#ffb454}.g{background:#87d96c}
+/* max-height + scroll, not a fixed height: the transcript must stay reachable at 200% zoom (1.4.4/1.4.10). */
+.body{padding:16px 18px;font-size:13px;line-height:1.5;max-height:440px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+/* .c was #5c6677 on #0b0f16 = 3.31:1 — below the 4.5:1 required for body text. */
+.p{color:#87d96c}.c{color:#8b94a8}.j{color:#a8b3c9}.risk{color:#ff5d73;font-weight:700}.info{color:#5ccfe6;font-weight:700}.k{color:#7aa2f7}
+.cap{font:500 15px/1.5 -apple-system,sans-serif;color:#5ccfe6;text-align:center;min-height:48px;margin:14px 8px}
+.controls{display:flex;gap:10px;justify-content:center;margin:0 auto 24px}
+.controls button{cursor:pointer;font:600 14px -apple-system,sans-serif;padding:10px 22px;border-radius:8px}
+.controls button:focus-visible{outline:2px solid #7aa2f7;outline-offset:3px}
+.replay{visibility:hidden;background:#7aa2f7;border:0;color:#0b0e14}
+.pp{background:transparent;border:1px solid #5b6c96;color:#dbe2f0}
+.pp:hover{border-color:#7aa2f7}
+.pp[hidden]{display:none}
+</style></head><body>
+<main class="frame" id="main">
+<h1 class="title">Before your agent touches a Solana token, <b>make it ask Raven.</b></h1>
+<p class="title">Format preview only — this animation is archived demo material, not current receipt-v1 wire, a live status feed, or a production trust viewer. Current customer integration: <b>POST /receipt/v1</b> plus local verification.</p>
+<div class="term"><div class="tbar"><span class="d r"></span><span class="d y"></span><span class="d g"></span></div>
+<div class="body" id="t"></div></div>
+<div class="cap" id="cap"></div>
+<div class="controls">
+  <button type="button" class="pp" id="pp">Pause</button>
+  <button type="button" class="replay" id="replay" onclick="location.reload()">Replay</button>
+</div>
+</main>
+<script>
+const USDC_OUT = `{
+  "findingCodes": [
+    "issuer_control.mint_authority_active",
+    "issuer_control.freeze_authority_active",
+    "venue.infrastructure_tier_immutable"
+  ],
+  "coverageGaps": [
+    "liquidity",
+    "top_holders",
+    "deployer_outcomes"
+  ],
+  "keyId": "rvk_c2997e90215279c2",
+  "signature": "wXKUnCWSqW4Od6k/dGA2uPcD...",
+  "observedSlot": 424327592
+}`;
+const PUMP_OUT = `{
+  "findingCodes": [
+    "token2022.metadata_pointer_present",
+    "token2022.token_metadata_present",
+    "venue.infrastructure_tier_mutable_but_known"
+  ],
+  "coverageGaps": [
+    "liquidity",
+    "top_holders",
+    "deployer_outcomes"
+  ],
+  "keyId": "rvk_c2997e90215279c2",
+  "signature": "WFr8bp1+rjlL7FNYJKfsL0KW...",
+  "observedSlot": 424327609
+}`;
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const cj = s => esc(s).replace(/rvk_c2997e90215279c2/,'<span class="k">rvk_c2997e90215279c2</span>');
+// Timeline: [startMs, kind, payload]. kind: type {text,cls,durMs} | print {html} | cap {text}
+const TL = [];
+let cur = 600;
+function type(text, cls, dur){ TL.push([cur, "type", {text, cls, dur}]); cur += dur; }
+function print(html, pause){ TL.push([cur, "print", {html}]); cur += (pause||200); }
+function cap(text){ TL.push([cur, "cap", {text}]); }
+type("# every receipt below is real, signed, and verifiable offline\n\n", "c", 1600);
+cap("1 / 3 — the honesty test");
+type("$ ", "p", 80); type("raven-verify USDC\n", "j", 900);
+cur += 400; print(cj(USDC_OUT) + "\n");
+print('<span class="c"># outcome: listed findings triggered under rules raven-solana-live-scan@0.1.0 at slot 424327592; not evaluated: liquidity, top_holders, deployer_outcomes</span>\n\n');
+cap("USDC: issuer authorities are active — listed findings triggered. No blue-chip special-casing.");
+cur += 4200;
+cap("2 / 3 — a fresh pump.fun launch (Token-2022)");
+type("$ ", "p", 80); type("raven-verify CVue...pump\n", "j", 900);
+cur += 400; print(cj(PUMP_OUT) + "\n");
+print('<span class="c"># outcome: no listed finding triggered under rules raven-solana-live-scan@0.1.0 at slot 424327609; not evaluated: liquidity, top_holders, deployer_outcomes</span>\n\n');
+cap("Raven lists what it did NOT check. Gaps remaining = not enough evidence for a full pass.");
+cur += 4600;
+cap("3 / 3 — verify the receipt yourself");
+type("$ ", "p", 80); type("curl -s https://raven-hosted-verifier.onrender.com/pubkey\n", "j", 1300);
+cur += 400;
+print('<span class="j">{"keys":[{"keyId":"</span><span class="k">rvk_c2997e90215279c2</span><span class="j">","alg":"ed25519"}], "domain":"raven-official-attestation"}</span>\n\n');
+cap("ed25519-signed receipts. Agents store them and gate actions on them.");
+cur += 3600;
+type("# signed evidence and receipts for agent commerce.\n# not advice. not a score.\n# ravenattest.com\n", "c", 2600);
+TL.push([cur, "cap", {text: "ravenattest.com"}]);
+const TOTAL = cur + 1200;
+// Renderer: wall-clock catch-up (immune to timer throttling), pausable.
+const T = document.getElementById("t"), CAP = document.getElementById("cap"),
+      PP = document.getElementById("pp"), REPLAY = document.getElementById("replay");
+function stateAt(now){
+  let html = "", capText = "";
+  for (const [at, kind, p] of TL){
+    if (now < at) break;
+    if (kind === "cap") capText = p.text;
+    else if (kind === "print") html += p.html;
+    else { const frac = Math.min(1, (now - at) / p.dur);
+      const n = Math.ceil(p.text.length * frac);
+      html += '<span class="' + p.cls + '">' + esc(p.text.slice(0, n)) + "</span>"; }
+  }
+  return { html, capText };
+}
+function render(at){
+  const s = stateAt(at);
+  T.innerHTML = s.html; CAP.textContent = s.capText; T.scrollTop = T.scrollHeight;
+}
+let elapsed = 0, last = performance.now(), paused = false, iv = null;
+function finish(){
+  if (iv) { clearInterval(iv); iv = null; }
+  PP.hidden = true;
+  REPLAY.style.visibility = "visible";
+  CAP.innerHTML = '<b style="color:#dbe2f0">ravenattest.com</b> — not advice, not a score.';
+}
+function tick(){
+  const now = performance.now();
+  if (!paused) elapsed += now - last;
+  last = now;                       // advance even while paused, so resume doesn't jump
+  render(elapsed);
+  if (elapsed >= TOTAL) finish();
+}
+PP.addEventListener("click", function(){
+  paused = !paused;
+  PP.textContent = paused ? "Play" : "Pause";
+});
+// 2.2.2 Pause, Stop, Hide: never auto-run the animation for reduced-motion users —
+// show the completed transcript immediately instead.
+if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+  elapsed = TOTAL; render(TOTAL); finish();
+} else {
+  iv = setInterval(tick, 80);
+}
+</script></body></html>

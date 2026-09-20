@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rollout — Raven</title><link rel="icon" type="image/svg+xml" href="raven-logo.svg"><link rel="stylesheet" href="_shared-style.css"></head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap"><img src="raven-logo.svg" alt="">RAVEN<span class="dotc">.</span>&nbsp;<span class="crumb">/ rollout</span></div></header>
+<div class="wrap"><main id="main"><h1>Shadow → advisory → enforced</h1>
+<p class="lead">The realistic adoption path for serious integrators. Machine-readable (phases, metrics, promotion/rollback criteria): <a href="launchguard-rollout.json" class="mono">/launchguard-rollout.json</a>.</p>
+<div class="card"><p><b style="color:var(--text)">1 · Shadow:</b> call Raven, block nothing yet — store receipts, track verdict distribution, gap frequency, errors, disagreements; human reviews weekly. <b style="color:var(--text)">2 · Advisory:</b> surface verdicts and gaps; risk/warning/unknowable need explicit approval; pass still does not mean safe. <b style="color:var(--text)">3 · Enforced:</b> block risk, escalate warning, never treat unknowable as verified, re-verify stale receipts, store everything for audit. <b style="color:var(--text)">4 · Tuning:</b> adjust accepted gaps and staleness windows, add eval cases from real misses — and never loosen policy without a documented reason.</p>
+<p style="font-size:13px;color:var(--dim)">Promote on: zero signature failures, acceptable error rate, documented gap handling, operators fluent in the verdict language. Roll back on: unexpected verdict flips, verifier instability, pass/safe confusion, missing receipt storage, policy bypass.</p></div>
+</main>
+<footer><a href="index.html">Console</a> · <a href="agents.html">For agents</a> · key <span class="mono">rvk_c2997e90215279c2</span> · not financial advice</footer>
+</div><script defer src="/_vercel/insights/script.js"></script><script src="_agent-events.js"></script></body></html>

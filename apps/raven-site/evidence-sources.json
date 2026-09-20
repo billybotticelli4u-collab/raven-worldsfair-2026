@@ -1,0 +1,73 @@
+{
+  "schema": "raven-evidence-sources/1",
+  "note": "What Raven checks, what each source can and cannot prove, and what happens on failure. Raven fails closed; optional evidence becomes a coverage gap when not supplied or not checkable.",
+  "excluded_by_design": [
+    "social sentiment",
+    "price prediction",
+    "future-performance inference",
+    "opaque third-party rug scores"
+  ],
+  "sources": [
+    {
+      "name": "token mint account",
+      "required": true,
+      "trust_boundary": "Solana RPC (server-side; callers never supply RPC)",
+      "proves": "issuer authorities (mint/freeze), supply, decimals, Token-2022 extension tail incl. unknown-extension detection",
+      "cannot_prove": "off-chain intent, team identity, future behavior",
+      "failure_behavior": "unknowable — never a default pass"
+    },
+    {
+      "name": "tokenProgramAddress (caller-supplied)",
+      "required": true,
+      "trust_boundary": "caller input, validated against known programs",
+      "proves": "which decoding rules apply (SPL vs Token-2022)",
+      "cannot_prove": "anything by itself",
+      "failure_behavior": "400 invalid_request"
+    },
+    {
+      "name": "metadata account (optional)",
+      "required": false,
+      "trust_boundary": "Solana RPC",
+      "proves": "metadata mutability, update authority",
+      "cannot_prove": "content truthfulness",
+      "failure_behavior": "coverage stays limited; explicit finding or gap"
+    },
+    {
+      "name": "pool account (optional, Raydium CPMM)",
+      "required": false,
+      "trust_boundary": "Solana RPC; layout validated vs mainnet fixtures",
+      "proves": "LP supply/custody (burn/locker), registered vault addresses for holder exclusion",
+      "cannot_prove": "liquidity on unsupported venues",
+      "failure_behavior": "liquidity remains a coverage gap"
+    },
+    {
+      "name": "holder accounts (beta, key-gated)",
+      "required": false,
+      "trust_boundary": "Solana RPC; venue custody only with decoded on-chain evidence (pump.fun curve, registered PumpSwap vaults)",
+      "proves": "top-holder concentration, venue-adjusted where evidence exists",
+      "cannot_prove": "CEX custody, Raydium v4 data-less vaults (reported unadjusted)",
+      "failure_behavior": "unresolved -> warning; unadjusted carries explicit qualifier + gap"
+    },
+    {
+      "name": "attestation public key",
+      "required": true,
+      "trust_boundary": "served by the verifier at /pubkey; cross-checkable in repo",
+      "proves": "receipt integrity and signing-key control (ed25519, domain-separated); Raven attribution requires an independently pinned signer key",
+      "cannot_prove": "anything about the token itself",
+      "failure_behavior": "signer unavailable -> 503, never an unsigned receipt"
+    },
+    {
+      "name": "engine version",
+      "required": true,
+      "trust_boundary": "stamped by the engine into every deliverable",
+      "proves": "which finding vocabulary produced the verdict; coverage expansion segmented from state change",
+      "cannot_prove": "n/a",
+      "failure_behavior": "n/a (always present)"
+    }
+  ],
+  "assetBackedLimitation": {
+    "rule": "Raven verifies supported on-chain evidence only. For stablecoins, RWAs, tokenized securities, tokenized funds, wrapped assets, fan tokens, or branded tokens, a receipt does NOT prove legal redeemability, full reserves, issuer approval or solvency, regulatory compliance, bankruptcy remoteness, securities status, or real-world asset custody unless a supported evidence source is explicitly included in the receipt.",
+    "coverageGapRule": "Unsupported off-chain claims appear as coverage gaps - never as silent assumptions.",
+    "context": "The market is moving toward serious-looking tokens: brand, athlete, stablecoin, RWA, and institutional narratives. Looking institutional is not evidence."
+  }
+}

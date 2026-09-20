@@ -1,0 +1,71 @@
+{
+  "policyName": "raven-launchguard-rollout",
+  "version": "1",
+  "phases": {
+    "shadow": {
+      "rule": "call Raven, do NOT block actions yet",
+      "do": [
+        "store receipts",
+        "track verdict distribution, gap frequency, verifier errors, disagreements",
+        "human operator reviews weekly"
+      ]
+    },
+    "advisory": {
+      "rule": "surface verdicts + gaps to user/operator",
+      "do": [
+        "risk/warning/unknowable require explicit approval",
+        "pass still does not mean safe"
+      ]
+    },
+    "enforced": {
+      "rule": "policy executes automatically",
+      "do": [
+        "block risk",
+        "escalate warning",
+        "never treat unknowable as verified",
+        "re-verify stale receipts before material action",
+        "store exact receipts for audit"
+      ]
+    },
+    "tuning": {
+      "rule": "evolve policy with evidence",
+      "do": [
+        "adjust accepted coverage gaps",
+        "update staleness windows",
+        "add eval cases from real misses or confusion",
+        "never loosen policy without a documented reason"
+      ]
+    }
+  },
+  "metricsToTrack": [
+    "receiptsIssued",
+    "verdictDistribution",
+    "coverageGapFrequency",
+    "verifierErrorRate",
+    "signatureVerificationFailures",
+    "staleReceiptRechecks",
+    "actionsBlocked",
+    "actionsEscalated",
+    "falsePositiveReports",
+    "falseNegativeReports",
+    "supportRequests",
+    "policyOverrides"
+  ],
+  "promotionCriteria": [
+    "zero signature verification failures",
+    "acceptable verifier error rate",
+    "documented handling of top coverage gaps",
+    "operators understand the verdict language",
+    "no copy says 'safe'",
+    "no trading-advice path introduced"
+  ],
+  "rollbackCriteria": [
+    "unexpected verdict flip",
+    "new unsupported token pattern",
+    "verifier instability",
+    "user confusion around pass vs safe",
+    "missing receipt storage",
+    "policy bypass discovered"
+  ],
+  "humanApprovalRequirements": "phase promotions and overrides are human decisions, logged by the integrator"
+}

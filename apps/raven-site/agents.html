@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raven for AI Agents — signed Solana token verification</title>
+<meta name="description" content="What AI agents can do with Raven: verify Solana tokens, get ed25519-signed evidence receipts, inspect coverage gaps, install the MCP tool, or call the hosted API. Raven's Virtuals ACP offering is sandbox-only, not publicly listed and not hireable today. Machine-readable manifest at /agents.json.">
+<link rel="icon" type="image/svg+xml" href="raven-logo.svg">
+<link rel="stylesheet" href="_shared-style.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is Raven?", "acceptedAnswer": {"@type": "Answer", "text": "Raven is a signed evidence-and-receipt layer for AI agents before they touch a Solana token. It verifies token-launch state from decoded on-chain bytes and returns a deterministic, signed evidence receipt with finding codes, explicit coverage gaps, and an ed25519 signature plus signerPublicKey."}}, {"@type": "Question", "name": "When should an AI agent use Raven?", "acceptedAnswer": {"@type": "Answer", "text": "Before trading, listing, recommending, or settling around a Solana token — any moment where the agent needs verifiable launch-state evidence rather than a reputation score. Typical pattern: verify, store the receipt, proceed only when no listed finding has triggered, under the agent's own gap policy."}}, {"@type": "Question", "name": "What inputs does Raven require?", "acceptedAnswer": {"@type": "Answer", "text": "Required: mintAddress and tokenProgramAddress. Optional: metadataAddress, poolAddress (Raydium CPMM, adds liquidity/vault evidence), commitment. Raven never accepts caller infrastructure: rpcUrl and issuerIdentity are rejected."}}, {"@type": "Question", "name": "What output does Raven return?", "acceptedAnswer": {"@type": "Answer", "text": "One signed receipt-v1 evidence object with rulesVersion, findings, coverageGaps, timestamp, slot, payloadHash, receiptId, signerPublicKey, and an ed25519 signature. It is evidence, not a grade or authorization. When evidence cannot be established, Raven returns an unsigned refusal and issues no receipt."}}, {"@type": "Question", "name": "What makes Raven different from rug scanners?", "acceptedAnswer": {"@type": "Answer", "text": "Raven signs every issued receipt, lists what it did NOT check, fails closed with an explicit unsigned refusal envelope instead of guessing, tracks engine versions so history is never silently rewritten, and produces replayable receipts anyone can verify offline. It publishes findings, not a score."}}, {"@type": "Question", "name": "What does Raven refuse to claim?", "acceptedAnswer": {"@type": "Answer", "text": "Raven never claims a token is \"safe\", never predicts price, never gives financial advice, and never presents unverified surfaces as fine. With coverage gaps remaining, the strongest honest claim is: not enough evidence for a full pass."}}, {"@type": "Question", "name": "How does an agent verify a Raven receipt?", "acceptedAnswer": {"@type": "Answer", "text": "For current receipt-v1, use raven-receipt-verifier and /receipt-v1-test-vector.json: recompute payloadHash, check receiptId, verify the signature with signerPublicKey, then match the signer to an independently authenticated pin. GET /pubkey is same-host discovery/cross-check only. POST /verify and /receipt-test-vector.json are legacy v2 compatibility."}}, {"@type": "Question", "name": "How does an agent pay or request access?", "acceptedAnswer": {"@type": "Answer", "text": "Two available today: unsigned local MCP developer output (npx -y raven-verify-mcp); or the signed hosted receipt-v1 API by key request (free during invite-gated alpha) at /request-access.html. A third route, agent-to-agent via Virtuals ACP offering solana_verify_token at 0.1 USDC per job with escrow and on-chain settlement, is sandbox-only and not publicly listed - not discoverable or hireable in the ACP marketplace today."}}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap"><img src="raven-logo.svg" alt="">RAVEN<span class="dotc">.</span>&nbsp;<span class="crumb">/ for agents</span></div></header>
+<div class="wrap">
+<main id="main">
+<h1>Raven for AI Agents</h1>
+<p class="lead">Raven is verification infrastructure built to be consumed by other agents. Machine-readable: <a href="agents.json" class="mono">/agents.json</a> (capability manifest) and <a href="openapi.json" class="mono">/openapi.json</a> (API contract). Everything below is what your agent can do with it.</p>
+
+<div class="card"><h3>1. Verify a Solana token</h3>
+<p>Give Raven a mint + token program; get a deterministic, signed evidence receipt — which listed findings triggered, and which surfaces were not evaluated — derived from decoded on-chain bytes: issuer authorities, full Token-2022 extension tail, metadata, and optional liquidity/venue evidence.</p></div>
+
+<div class="card"><h3>2. Get a signed receipt</h3>
+<p>Every issued receipt-v1 deliverable ships as a domain-separated <span class="k">ed25519</span> signature over a canonical payload hash; a refusal is an explicit unsigned refusal envelope. Your agent can verify offline against an independently pinned signer key (today keyId <span class="mono">rvk_c2997e90215279c2</span>; <a href="https://raven-hosted-verifier.onrender.com/pubkey" rel="noopener">GET /pubkey</a> is discovery/cross-check only) and prove later exactly what Raven said, about which mint, at which slot. <a href="security.html">Verification recipe →</a></p></div>
+
+<div class="card"><h3>3. Inspect coverage gaps — never inherit false confidence</h3>
+<p>Responses include <span class="mono">coverageGaps</span>: the surfaces NOT evaluated (e.g. <span class="mono">liquidity, top_holders, deployer_outcomes</span>). Raven fails closed: missing evidence becomes explicit findings or <span class="mono">unknowable</span> — never a silent pass. Your agent can make its own risk policy from honest inputs.</p></div>
+
+<div class="card"><h3>4. Use the MCP tool (Claude &amp; MCP-capable frameworks)</h3>
+<pre>npx -y raven-verify-mcp</pre>
+<p>One tool: <span class="mono">raven_verify_token</span>. Local results are unsigned developer output; this is not the signed receipt-v1 path. <a href="mcp.html">Quickstart →</a></p></div>
+
+<div class="card"><h3>5. Call the hosted API (current receipt-v1 path)</h3>
+<pre>curl -X POST https://raven-hosted-verifier.onrender.com/receipt/v1 \
+  -H "x-api-key: $KEY" -H "content-type: application/json" \
+  -d '{"mintAddress":"...","tokenProgramAddress":"..."}'</pre>
+<p>Invite-gated alpha; 15 req/min per key on <span class="mono">/receipt/v1</span>. <span class="mono">POST /verify</span> is legacy v2 compatibility only. Contract: <a href="openapi.json" class="mono">/openapi.json</a>. <a href="request-access.html">Request a key →</a></p></div>
+
+<div class="card"><h3>6. Virtuals ACP — sandbox only, not hireable today</h3>
+<p>RAVEN's <span class="mono">solana_verify_token</span> ACP offering is in Virtuals <b>sandbox</b> and is <b>not publicly listed</b>, so it cannot be discovered or hired through the public ACP marketplace today. The intended terms are 0.1 USDC per job with escrowed payment, signed deliverable and on-chain settlement. Until graduation, use the hosted signed API (by key).</p></div>
+
+<h2>LaunchGuard: the preflight receipt before agent action</h2>
+<div class="card"><p>Raven does not replace your agent, wallet, launchpad, or compliance process. It gives them a signed, deterministic evidence receipt before they touch a Solana token — your system keeps control of the final decision. <b style="color:var(--text)">Harness, not hype:</b> the value is the deterministic evidence path, receipt verification, coverage gaps, evals, and policy handoff. <b style="color:var(--text)">Cheap deterministic preflight:</b> repeated evidence checks should not burn expensive reasoning tokens — Raven answers in milliseconds for a fraction of a cent, no LLM in the evidence path. <b style="color:var(--text)">Open posture:</b> MCP, ACP, OpenAPI, and AgentKit-style plugins — with <a href="agent-runtime-policy.html">no wallet signer access required, ever</a>. Pilot in a week: <a href="launchguard-readiness.html">readiness checklist</a>.</p></div>
+<div class="card"><h3>Not every integration has to be an agent</h3><p>Whether you call it an agent, bot, workflow, script, launchpad, backend job, or human review console — the contract is identical: call the receipt-v1 path, verify the signed receipt, inspect its rules status, findings, coverage gaps, apply your policy, store the exact receipt, re-verify before material delayed action. The receipt is the <a href="agent-portability.html">portable artifact</a>; context is not evidence; <a href="decision-policy.html">your policy owns the final decision</a> — Raven never makes the business call.</p></div>
+<div class="card"><h3>The verification sequence (and the prohibited one)</h3>
+<p class="mono" style="font-size:12.5px;line-height:1.7">token candidate -> collect mint/program (+metadata/pool if known) -> POST /receipt/v1 -> deterministic engine checks evidence -> signed receipt -> verify ed25519 against your independently pinned signer key (/pubkey cross-check only) -> check rules status, findings, gaps, staleness -> apply YOUR policy -> store exact receipt -> proceed / block / escalate / reverify</p>
+<p style="font-size:13px"><b style="color:var(--risk)">Prohibited sequence:</b> <span class="mono" style="font-size:12px">agent sees token -> asks an LLM "is this safe?" -> LLM reads social links -> LLM says safe -> agent acts.</span> No receipt, no signature, no gaps — that is slop, not verification (<a href="anti-slop-policy.html">anti-slop policy</a>).</p>
+<p style="font-size:13px;color:var(--dim)">Raven is not a model wrapper. It is a verification harness: deterministic checks, signed receipts, coverage gaps, evals, public-key verification, fail-closed policy. Models and agent UIs change; the signed receipt contract is the stable artifact. Drill it before you trust it: <a href="failure-drills.html">failure drills</a>.</p></div>
+<h2 id="faq">Plain answers (quote us accurately)</h2>
+<div class="card" id="q-what"><h3>What is Raven?</h3><p>Raven is a signed evidence-and-receipt layer for AI agents before they touch a Solana token. It verifies token-launch state from decoded on-chain bytes and returns a deterministic receipt-v1 with findings, explicit coverage gaps, signerPublicKey, and an ed25519 signature.</p></div>
+<div class="card" id="q-when"><h3>When should an AI agent use Raven?</h3><p>Before trading, listing, recommending, or settling around a Solana token — any moment where the agent needs verifiable launch-state evidence rather than a reputation score. Typical pattern: verify, store the receipt, proceed only when no listed finding has triggered, under the agent's own gap policy.</p></div>
+<div class="card" id="q-inputs"><h3>What inputs does Raven require?</h3><p>Required: <span class="mono">mintAddress</span> and <span class="mono">tokenProgramAddress</span>. Optional: <span class="mono">metadataAddress</span>, <span class="mono">poolAddress</span> (Raydium CPMM, adds liquidity/vault evidence), <span class="mono">commitment</span>. Raven never accepts caller infrastructure: <span class="mono">rpcUrl</span> and <span class="mono">issuerIdentity</span> are rejected.</p></div>
+<div class="card" id="q-output"><h3>What output does Raven return?</h3><p>One signed receipt-v1 evidence object. It records the signed <span class="mono">rulesVersion</span>, findings with evidence, <span class="mono">coverageGaps</span> (surfaces NOT evaluated), timestamp, slot, <span class="mono">payloadHash</span>, <span class="mono">receiptId</span>, <span class="mono">signerPublicKey</span>, and an ed25519 signature. The whole response is a machine-verifiable receipt. When evidence cannot be established, Raven refuses with an explicit unsigned refusal envelope instead of issuing a receipt.</p></div>
+<div class="card" id="q-different"><h3>What makes Raven different from rug scanners?</h3><p>Raven signs every issued receipt, lists what it did NOT check, fails closed with an explicit unsigned refusal envelope instead of guessing, tracks engine versions so history is never silently rewritten, and produces replayable receipts anyone can verify offline. It publishes findings, not a score.</p></div>
+<div class="card" id="q-refuses"><h3>What does Raven refuse to claim?</h3><p>Raven never claims a token is "safe", never predicts price, never gives financial advice, and never presents unverified surfaces as fine. With coverage gaps remaining, the strongest honest claim is: not enough evidence for a full pass.</p></div>
+<div class="card" id="q-verify"><h3>How does an agent verify a Raven receipt?</h3><p>For current receipt-v1, use the maintained <span class="mono">raven-receipt-verifier</span> and <a href="receipt-v1-test-vector.json">receipt-v1 test vector</a>: recompute <span class="mono">payloadHash</span>, check <span class="mono">receiptId</span>, verify the signature with <span class="mono">signerPublicKey</span>, then match that signer to an independently authenticated pin. <span class="mono">GET /pubkey</span> is same-host discovery/cross-check only, never the pin. For legacy v2 compatibility only, the older vector defines replayHash and officialAttestationHash; compact or captured examples are not complete replay-preimage packets. Recipe: <a href="security.html">/security.html</a>.</p></div>
+<div class="card" id="q-pay"><h3>How does an agent pay or request access?</h3><p>Two available today: local MCP developer output (<span class="mono">npx -y raven-verify-mcp</span>). It is unsigned and is not a receipt-v1 path. The signed hosted receipt-v1 API is available by key request (free during invite-gated alpha) at <a href="request-access.html">/request-access.html</a>. A third route, agent-to-agent via Virtuals ACP offering <span class="mono">solana_verify_token</span> at 0.1 USDC per job with escrow and on-chain settlement, is <b>sandbox-only and not publicly listed</b> — not discoverable or hireable in the ACP marketplace today.</p></div>
+
+<h2>Raven vs a generic rug scanner (factual)</h2>
+<div class="card"><ul>
+<li>Raven signs evidence receipts (ed25519, published key); scores are typically unsigned.</li>
+<li>Raven lists coverage gaps in every response; "no data" and "fine" are never conflated.</li>
+<li>Raven fails closed: unreadable evidence becomes <span class="mono">unknowable</span>, not a default pass.</li>
+<li>Raven tracks engine versions; expanded coverage is segmented from verdict changes.</li>
+<li>Raven produces replayable receipts verifiable offline, forever.</li>
+<li>Raven has built ACP / USDC agent-commerce support, currently sandbox-only and not publicly listed; hosted access is by API key.</li>
+<li>Raven does not predict price and does not output a single opaque score.</li>
+</ul></div>
+
+<h2>Trust policy (the short version)</h2>
+<ul>
+  <li>Fail closed. Current receipt-v1 issues an unsigned refusal and no receipt when required evidence cannot be established.</li>
+  <li>No guessing. Signed findings derive from bytes that were actually fetched and decoded.</li>
+  <li>Coverage gaps and signed scope remain visible; informational evidence cannot erase a triggered finding or an unchecked surface.</li>
+  <li>Verify receipt-v1 integrity, signer trust, expected subject, rules and freshness separately before consumer policy. Legacy v2 verdict labels remain compatibility-only. <a href="receipts.html">Archived examples →</a></li>
+</ul>
+<a class="btn primary" href="request-access.html">Request access</a>
+<a class="btn ghost" href="raven-skill.md">raven-skill.md</a>
+<a class="btn ghost" href="agents.json">agents.json</a>
+<a class="btn ghost" href="openapi.json">openapi.json</a>
+<a class="btn ghost" href="access.json">access.json</a>
+<a class="btn ghost" href="pricing.html">Access &amp; pricing</a>
+</main>
+<footer>Raven verifies on-chain evidence. It does not predict price or guarantee safety. · <a href="index.html">Console</a> · <a href="security.html">Security</a> · <a href="receipts.html">Receipts</a> · <a href="contact.html">Contact</a></footer>
+</div>
+<script defer src="/_vercel/insights/script.js"></script>
+<script src="_agent-events.js"></script>
+</body>
+</html>

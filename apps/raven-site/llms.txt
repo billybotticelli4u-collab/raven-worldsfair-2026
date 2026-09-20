@@ -1,0 +1,141 @@
+# Raven
+
+Raven issues signed, scope-bounded evidence receipts for Solana tokens.
+A receipt v1 states exactly which checks were performed, states equally
+loudly which were not, declares its coverage gaps as first-class fields, and
+carries an ed25519 signature that anyone can verify offline against a signer
+key the consumer pins independently. No Raven infrastructure is required to
+check a receipt.
+
+A receipt is evidence, not a decision, and never an authorization. Raven
+never declares a token safe. Receipt integrity, signer trust, freshness,
+coverage, and your own policy are five separate questions: a receipt reports
+the first four independently and never collapses them into one boolean. The
+decision to act, and the authority to act, remain entirely yours.
+
+Use Raven when an agent needs verifiable, point-in-time evidence about a
+Solana token's on-chain state before it acts — not a score, not a rating, not
+a recommendation.
+
+Hosted verifier: https://raven-hosted-verifier.onrender.com
+  Primary:  POST /receipt/v1 (x-api-key)  -> signed receipt v1
+  Legacy compatibility: POST /verify (x-api-key) -> v2 signed attestation
+  Keys/health: GET /pubkey · GET /healthz · GET /readyz
+
+POST /receipt/v1 is the primary integration path for new work. It fails
+closed: when the chain state required to satisfy the request cannot be
+established, it returns an unsigned 422 `receipt_unavailable` refusal and
+issues no receipt. There is no unsigned success shape and no partial receipt.
+
+POST /verify is legacy compatibility. It keeps the unchanged
+`raven-official-attestation` / v2 attestation envelope for integrations built
+against it. Receipt v1 is a separate artifact under its own signing domain
+(`raven-receipt` / v1); a v2 verifier must never accept a receipt-v1
+signature, and vice versa. New integrations should use /receipt/v1.
+
+Machine-readable:
+  https://ravenattest.com/agents.json   (capability manifest)
+  https://ravenattest.com/openapi.json  (API contract)
+  https://ravenattest.com/access.json   (pricing/access tiers)
+  https://ravenattest.com/evals.json    (testable expected behaviors)
+
+Human-readable:
+  https://ravenattest.com/receipts.html  (real signed receipts)
+  https://ravenattest.com/security.html  (verification recipe)
+  https://ravenattest.com/workbench.html (developer/agent cockpit)
+  https://ravenattest.com/evals.html     (eval pack explained)
+
+
+Agent router (pick the surface for your need):
+  Get evidence before an agent acts   -> POST /receipt/v1 (keyed)
+  Agent-framework plugin (ElizaOS)    -> npm install plugin-raven-verify
+    (current ElizaOS adapter, >=0.2.1)
+  Verify a receipt signature          -> raven-receipt-verifier (npm;
+    not yet published - see Receipt verifier below); or manually: ed25519
+    over the domain-separated payload hash, checked with a signer key you
+    pin (no LLM, no Raven call)
+  Published v2 attestation key(s)     -> GET /pubkey
+  Local/dev verification              -> npx -y raven-verify-mcp
+  Pay per job                         -> Virtuals ACP: solana_verify_token
+                                        (SANDBOX ONLY - not publicly listed,
+                                         not hireable in the marketplace today)
+  Apply YOUR policy to the evidence   -> /decision-policy.json
+  Before any transaction is built/signed -> /transaction-boundary-policy.json
+  Rehearse failures before production -> /failure-drills.json
+  Receipt fields (wire receipt object)-> /receipt-wire-schema.json
+  Store receipts (storage envelope)   -> /receipt-schema.json
+  Legacy v2 attestation integrations  -> POST /verify (compatibility only)
+Rule of the road: receipt first, transaction second. Simulation is not
+verification. Never call a token safe.
+
+Positioning: signed evidence receipts for agentic Solana workflows.
+Discovery tools find. Research tools summarize. Payment tools pay. Trading
+tools execute. Raven produces evidence before action. Raven does not decide,
+authorize, execute transactions, route trades, custody assets, manage
+wallets, generate keys, submit swaps, recommend positions, or provide
+investment advice.
+Asset-backed caveat: for stablecoins/RWAs/wrapped/branded tokens a receipt
+does not prove legal backing, reserves, or compliance unless explicitly
+evidenced - unsupported off-chain claims are coverage gaps.
+
+Important:
+- The signed receipt JSON is the artifact. Chat summaries, screenshots,
+  badges, search results, and memory are not the artifact and carry no
+  authority.
+- A valid receipt is not permission. It reports observed on-chain state
+  within a declared scope; it never authorizes a trade, listing, transfer,
+  or any other material action.
+- Raven never says "safe" and gives no trading/investment/price/yield
+  advice.
+- Fail closed on: verifier unavailable, timeout, 429/5xx, missing or
+  invalid signature, unknown signer key, stale receipt, insufficient
+  coverage, or a 422 receipt_unavailable refusal.
+- Freshness is not integrity. A stale receipt still verifies
+  cryptographically; it simply describes an older slot. Never conflate the
+  two.
+- Integrations are non-interactive: no prompts, no spinners, no hidden
+  fallback to unsigned summaries.
+
+MCP install: npx -y raven-verify-mcp  (tool: raven_verify_token)
+  developer preview - local results UNSIGNED; package source/issues private
+  (404 externally); not the signed-receipt path
+  npm README is LEGACY: leads with POST /verify, no /receipt/v1, and calls
+  /pubkey a source of truth - never take an endpoint or trust pin from it
+ACP offering: solana_verify_token (Virtuals ACP, 0.1 USDC/job) — SANDBOX ONLY,
+not publicly listed, not discoverable or hireable in the ACP marketplace today
+Request access: https://ravenattest.com/request-access.html
+
+Trust policy: fail closed; no guessing; coverage gaps declared in every
+receipt; every receipt is signed and replayable; no price prediction; not
+financial advice.
+
+Receipt verifier: the canonical, ratified receipt-v1 verifier is the
+zero-dependency npm package raven-receipt-verifier — name ratified
+2026-08-18, not yet published; do not install lookalike names. Until
+publication, the minimal public reference implementation is
+github.com/billybotticelli4u-collab/raven-receipt-verify (interim reference;
+not the hardened canonical kernel, no equivalence claimed). Trust comes from
+the key you pin locally; /pubkey, this site, DNS records, and GitHub are
+cross-checks only. Public v1 test vector: /receipt-v1-test-vector.json
+(production-signed).
+
+Agent workbench usage: load /raven-agent-context.md as context; use
+/raven-agent-skill.md as the operating skill; /prompt-recipes.json for
+repeatable prompts; verify receipt signatures against a key you pin; store
+receipts per /receipt-memory-policy.md (storage optional, never required).
+Never claim "safe" when coverage gaps remain, and never treat a stored
+receipt as authorization for a new action.
+Single-file skill for coding agents: /raven-skill.md
+More machine surfaces: /key-policy.json /evidence-sources.json
+/payment-policy.json /receipt-storage.json /quality-ledger.json /examples.json
+/skills.html /abuse.html. Raven is not a generic rug scanner.
+
+Contact (Raven Attest, routed by purpose):
+  Security / vulnerability disclosure (private) -> security@ravenattest.com
+    (machine-readable: /.well-known/security.txt, RFC 9116; policy:
+    /security.html — never include keys, seed phrases, or credentials)
+  Developer / API access                        -> access@ravenattest.com
+    (structured intake: /request-access.html)
+  Partnerships / design partners                -> partners@ravenattest.com
+  General                                       -> raven@ravenattest.com
+  All routes: /contact.html

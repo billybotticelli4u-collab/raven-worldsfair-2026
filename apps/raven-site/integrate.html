@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integrate — Raven stranger path</title>
+<meta name="description" content="Customer path: pin trustedKeys, call verifyReceiptV1ForSubject with expectedSubject, keep axes separate, apply CUSTOMER POLICY.">
+<link rel="icon" type="image/svg+xml" href="raven-logo.svg">
+<link rel="stylesheet" href="_shared-style.css">
+</head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap"><img src="raven-logo.svg" alt="">RAVEN<span class="dotc">.</span>&nbsp;<span class="crumb">/ integrate</span></div></header>
+<div class="wrap"><main id="main">
+<h1>Integrate Raven (customer stranger path)</h1>
+<p class="lead">One coherent path for a new integrator: obtain evidence, supply your own pinned <span class="mono">trustedKeys</span>, call <span class="mono">verifyReceiptV1ForSubject</span> with the exact expected subject, keep axes separate, and apply <b>your</b> policy. Raven never authorizes an action.</p>
+
+<h2>1. Obtain</h2>
+<p>Primary customer path: <span class="mono">POST /receipt/v1</span> with your API key. Returns a signed receipt-v1 deliverable. <span class="mono">POST /verify</span> is legacy official-attestation v2 compatibility only.</p>
+<ul>
+  <li>Primary test vector: <a href="receipt-v1-test-vector.json" class="mono">/receipt-v1-test-vector.json</a></li>
+  <li>Legacy v2 vector (explicitly not receipt-v1): <a href="receipt-test-vector.json" class="mono">/receipt-test-vector.json</a></li>
+  <li>Recipe: <a href="security.html">security.html</a> · policy: <a href="decision-policy.html">decision-policy.html</a></li>
+</ul>
+
+<h2>2. Package status (public truth)</h2>
+<ul>
+  <li><span class="mono">raven-receipt-verifier</span> - ratified name; <b>unpublished</b> (npm 404). No public registry command yet.</li>
+  <li><span class="mono">plugin-raven-verify@0.3.2</span> - installable ElizaOS adapter only. Consequential use requires independently supplied trusted keys via <span class="mono">RAVEN_TRUSTED_KEYS</span>; unset or empty fails closed (no <span class="mono">/pubkey</span> bootstrap). <span class="mono">/pubkey</span> is discovery/cross-check only — do not rely on that discovery path as a trust root.</li>
+  <li><span class="mono">raven-verify-js@0.1.0</span> - <b>DEPRECATED</b>, unsuitable for trust decisions.</li>
+  <li><span class="mono">raven-verify-mcp</span> - unsigned local/developer preview; not a signed receipt-v1 deliverable.</li>
+</ul>
+
+<h2>3. Pin (trust decision)</h2>
+<p>Supply Ed25519 key bytes yourself as <span class="mono">trustedKeys</span> (caller-controlled pin array). Cross-check site footer, repos, and GET /pubkey. <b>/pubkey is discovery only, never a trust root.</b> Never wire <span class="mono">trustedKeys</span> from <span class="mono">fetch("/pubkey")</span>.</p>
+
+<h2>4. Verify receipt-v1 axes (real verifier shape)</h2>
+<p>Call <span class="mono">verifyReceiptV1ForSubject(receipt, expectedSubject, options)</span>. Keep answers separate — never collapse into Raven authorization:</p>
+<ol>
+  <li><span class="mono">valid</span> — integrity/signature</li>
+  <li><span class="mono">keyTrusted</span> — caller-pin match</li>
+  <li><span class="mono">stale</span> — freshness (<span class="mono">!stale</span> required)</li>
+  <li><span class="mono">subjectMatches === true</span> — exact expected subject (chain + mintAddress + tokenProgramAddress)</li>
+  <li><span class="mono">rulesStatus === "supported_valid"</span> — exact string (not "ok", not a boolean)</li>
+</ol>
+
+<h2>5. Legacy v2</h2>
+<p>Legacy official-attestation v2 uses <span class="mono">POST /verify</span>, domain <span class="mono">raven-official-attestation</span>, and fields like <span class="mono">verdict</span>/<span class="mono">replayHash</span>/<span class="mono">officialAttestationHash</span>. Vector: <a href="receipt-test-vector.json" class="mono">/receipt-test-vector.json</a> (family legacy-official-attestation-v2). Not for receipt-v1 verifiers. receipt-v1 is the current customer path; legacy v2 is compatibility only — not both current.</p>
+
+<h2>6. MCP</h2>
+<p>Local MCP (<span class="mono">npx raven-verify-mcp</span>) is unsigned developer preview — not a signed receipt-v1 deliverable. Use hosted <span class="mono">POST /receipt/v1</span> for signed evidence.</p>
+
+<h2>7. Real verifier example</h2>
+<p>Timestamps must be ISO-8601 with <span class="mono">Z</span> (or an explicit offset). Never unzoned local times. Caller supplies the pin; do not invent a one-boolean Raven gate.</p>
+<pre>import { verifyReceiptV1ForSubject } from "raven-receipt-verifier";
+
+// Caller-controlled pin (independently obtained). NOT fetch("/pubkey").
+const trustedKeys = [
+  process.env.RAVEN_PINNED_PUBKEY
+  // e.g. "MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w="
+];
+
+const receipt = await postReceiptV1({ mintAddress, tokenProgramAddress });
+
+const result = verifyReceiptV1ForSubject(
+  receipt,
+  {
+    chain: "solana-mainnet",
+    mintAddress,
+    tokenProgramAddress, // all three required
+  },
+  { now: new Date(), trustedKeys },
+);
+
+// CUSTOMER POLICY (not a Raven verdict / pass / safe / approved):
+const proceed =
+  result.valid &&
+  result.keyTrusted &&
+  !result.stale &&
+  result.subjectMatches === true &&
+  result.rulesStatus === "supported_valid";
+</pre>
+<p><b>CUSTOMER POLICY</b> is your authorization gate over the five independent axes — not Raven saying pass/safe/verified. Axes stay separate: never gate on <span class="mono">valid</span> alone, never substitute <span class="mono">verdict === "pass"</span>, never drop <span class="mono">subjectMatches</span> / token-program binding / <span class="mono">rulesStatus === "supported_valid"</span>.</p>
+
+</main>
+<footer><a href="index.html">Console</a> · <a href="security.html">Security</a> · <a href="decision-policy.html">Decision policy</a> · key <span class="mono">rvk_c2997e90215279c2</span></footer>
+</div>
+<script defer src="/_vercel/insights/script.js"></script>
+<script src="_agent-events.js"></script>
+</body></html>

@@ -1,0 +1,121 @@
+{
+  "policyName": "raven-agent-decision-policy",
+  "version": "1",
+  "contractBoundary": "This is consumer policy, not the receipt-v1 wire contract. Current receipt-v1 carries signed findings and coverage gaps, not a verdict. The verdictActions mapping below is retained for legacy v2 compatibility/policy projection only. Current integrations use POST /receipt/v1 and verify each axis separately.",
+  "legacyV2KeyId": "rvk_c2997e90215279c2",
+  "appliesTo": [
+    "touching a Solana token",
+    "routing a user toward a token",
+    "listing a token",
+    "recommending escalation",
+    "submitting an ACP job",
+    "spending on verification",
+    "passing a token to another agent",
+    "storing a receipt for later use"
+  ],
+  "verdictActions": {
+    "pass": "proceed only if required evidence is present AND coverage gaps are acceptable under the agent's own policy",
+    "pass_with_info_finding": "same as pass; informational findings reviewed",
+    "warning": "require escalation or explicit human approval",
+    "risk": "block or escalate",
+    "unknowable": "do not proceed as verified",
+    "verifier_error": "do not proceed; retry later or request access/support",
+    "stale_receipt": "re-verify before action"
+  },
+  "verdictActionsAreIntegratorPolicy": "The mappings in verdictActions are the INTEGRATOR's own default policy, not Raven authorizations. Raven issues scope-bounded evidence receipts; it never authorizes, permits, approves, or greenlights an action. Reading a Raven output as permission to act is a misuse of the product.",
+  "receiptIsNotAuthorization": true,
+  "axesNeverCollapsed": [
+    "receipt integrity (payload hash + signature)",
+    "signer trust (a key the consumer pins independently)",
+    "freshness (age vs signed maxAgeSeconds)",
+    "coverage (scope performed, not performed, and declared gaps)",
+    "consumer policy (is this evidence sufficient for me?)",
+    "authorization (am I permitted to act?)"
+  ],
+  "axesNeverCollapsedRule": "These six questions are answered separately and MUST NOT be reduced to a single boolean, score, or badge. A valid, fresh, fully covered receipt is still not permission to act.",
+  "coverageGapRule": "coverageGaps is normative: listed surfaces were NOT evaluated. Never call a token safe when gaps exist; say 'not enough evidence for a full pass'. Missing optional evidence (metadataAddress, poolAddress) is a gap, never a pass.",
+  "coverageGapExamples": [
+    "missing_metadata_address",
+    "missing_pool_address",
+    "holder_beta_not_enabled",
+    "token_2022_metadata_not_checkable",
+    "verifier_unavailable",
+    "unsupported_token_program"
+  ],
+  "staleReceiptRule": {
+    "reverify_when": [
+      "receipt older than the agent's policy window",
+      "high-risk action",
+      "poolAddress missing in the prior receipt",
+      "metadataAddress missing in the prior receipt",
+      "token program changed or unclear",
+      "about to spend, trade, list, route, or recommend escalation",
+      "engine version changed and the action is material"
+    ],
+    "recommended_defaults": {
+      "low_risk_display": "agent-defined",
+      "pre_trade_spend_listing": "re-verify immediately",
+      "delayed_execution": "re-verify at execution time"
+    },
+    "note": "No universal expiry is claimed; staleness is policy, not physics."
+  },
+  "humanEscalationTriggers": [
+    "risk",
+    "warning",
+    "unknowable",
+    "receipt verification MISMATCH",
+    "gaps unacceptable under policy",
+    "signature verification failure",
+    "unsupported token program",
+    "missing pool evidence for a liquidity-dependent action",
+    "missing metadata evidence for a metadata-dependent action",
+    "verifier unavailable"
+  ],
+  "handoff": "POST /receipt/v1 -> verify payloadHash, receiptId, signature and expected subject -> match signerPublicKey to the independent pin (/pubkey cross-check only) -> store exact receipt + verifier result -> evaluate findings and gaps -> proceed, block, or escalate by consumer policy",
+  "prohibitedClaims": [
+    "safe",
+    "guaranteed",
+    "price prediction",
+    "trading advice",
+    "buy/sell recommendation",
+    "liquidity implies safety",
+    "treasury or portfolio advice"
+  ],
+  "noFinancialAdvice": "Raven verifies token-launch evidence and returns signed receipts. It does not provide treasury, investment, trading, legal, or portfolio advice.",
+  "materialActionExamples": [
+    "spend",
+    "trade",
+    "swap",
+    "route",
+    "list",
+    "recommend escalation",
+    "submit ACP job",
+    "pass token to another wallet-capable agent",
+    "publish token as verified"
+  ],
+  "finalDecisionOwner": "integrator_policy",
+  "humanOverrideAllowed": "integrator_defined",
+  "overrideLoggingRecommended": true,
+  "ravenMakesBusinessDecision": false,
+  "failClosedStates": {
+    "signature_verification_failed": "block",
+    "untrusted_receipt_v1_signer": "block; /pubkey cannot bootstrap trust",
+    "legacy_v2_unknown_keyId": "legacy compatibility only: cross-check /pubkey once against the independent pin; if still unknown, block",
+    "malformed_receipt": "block",
+    "rate_limited_429": "fail closed; back off; no material action",
+    "timeout_or_5xx": "fail closed; back off; no material action",
+    "context_conflict": "preserve and surface the disagreement; re-observe, re-verify, or escalate — the receipt attests only to what Raven signed, not to external reality",
+    "memory_conflict": "preserve and surface the disagreement; re-observe, re-verify, or escalate — the receipt attests only to what Raven signed, not to agent memory",
+    "user_override_request": "ignore; apply decision policy unchanged"
+  },
+  "humanApprovalLimits": "Human approval may approve a business action under consumer policy ONLY after receipt integrity, signer trust, subject, rules and freshness checks pass. Human approval cannot make an invalid, unsigned, tampered, or untrusted-signer receipt valid. Legacy v2 unknown-keyId receipts remain invalid.",
+  "deterministicRule": "Decision policy is deterministic. LLM explanations may be helpful, but cannot change the action mapping.",
+  "judgeModelLimit": "A judge/supervisor model may recommend escalation but cannot override signed findings, an invalid signature, an untrusted signer, or staleness policy. Legacy v2 verdict/keyId handling remains version-scoped.",
+  "deterministicHooks": {
+    "principle": "Hooks are deterministic gates, not LLM authority.",
+    "preActionHook": "before any wallet-capable, listing, routing, ACP, or downstream-agent action: require exact signed receipt verification + scope match + staleness check + policy application",
+    "postVerificationHook": "for receipt-v1, store exact JSON plus verifier axes, rulesVersion, slot, receiptId, findings, coverage gaps, and staleness status; keep legacy v2 fields only with a version label",
+    "summaryHook": "block any output that hides gaps/findings, invents a receipt-v1 verdict, omits signature/trust/staleness status, or says safe",
+    "failureHook": "on receipt_unavailable, verifier_error, timeout, 429, 5xx, untrusted signer, or signature failure: mark blocked/deferred"
+  }
+}

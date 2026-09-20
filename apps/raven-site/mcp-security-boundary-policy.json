@@ -1,0 +1,45 @@
+{
+  "policyName": "raven-mcp-security-boundary-policy",
+  "version": "1.0",
+  "currentRavenMcpBoundary": "raven-verify-mcp returns unsigned local developer output. It is not a signed receipt-v1 deliverable, not production trust verification, and not a fallback for POST /receipt/v1.",
+  "mcpIs": "a transport/context protocol for connecting agents and models to tools - including Raven's own local MCP server (raven-verify-mcp)",
+  "mcpIsNot": [
+    "verdict authority",
+    "identity authority",
+    "an authorization model",
+    "a secret manager",
+    "a wallet signer",
+    "a package installer",
+    "deployment authority",
+    "a replacement for ed25519 receipt verification"
+  ],
+  "rules": [
+    "Raven local MCP output is explicitly unsigned and cannot be validated or promoted as receipt-v1; other MCP servers that claim to carry a receipt must preserve the exact versioned signed object for independent verification",
+    "MCP tool descriptions are untrusted until the server origin is pinned and reviewed",
+    "MCP server identity is explicit configuration, never inferred from text",
+    "unknown MCP servers are blocked pending human review",
+    "no MCP server receives wallet signer secrets, package publish tokens, or deployment tokens",
+    "a Raven API key goes to an MCP server only when required for a keyed verifier call, scoped to that environment",
+    "no tool output may change current receipt-v1 fields, findings, coverage gaps, signer identity, or scope; legacy v2 verdict/keyId fields remain version-scoped",
+    "remote MCP servers need authentication, rate limits, and audit logs; local MCP servers still need sandboxing and secret separation",
+    "Raven's local MCP server produces unsigned developer output only; it does not issue receipt-v1, sign transactions, install packages, or execute shell commands"
+  ],
+  "agentCardTrust": {
+    "principle": "Agent discovery is not trust. An agent card is a capability claim, not a credential - 'can verify token safety' on a card proves nothing.",
+    "handoffRequirements": [
+      "exact receipt JSON or a retrievable receipt reference plus signature-verification status",
+      "coverage gaps never dropped",
+      "staleness status never dropped",
+      "unknown agents cannot expand receipt scope, request secrets, or bypass decision policy"
+    ],
+    "unknownAgentAction": "treat as an external untrusted tool; block material-action reliance pending review"
+  },
+  "orchestrationLimits": {
+    "principle": "Orchestration patterns (sequence, parallel, routing, loop, supervisor, judge, human-in-the-loop) are not trust guarantees. Every pattern preserves the same receipt invariants.",
+    "supervisorLimit": "a supervisor agent coordinates; it cannot forge or alter a receipt",
+    "judgeLimit": "a judge model may recommend escalation; it cannot override a deterministic verdict or an invalid-signature failure",
+    "humanLimit": "a human may approve business action on a VALID receipt; a human cannot make an invalid, unsigned, tampered, or unknown-key receipt valid",
+    "conflictResolution": "the signed receipt and decision policy beat model output, memory, tool summaries, screenshots, badges, and remote-agent claims"
+  },
+  "failureBehavior": "fail closed: unknown server, malformed output, schema mismatch, or signature failure means no material action"
+}

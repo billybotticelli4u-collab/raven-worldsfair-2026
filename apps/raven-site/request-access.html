@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request access — Raven</title>
+<link rel="icon" type="image/svg+xml" href="raven-logo.svg">
+<style>
+/* --line is decorative only (1.3:1). Interactive boundaries use --line-strong (>=3:1 on every surface) per WCAG 1.4.11. */
+:root{--bg:#0b0e14;--panel:#11151f;--panel2:#161b28;--line:#232a3b;--line-strong:#5b6c96;--text:#dbe2f0;--dim:#8b94a8;--accent:#7aa2f7;--info:#5ccfe6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:.86em}
+a{color:var(--accent);text-decoration:none}
+/* 1.4.1: links inside blocks of text need a non-colour cue. */
+p a,li a{text-decoration:underline;text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.skip{position:absolute;left:-9999px;top:0;z-index:10;background:var(--accent);color:#0b0e14;padding:10px 18px;border-radius:0 0 8px 0;font-weight:600}
+.skip:focus{left:0}
+.wrap{max-width:680px;margin:0 auto;padding:0 24px}
+header{padding:18px 0;border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.06em}
+header img{width:34px;height:34px;border-radius:50%}
+header span{color:var(--accent)}
+h1{font-size:26px;margin:42px 0 8px}
+p.lead{color:var(--dim);margin-bottom:28px}
+form{display:grid;gap:16px;margin-bottom:40px}
+.row{display:grid;gap:6px}
+label{font-size:13.5px;color:var(--dim)}
+input[type=text],input[type=email],textarea,select{background:var(--panel);border:1px solid var(--line-strong);border-radius:8px;color:var(--text);padding:10px 12px;font:inherit;width:100%}
+textarea{min-height:84px;resize:vertical}
+input[type=text]:focus,input[type=email]:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(122,162,247,.4)}
+input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.check{display:flex;align-items:center;gap:10px;font-size:14.5px;color:var(--text)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+button{cursor:pointer;border:0;padding:12px 22px;border-radius:8px;font-weight:600;font-size:15px}
+.primary{background:var(--accent);color:#0b0e14}
+.ghost{background:transparent;border:1px solid var(--line-strong);color:var(--text)}
+.note{font-size:12.5px;color:var(--dim)}
+.note b{color:var(--text)}
+.lt{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--dim)}
+/* 24x24 minimum target (WCAG 2.2 SC 2.5.8) — this is the only route to the field help. */
+.q{cursor:pointer;flex:0 0 24px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-strong);background:var(--panel);color:var(--dim);font:inherit;font-size:12px;font-weight:400;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center;user-select:none}
+.q:hover{color:var(--accent);border-color:var(--accent)}
+.q:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+fieldset{border:0;min-width:0}
+legend{padding:0}
+.hint{display:none;font-size:12.5px;color:var(--info);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--info);border-radius:6px;padding:8px 12px}
+.hint.show{display:block}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.sent{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:18px 20px;margin-bottom:40px}
+.sent[hidden]{display:none}
+.sent:focus{outline:2px solid var(--accent);outline-offset:2px}
+.sent #sent-msg{color:var(--text);font-weight:600;margin-bottom:8px}
+.sent .note{margin-bottom:12px}
+.sent pre{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow-y:auto;color:var(--text)}
+.btn-continue{display:inline-block;padding:12px 22px;border-radius:8px;font-weight:600;font-size:15px;background:var(--accent);color:#0b0e14}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap"><img src="raven-logo.svg" alt="">RAVEN<span>.</span>&nbsp;<span style="color:var(--dim);font-weight:400;font-size:13px">/ request access</span></div></header>
+<div class="wrap">
+<main id="main">
+<h1 id="title">Request access</h1>
+<p class="lead" id="lead">Tell us what you're building and name one token. We will run it through the live verifier and reply with a <b>sample signed receipt</b> — findings, coverage gaps, rules and observation data, and signed verification fields — plus an API key if it is a fit.</p>
+<div class="note" id="access-loop" style="border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:28px;line-height:1.7">
+  <b>What happens after you submit.</b> A human — not an autoresponder — reviews every request and replies by email within 48 hours, with your sample signed receipt and, if it is a fit, an API key with docs and a sample <span class="mono">curl</span>.<br>
+  <b>What we need.</b> Only what this form asks for — above all, the decision the evidence would support.<br>
+  <b>What we will never ask for.</b> API keys, seed phrases, wallet or signing material, or any secret — not in this form, not later.<br>
+  <b>Acknowledgement.</b> Submitting shows a confirmation page restating these steps; the reply email is the only further contact — no newsletter, no list.
+</div>
+<form id="f">
+  <div class="row" id="row-token"><span class="lt"><label for="token">One token you want Raven to check</label> <button type="button" class="q" data-h="h-token" aria-controls="h-token" aria-expanded="false" aria-label="Help: which token to name">?</button></span>
+    <input type="text" id="token" placeholder="Mint address, token name, or DexScreener/Birdeye link">
+    <span class="hint" id="h-token">Paste whatever you have: the token's mint address, its name or ticker, or just a DexScreener/Birdeye link. We'll find it and run the check.</span>
+  </div>
+  <div class="row"><span class="lt"><label for="name">Name</label> <button type="button" class="q" data-h="h-name" aria-controls="h-name" aria-expanded="false" aria-label="Help: Name field">?</button></span>
+    <input type="text" id="name" required placeholder="Ada">
+    <span class="hint" id="h-name">What we should call you in the reply. First name or a handle is fine.</span>
+  </div>
+  <div class="row"><span class="lt"><label for="email">Email</label> <button type="button" class="q" data-h="h-email" aria-controls="h-email" aria-expanded="false" aria-label="Help: Email field">?</button></span>
+    <input type="email" id="email" required placeholder="you@project.xyz">
+    <span class="hint" id="h-email">Where we send your signed receipt. Never shared, never published.</span>
+  </div>
+  <div class="row"><span class="lt"><label for="project">Project</label> <button type="button" class="q" data-h="h-project" aria-controls="h-project" aria-expanded="false" aria-label="Help: Project field">?</button></span>
+    <input type="text" id="project" required placeholder="Trading agent / wallet / bot / community">
+    <span class="hint" id="h-project">One line about what you're building or doing — a trading bot, an AI agent, a wallet, a community you moderate. "Just checking a token before I buy" is a perfectly good answer.</span>
+  </div>
+  <div class="row"><span class="lt"><label for="role">Which best describes you?</label> <button type="button" class="q" data-h="h-role" aria-controls="h-role" aria-expanded="false" aria-label="Help: which best describes you">?</button></span>
+    <select id="role">
+      <option>Beginner — checking tokens before buying</option>
+      <option>Trader</option>
+      <option>Bot builder</option>
+      <option>Scanner / aggregator</option>
+      <option>Launchpad</option>
+      <option>Agent / MCP developer</option>
+    </select>
+    <span class="hint" id="h-role">Helps us reply at the right level — beginner answers get plain language, developer answers get curl and config.</span>
+  </div>
+  <div class="row"><span class="lt"><label for="usecase">Use case</label> <button type="button" class="q" data-h="h-usecase" aria-controls="h-usecase" aria-expanded="false" aria-label="Help: Use case field">?</button></span>
+    <textarea id="usecase" required placeholder="Where would a Raven receipt help you?"></textarea>
+    <span class="hint" id="h-usecase">Where the receipt fits in your flow. Examples: "check a token before I ape", "my agent verifies every token before trading", "screen launches for my group".</span>
+  </div>
+  <div class="row"><span class="lt"><label for="decision">What decision would Raven support?</label> <button type="button" class="q" data-h="h-decision" aria-controls="h-decision" aria-expanded="false" aria-label="Help: what decision Raven would support">?</button></span>
+    <input type="text" id="decision" placeholder="e.g. buy/skip, list/deny on my launchpad, auto-trade gate">
+    <span class="hint" id="h-decision">The yes/no moment where the evidence matters. This is the single most useful thing you can tell us.</span>
+  </div>
+  <fieldset class="row">
+    <legend class="lt">Missing evidence you care about most <button type="button" class="q" data-h="h-evidence" aria-controls="h-evidence" aria-expanded="false" aria-label="Help: missing evidence">?</button></legend>
+    <span class="hint" id="h-evidence">Raven lists what it has NOT checked in every receipt. Which gap would you most want closed?</span>
+    <div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+      <label class="check"><input type="checkbox" class="ev" value="liquidity"> liquidity</label>
+      <label class="check"><input type="checkbox" class="ev" value="holders"> holders</label>
+      <label class="check"><input type="checkbox" class="ev" value="deployer history"> deployer history</label>
+      <label class="check"><input type="checkbox" class="ev" value="Token-2022"> Token-2022</label>
+    </div>
+  </fieldset>
+  <div class="row"><span class="lt"><label for="evother">Other evidence (optional)</label></span><input type="text" id="evother" placeholder="Anything else you'd want verified"></div>
+  <div class="row"><span class="lt"><label for="storage">Do you need receipt storage or agent memory?</label> <button type="button" class="q" data-h="h-storage" aria-controls="h-storage" aria-expanded="false" aria-label="Help: receipt storage and agent memory">?</button></span>
+    <select id="storage">
+      <option>No, I only need signed API responses</option>
+      <option>Local/database storage is enough</option>
+      <option>I need decentralized/durable receipt storage</option>
+      <option>I need per-agent namespaces</option>
+      <option>I am unsure</option>
+    </select>
+    <span class="hint" id="h-storage">Raven works without any storage — receipts are yours to keep wherever you like. This just tells us whether to prioritize storage guidance and adapters. See /receipt-storage.html.</span>
+  </div>
+  <div class="row"><span class="lt"><label for="path">Preferred access path</label> <button type="button" class="q" data-h="h-path" aria-controls="h-path" aria-expanded="false" aria-label="Help: preferred access path">?</button></span>
+    <select id="path">
+      <option>Unsure yet</option>
+      <option>Hosted API (key)</option>
+      <option>ACP (pay per job in USDC)</option>
+      <option>MCP (local, free)</option>
+    </select>
+    <span class="hint" id="h-path">How you'd rather call Raven. Hosted = we run it, you get signed receipts by key. ACP = your agent pays 0.1 USDC per job, no key. MCP = run it locally for free. "Unsure" is fine — we'll recommend one.</span>
+  </div>
+  <div class="row"><span class="lt"><label for="volume">Expected volume</label> <button type="button" class="q" data-h="h-volume" aria-controls="h-volume" aria-expanded="false" aria-label="Help: expected volume">?</button></span>
+    <select id="volume">
+      <option>&lt; 100 verifications/day</option>
+      <option>100 - 1,000/day</option>
+      <option>1,000 - 10,000/day</option>
+      <option>&gt; 10,000/day</option>
+    </select>
+    <span class="hint" id="h-volume">A rough guess at how many token checks you'd run per day once you have a key. It only helps us size your rate limit — guessing low or high is fine.</span>
+  </div>
+  <div class="row"><span class="lt"><label class="check" for="beta"><input type="checkbox" id="beta"> <span>I want <b>holder&#8209;beta access</b></span></label> <button type="button" class="q" data-h="h-beta" aria-controls="h-beta" aria-expanded="false" aria-label="Help: holder-beta access">?</button></span>
+    <span class="hint" id="h-beta">An advanced extra check: how concentrated the token's holders are — with known pool and venue wallets factored out, so a liquidity pool doesn't get mistaken for one giant whale.</span>
+  </div>
+  <div class="btns">
+    <button type="submit" class="primary" data-via="email">Submit request</button>
+  </div>
+  <p class="note">Never include API keys, seed phrases, or wallet/private material in your request — we will never ask for them. We'll run your token and reply with a signed receipt.</p>
+</form>
+
+<div class="sent" id="sent" tabindex="-1" hidden>
+  <p id="sent-msg" role="status" aria-live="polite"></p>
+  <p class="note" id="sent-fallback-note">If nothing opened, copy the request below and email it to <span class="mono">access@ravenattest.com</span> yourself — we can only reply to a request that actually reaches us.</p>
+  <pre id="req-text"></pre>
+  <div class="btns">
+    <button type="button" class="ghost" id="copy-req">Copy the request</button>
+    <a class="btn-continue" id="sent-continue" href="thanks.html">I've sent it — continue</a>
+  </div>
+  <span id="copy-req-status" role="status" aria-live="polite" class="vh"></span>
+</div>
+
+<div class="card" id="scout">
+  <button type="button" id="adv" data-ev="scout_advanced" aria-expanded="false" aria-controls="scout-adv" style="float:right;cursor:pointer;background:transparent;border:1px solid var(--line-strong);color:var(--text);border-radius:6px;padding:4px 12px;font-size:12.5px">Advanced mode</button>
+  <h2 style="font-size:15.5px;color:var(--text);margin:0">Raven Scout <span style="color:var(--dim);font-weight:400">— how to read what you'll get back</span></h2>
+  <div id="scout-basic">
+    <p style="font-size:14px;color:var(--dim);margin-top:8px">A current <span class="mono">receipt-v1</span> returns signed evidence: <span class="mono">findings</span>, <span class="mono">coverageGaps</span>, and <span class="mono">rulesVersion</span>; observation and freshness data in <span class="mono">slot</span>, <span class="mono">timestamp</span>, and <span class="mono">maxAgeSeconds</span>; and verification fields <span class="mono">payloadHash</span>, <span class="mono">receiptId</span>, <span class="mono">signerPublicKey</span>, and <span class="mono">signature</span>.</p>
+    <p style="font-size:14px;color:var(--dim);margin-top:8px">When something cannot be checked, the receipt says what was and was not observed through explicit findings and coverage gaps. If the evidence required to issue a receipt cannot be established, the service refuses instead of returning a silent pass.</p>
+    <p style="font-size:14px;color:var(--dim);margin-top:8px">Raven never says "safe". If coverage gaps remain, the honest answer is: <b style="color:var(--text)">not enough evidence for a full pass</b> — and the receipt will list exactly which gaps those are.</p>
+  </div>
+  <div id="scout-adv" style="display:none">
+    <p style="font-size:13px;color:var(--dim);margin-top:8px">Raw request:</p>
+    <pre style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12px;overflow-x:auto">curl -X POST https://raven-hosted-verifier.onrender.com/receipt/v1 \
+  -H "x-api-key: $KEY" -H "content-type: application/json" \
+  -d '{"mintAddress":"&lt;mint&gt;","tokenProgramAddress":"&lt;program&gt;"}'</pre>
+    <p style="font-size:13px;color:var(--dim)">MCP: <span class="mono">npx -y raven-verify-mcp</span> → tool <span class="mono">raven_verify_token</span> (<a href="mcp.html">config</a>). Contract: <a href="openapi.json" class="mono">openapi.json</a>.</p>
+    <p style="font-size:13px;color:var(--dim);margin-top:8px">Receipt: verify <span class="mono">signature</span> (ed25519, domain <span class="mono">raven-receipt</span>/v1) over <span class="mono">payloadHash</span> using <span class="mono">signerPublicKey</span>, check the <span class="mono">receiptId</span> binding, then match signerPublicKey to the independently authenticated pin. The current handoff may name the signer as keyId <span class="mono">rvk_c2997e90215279c2</span> outside the receipt-v1 wire; <a href="https://raven-hosted-verifier.onrender.com/pubkey" rel="noopener">/pubkey</a> is a cross-check, never the trust root — full <a href="security.html">recipe</a>.</p>
+    <p style="font-size:13px;color:var(--dim);margin-top:8px"><span class="mono">coverageGaps</span> is normative: anything listed there was NOT evaluated. A receipt with no listed finding triggered and gaps remaining means "no findings on checked surfaces", never "safe".</p>
+  </div>
+</div>
+<script>document.getElementById("adv").addEventListener("click", function () {
+  const a = document.getElementById("scout-adv"), b = document.getElementById("scout-basic");
+  const on = a.style.display === "none";
+  a.style.display = on ? "block" : "none"; b.style.display = on ? "none" : "block";
+  this.textContent = on ? "Beginner mode" : "Advanced mode";
+  this.setAttribute("aria-expanded", on ? "true" : "false");
+});</script>
+</main>
+</div>
+<script defer src="/_vercel/insights/script.js"></script>
+<script src="_agent-events.js"></script>
+<script>
+// Per-field help: activate ? to toggle a plain-language explanation.
+document.querySelectorAll(".q").forEach(q => q.addEventListener("click", (e) => {
+  e.preventDefault();
+  const shown = document.getElementById(q.dataset.h).classList.toggle("show");
+  q.setAttribute("aria-expanded", shown ? "true" : "false");
+}));
+
+// Context-aware entry points: the two CTAs land on visibly different forms.
+const params = new URLSearchParams(location.search);
+const form = document.getElementById("f");
+if (params.get("beta") === "1") {
+  document.getElementById("beta").checked = true;
+  document.getElementById("title").textContent = "Request holder-beta access";
+  document.getElementById("lead").innerHTML = "Holder-beta adds an advanced check: holder concentration with known pool/venue wallets factored out. Tell us about your project and name one token — we'll run it <b>with holder evidence included</b> and reply with the signed receipt.";
+  // Token field stays last for the beta flow; project details lead.
+  form.insertBefore(document.getElementById("row-token"), form.querySelector(".btns"));
+} else if (location.hash === "#token") {
+  document.getElementById("title").textContent = "Name a token";
+  document.getElementById("lead").innerHTML = "Drop in any token and your email. We'll run it through the live verifier and reply with the <span class=\"mono\">signed</span> receipt — what's risky, what's clean, and what couldn't be checked. Free, usually within a day.";
+  document.getElementById("token").required = true;
+  document.getElementById("token").focus();
+}
+let via = "email";
+document.querySelectorAll("button[data-via]").forEach(b => b.addEventListener("click", () => { via = b.dataset.via; }));
+document.getElementById("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const v = (id) => document.getElementById(id).value.trim();
+  const beta = document.getElementById("beta").checked;
+  const evidence = Array.from(document.querySelectorAll(".ev:checked")).map((c) => c.value);
+  const payload = {
+    name: v("name"), email: v("email"), project: v("project"),
+    role: document.getElementById("role").value,
+    usecase: v("usecase"), decision: v("decision"),
+    evidence: evidence, evother: v("evother"),
+    storage: document.getElementById("storage").value,
+    path: document.getElementById("path").value,
+    volume: document.getElementById("volume").value,
+    beta: beta, token: v("token"),
+  };
+  const panel = document.getElementById("sent");
+  const showPanel = () => { panel.hidden = false; panel.focus(); panel.scrollIntoView({ block: "center" }); };
+  // Primary path: the deterministic intake endpoint returns a reference id.
+  try {
+    const resp = await fetch("/api/request-access", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (resp.ok && data.ok) {
+      document.getElementById("sent-msg").textContent =
+        "Request received — reference " + data.caseId + ". We reply to the email you gave; quote that reference if you follow up.";
+      document.getElementById("sent-fallback-note").hidden = true;
+      document.getElementById("req-text").hidden = true;
+      document.getElementById("copy-req").hidden = true;
+      document.getElementById("sent-continue").href = "thanks.html?via=intake" + (beta ? "&beta=1" : "");
+      try { window.va = window.va || function(){(window.vaq=window.vaq||[]).push(arguments)}; window.va("event", { name: "submit_access_request", via: "intake", beta: beta }); } catch (err) {}
+      showPanel();
+      return;
+    }
+    if (resp.status === 422) {
+      document.getElementById("sent-msg").textContent =
+        "Not sent: the request appears to contain key or secret material. Remove it — we never need keys, seed phrases, or secrets — then submit again.";
+      document.getElementById("sent-fallback-note").hidden = true;
+      document.getElementById("req-text").hidden = true;
+      document.getElementById("copy-req").hidden = true;
+      showPanel();
+      return;
+    }
+  } catch (err) { /* endpoint unreachable: fall back to email below */ }
+
+  // Fallback: the intake endpoint did not accept the request (unreachable or
+  // not yet configured). Open the operator email with the request prepared
+  // and show it for manual copy.
+  const fields = [
+    "Role: " + document.getElementById("role").value,
+    "Project: " + v("project"),
+    "Use case: " + v("usecase"),
+    "Decision Raven would support: " + (v("decision") || "(not stated)"),
+    "Missing evidence they care about: " + (evidence.concat(v("evother") ? [v("evother")] : []).join(", ") || "(none selected)"),
+    "Receipt storage/agent memory: " + document.getElementById("storage").value,
+    "Preferred access path: " + document.getElementById("path").value,
+    "Expected volume: " + document.getElementById("volume").value,
+    "Holder-beta access: " + (beta ? "YES" : "no"),
+    "Token to check: " + (v("token") || "(none named)"),
+  ];
+  const subject = "Raven access request — " + v("project");
+  const body = "Name: " + v("name") + "\nEmail: " + v("email") + "\n" + fields.join("\n");
+  window.open("mailto:access@ravenattest.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body), "_self");
+  try { window.va = window.va || function(){(window.vaq=window.vaq||[]).push(arguments)}; window.va("event", { name: "submit_access_request", via: via, beta: beta }); } catch (err) {}
+
+  // 3.3.1: a mailto: gives no success signal, so we cannot claim the request was
+  // received. Show the request with a copy fallback and let the person confirm.
+  document.getElementById("req-text").textContent = "To: access@ravenattest.com\nSubject: " + subject + "\n\n" + body;
+  document.getElementById("sent-continue").href = "thanks.html?via=" + via + (beta ? "&beta=1" : "");
+  document.getElementById("sent-msg").textContent =
+    "The intake service did not accept the request, so your email client should have opened with it ready to send. Nothing has been sent yet.";
+  showPanel();
+});
+
+document.getElementById("copy-req").addEventListener("click", function () {
+  navigator.clipboard.writeText(document.getElementById("req-text").textContent);
+  document.getElementById("copy-req-status").textContent = "Request copied to clipboard";
+  this.textContent = "Copied ✓";
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+{
+  "schema": "raven-canary-config/2",
+  "note": "Baselines captured from .stage3-receipts/after (2026-06-10, Stage-3 live). The deployed 1.1.3 profile remains the default. The candidate authorization packet is intentionally pending: no target, owner marker, signer, artifact, or vector-set fingerprint is approved here. The canary FAILS on drift from the selected expectations. Update baselines or a candidate packet deliberately (with a commit) — never silently.",
+  "expectedKeyId": "rvk_c2997e90215279c2",
+  "expectedPublicKeyBase64": "MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=",
+  "expectedRulesVersion": "raven-rules@1.1.3",
+  "defaultProfile": "deployed-1.1.3",
+  "profiles": {
+    "deployed-1.1.3": {
+      "description": "Current deployed profile; this remains the implicit and production-workflow default.",
+      "expectedRulesVersion": "raven-rules@1.1.3",
+      "requireKeyed": false,
+      "authorizationRequired": false
+    },
+    "candidate-1.1.4": {
+      "description": "Focused holder-provenance candidate; opt-in validation only, never implicit production activation. This committed packet is deliberately pending and cannot select a live target.",
+      "expectedRulesVersion": "raven-rules@1.1.4",
+      "requireKeyed": true,
+      "authorizationRequired": true,
+      "authorizationOwner": "Glen",
+      "candidateAuthorization": {
+        "status": "pending",
+        "authorizationOwner": "Glen",
+        "approvedEnvironment": null,
+        "approvedApiOrigin": null,
+        "approvedSiteOrigin": null,
+        "ownerApprovalMarker": null,
+        "allowProductionOrigins": false,
+        "productionOriginOwnerApprovalMarker": null,
+        "artifact": {
+          "commit": null,
+          "buildInfoSha256": null
+        },
+        "expectedSigner": {
+          "keyId": null,
+          "publicKeyBase64": null
+        },
+        "expectedBuildInfo": null,
+        "fixtureVectorSet": {
+          "id": "raven-rules-1.1.4-certification-v1",
+          "sha256": null
+        }
+      }
+    }
+  },
+  "apiBase": "https://raven-hosted-verifier.onrender.com",
+  "siteBase": "https://raven-launch-console.vercel.app",
+  "globalInvariants": {
+    "launchEvidenceInformationalOnly": "no launch.* code may ever appear in triggeringFindingCodes",
+    "neverSafe": "verdict is never the word safe",
+    "unsignedIsSibling": "unsigned appears only as a top-level sibling annotation, never inside the receipt object"
+  },
+  "mints": [
+    {
+      "name": "husk-8lyi",
+      "kind": "stage2_husk",
+      "mintAddress": "8LyiyHseQj25P2aQixLtL2GFo9rePebBphLMkGuNpump",
+      "tokenProgramAddress": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "expectVerdict": "warning",
+      "expectTriggering": ["liquidity.supply_majority_returned_to_pool"],
+      "requireFindingCodes": ["liquidity.supply_majority_returned_to_pool"],
+      "baselineFindingCodes": ["token2022.metadata_pointer_present", "token2022.token_metadata_present", "venue.infrastructure_tier_mutable_but_known", "liquidity.supply_majority_returned_to_pool"]
+    },
+    {
+      "name": "husk-f5ru",
+      "kind": "stage2_husk",
+      "mintAddress": "F5RU4VNSRDj8sP9yVB518a7PhM9NyUWBQemCLqk4pump",
+      "tokenProgramAddress": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "expectVerdict": "warning",
+      "expectTriggering": ["liquidity.supply_majority_returned_to_pool"],
+      "requireFindingCodes": ["liquidity.supply_majority_returned_to_pool"],
+      "baselineFindingCodes": ["token2022.metadata_pointer_present", "token2022.token_metadata_present", "venue.infrastructure_tier_mutable_but_known", "liquidity.supply_majority_returned_to_pool"]
+    },
+    {
+      "name": "husk-j4gy",
+      "kind": "stage2_husk",
+      "mintAddress": "J4Gyibny4ktoAH9tfAUGy3dQYcuQNH3SjdTxhiGpump",
+      "tokenProgramAddress": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "expectVerdict": "warning",
+      "expectTriggering": ["liquidity.supply_majority_returned_to_pool"],
+      "requireFindingCodes": ["liquidity.supply_majority_returned_to_pool"],
+      "baselineFindingCodes": ["token2022.metadata_pointer_present", "token2022.token_metadata_present", "venue.infrastructure_tier_mutable_but_known", "liquidity.supply_majority_returned_to_pool"]
+    },
+    {
+      "name": "control-usdc",
+      "kind": "control",
+      "mintAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "tokenProgramAddress": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "expectVerdict": "risk",
+      "expectTriggering": ["issuer_control.mint_authority_active", "issuer_control.freeze_authority_active"],
+      "requireFindingCodes": [],
+      "baselineFindingCodes": ["issuer_control.mint_authority_active", "issuer_control.freeze_authority_active", "venue.infrastructure_tier_immutable"]
+    },
+    {
+      "name": "control-bonk",
+      "kind": "control",
+      "mintAddress": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+      "tokenProgramAddress": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "expectVerdict": "warning",
+      "expectTriggering": ["venue.infrastructure_tier_immutable"],
+      "requireFindingCodes": [],
+      "baselineFindingCodes": ["venue.infrastructure_tier_immutable"]
+    },
+    {
+      "name": "control-wif",
+      "kind": "control",
+      "mintAddress": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+      "tokenProgramAddress": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "expectVerdict": "warning",
+      "expectTriggering": ["venue.infrastructure_tier_immutable"],
+      "requireFindingCodes": [],
+      "baselineFindingCodes": ["venue.infrastructure_tier_immutable"]
+    }
+  ]
+}

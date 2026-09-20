@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raven MCP — raven_verify_token for Claude &amp; agents</title>
+<meta name="description" content="Install the Raven MCP server: npx -y raven-verify-mcp. One tool, raven_verify_token: Solana token verification inside Claude or any MCP-capable agent. Local results are unsigned; signed receipts come from the hosted API.">
+<link rel="icon" type="image/svg+xml" href="raven-logo.svg">
+<link rel="stylesheet" href="_shared-style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header><div class="wrap"><img src="raven-logo.svg" alt="">RAVEN<span class="dotc">.</span>&nbsp;<span class="crumb">/ mcp</span></div></header>
+<div class="wrap">
+<main id="main">
+<h1>Raven MCP</h1>
+<p class="lead">One tool — <span class="mono">raven_verify_token</span> — for Claude Desktop, Claude Code, and any MCP-capable agent framework.</p>
+<h2>Install</h2>
+<pre>npx -y raven-verify-mcp</pre>
+<h2>Claude Desktop config</h2>
+<pre id="cfg">{
+  "mcpServers": {
+    "raven": { "command": "npx", "args": ["-y", "raven-verify-mcp"] }
+  }
+}</pre>
+<button class="btn ghost" id="copycfg" data-ev="copy_mcp_config" style="cursor:pointer">Copy config</button>
+<script>document.addEventListener("DOMContentLoaded",function(){document.getElementById("copycfg").addEventListener("click",function(){navigator.clipboard.writeText(document.getElementById("cfg").textContent).then(()=>{this.textContent="Copied ✓";document.getElementById("copy-status").textContent="MCP config copied to clipboard"});});});</script>
+<h2>What the tool returns</h2>
+<p>Verdict + finding codes + coverage gaps, using the same engine and finding vocabulary as the hosted API (<a href="openapi.json" class="mono">/openapi.json</a>). <b>Local results are UNSIGNED</b> — this developer-preview tool does not issue a signed attestation, so it is not the receipt-verification path. For signed receipts use the hosted API. Ask your agent: <i>"verify this Solana token before we touch it"</i>.</p>
+<p>Package name: <span class="mono">raven-verify-mcp</span> (npm). <b>No partner-facing documentation link is published</b> for it: its README is legacy and contradicts the current trust model — it leads with the legacy v2 compatibility endpoint <span class="mono">POST /verify</span>, never mentions <span class="mono">/receipt/v1</span>, and calls <span class="mono">/pubkey</span> a "live source of truth" when <span class="mono">/pubkey</span> is discovery and cross-check material only, never a trust pin. Its source repository and issue tracker are private (404 externally). For integration use <a href="openapi.json" class="mono">/openapi.json</a> and the hosted <span class="mono">/receipt/v1</span> route.</p>
+<a class="btn primary" href="request-access.html">Request hosted access</a>
+<a class="btn ghost" href="agents.html">For agents</a>
+<span id="copy-status" role="status" aria-live="polite" class="vh"></span>
+</main>
+<footer><a href="index.html">Console</a> · <a href="security.html">Security</a> · not financial advice</footer>
+</div>
+<script defer src="/_vercel/insights/script.js"></script>
+<script src="_agent-events.js"></script>
+</body>
+</html>

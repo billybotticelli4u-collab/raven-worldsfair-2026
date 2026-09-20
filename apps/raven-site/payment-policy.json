@@ -1,0 +1,34 @@
+{
+  "schema": "raven-payment-policy/1",
+  "rails": {
+    "acp": {
+      "offering": "solana_verify_token",
+      "settlement": "USDC through Virtuals ACP (escrowed, on-chain)",
+      "price_usdc_per_job": 0.1,
+      "custody": "none — Raven never custodies agent wallets"
+    },
+    "hosted_api": {
+      "access": "API keys by request (free during invite-gated alpha)"
+    },
+    "mcp_local": {
+      "access": "free, local, runs on your RPC"
+    },
+    "holder_beta": {
+      "access": "key-gated, not globally enabled"
+    }
+  },
+  "hard_limits": [
+    "not an investment product",
+    "no yield",
+    "no custody of agent wallets",
+    "Raven does not initiate trades",
+    "Raven does not recommend buying or selling tokens",
+    "ACP payment buys verification service only",
+    "agents should set their own spend limits before calling paid tools",
+    "no recurring billing through ACP unless explicitly implemented and documented later"
+  ],
+  "disclaimer": "Stablecoin-native payment rail for verification services. Not financial advice; no price prediction.",
+  "future_rails": {
+    "x402": "Candidate future rail: x402 (HTTP 402 + USDC; Coinbase/Cloudflare/Solana Foundation ecosystem) would allow any agent to pay per verification over plain HTTP. DOCUMENTED ONLY — no x402 integration exists today; ACP is the live agent-payment rail."
+  }
+}

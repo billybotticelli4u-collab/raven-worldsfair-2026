@@ -1,0 +1,16 @@
+{
+  "schema": "raven-leads/2",
+  "note": "Copy to private/leads.json. NEVER commit private/. Field list is the contract for leads.html and the scripts.",
+  "leads": [
+    {
+      "leadId": "L-001", "dateReceived": "2026-06-05", "name": "", "contact": "",
+      "role": "agent/MCP developer", "project": "", "useCase": "",
+      "decisionSupported": "", "tokenRequested": "", "tokenProgram": "",
+      "verdictSent": false, "verdict": "", "receiptHash": "", "keyId": "rvk_c2997e90215279c2", "observedSlot": null,
+      "missingEvidence": [], "holderBetaRequested": false, "preferredAccessPath": "unsure",
+      "apiKeyIssued": false, "apiKeyPrefix": "", "holderBetaEnabled": false,
+      "expectedVolume": "", "actualUsageCount": 0, "repeatUsage": false,
+      "followUpDate": "", "paidStatus": "unpaid", "nextRequestedFeature": "", "notes": ""
+    }
+  ]
+}

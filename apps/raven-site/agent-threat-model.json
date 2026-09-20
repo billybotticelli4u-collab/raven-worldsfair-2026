@@ -1,0 +1,209 @@
+{
+  "policyName": "raven-agent-threat-model",
+  "version": "1.0",
+  "contractBoundary": "Current signed evidence comes from POST /receipt/v1 and is checked with raven-receipt-verifier plus an independently authenticated signer pin. POST /verify and its keyId/replayHash/officialAttestationHash fields are legacy v2 compatibility. Local MCP output is unsigned developer output.",
+  "threatModelScope": "Token-touching agents that use Raven as the signed preflight control layer between untrusted input and real token action.",
+  "untrustedInputs": [
+    "user messages",
+    "chat history",
+    "prompt context",
+    "agent memory",
+    "social links",
+    "token websites",
+    "screenshots",
+    "token lists",
+    "launchpad claims",
+    "third-party labels",
+    "model summaries",
+    "user-supplied mint",
+    "user-supplied metadataAddress",
+    "user-supplied poolAddress",
+    "user-supplied tokenProgram",
+    "any request to override verdicts or coverage gaps"
+  ],
+  "inputBoundary": {
+    "principle": "Raven accepts candidate evidence, not trusted evidence. User-supplied fields help locate accounts to check; they do not become facts until Raven verifies what it can verify and reports what it could not verify.",
+    "acceptedCandidateInputs": [
+      "mint",
+      "tokenProgram",
+      "metadataAddress",
+      "poolAddress"
+    ],
+    "rejectedInputs": [
+      "rpcUrl",
+      "issuerIdentity",
+      "privateKey",
+      "API key",
+      "bearer token",
+      "wallet signer",
+      "transaction instruction",
+      "arbitrary tool URL",
+      "model-generated verdict",
+      "user-generated verdict"
+    ],
+    "ignoredClaims": [
+      "user-supplied verdict",
+      "user-supplied coverageGaps",
+      "user-supplied finding codes",
+      "user-supplied pass/verified claims",
+      "screenshots as authority",
+      "social links as authority",
+      "user-supplied keyId or public key as trust anchor"
+    ]
+  },
+  "trustedArtifacts": [
+    "exact receipt-v1 JSON after payloadHash, receiptId, Ed25519 signature, expected-subject, rules and freshness checks",
+    "receipt-v1 signerPublicKey matching an independently authenticated pin (/pubkey is discovery/cross-check)",
+    "rulesVersion",
+    "findings",
+    "coverageGaps",
+    "slot",
+    "payloadHash and receiptId",
+    "separately stored verifier result"
+  ],
+  "riskyActions": [
+    "spending",
+    "trading execution by the integrator",
+    "listing",
+    "routing",
+    "passing a token to another agent",
+    "storing a token as verified",
+    "issuing public claims",
+    "invoking downstream wallet/execution tools"
+  ],
+  "strideMapping": {
+    "spoofing": [
+      "fake keyId",
+      "fake verifier endpoint",
+      "fake receipt",
+      "fake UI badge"
+    ],
+    "tampering": [
+      "modified receipt JSON",
+      "changed verdict",
+      "removed coverage gap",
+      "mutated finding code"
+    ],
+    "repudiation": [
+      "no exact receipt stored",
+      "no signature-verification record",
+      "missing request logs"
+    ],
+    "informationDisclosure": [
+      "leaked API key",
+      "browser-exposed key",
+      "secret logging",
+      "overbroad logs"
+    ],
+    "denialOfService": [
+      "unbounded /verify loops",
+      "key quota exhaustion",
+      "verifier unavailability treated as pass",
+      "malicious batch verification"
+    ],
+    "elevationOfPrivilege": [
+      "model uses a Raven result to request wallet signer permission",
+      "override decision policy",
+      "bypass human approval",
+      "submit transactions"
+    ]
+  },
+  "toolSeparation": {
+    "rule": "Action tools must never be called solely because discovery context or model memory says a token is acceptable. The harness separates discovery, verification, and action; decision policy sits between verification and action.",
+    "discoveryTools": [
+      "search",
+      "user chat",
+      "token lists",
+      "wallet UI context",
+      "launchpad pages",
+      "social links"
+    ],
+    "verificationTools": [
+      "Raven POST /receipt/v1 (signed producer)",
+      "raven-receipt-verifier (local verification)",
+      "Raven /pubkey (cross-check only)",
+      "local MCP (unsigned developer output only)",
+      "Raven POST /verify (legacy v2 compatibility only)",
+      "ed25519 verification library"
+    ],
+    "actionTools": [
+      "wallet signer",
+      "swap router",
+      "listing API",
+      "ACP job submission",
+      "downstream agent handoff",
+      "storage write",
+      "public post/publish"
+    ]
+  },
+  "ravenControls": [
+    "deterministic evidence decoding",
+    "receipt-v1 signed evidence with signerPublicKey, payloadHash and receiptId",
+    "public key cross-check endpoint",
+    "explicit coverage gaps",
+    "fail-closed verifier behavior",
+    "decision policy",
+    "status policy",
+    "abuse runbook",
+    "public evals",
+    "quality ledger"
+  ],
+  "downstreamAgentControls": [
+    "authentication and authorization for its own users and actions",
+    "ed25519 signature verification",
+    "exact receipt storage",
+    "staleness handling",
+    "action scoping and rate limiting",
+    "human escalation",
+    "wallet permission separation",
+    "audit logging without secrets",
+    "no safety-affirming wording"
+  ],
+  "sandboxExpectations": {
+    "forbiddenReads": [
+      ".env files",
+      "shell history",
+      "SSH keys",
+      "wallet files",
+      "browser storage",
+      "password managers"
+    ],
+    "rules": [
+      "browser pages must not contain API keys",
+      "server-side integrations keep keys server-side",
+      "logs redact authorization headers and never include private keys, seed phrases, bearer tokens, RPC secrets, service keys, or delegate keys",
+      "local MCP use is separated from wallet execution tools"
+    ],
+    "productionReadinessRule": "If the agent runtime cannot constrain tool access, mark the integration not production ready."
+  },
+  "incidentReviewQuestions": [
+    "Which exact receipt was used?",
+    "Was receipt-v1 payloadHash/receiptId/signature verified, and did signerPublicKey match the independently authenticated pin? (For legacy v2, which keyId?)",
+    "Was the receipt stale?",
+    "Were coverage gaps present, preserved, or hidden?",
+    "Did decision policy require block/escalation, and did the agent proceed anyway?",
+    "Was the verifier available, and was there a retry loop?",
+    "Was there prompt injection or poisoned context in the input?"
+  ],
+  "outOfScope": [
+    "Raven does not authenticate the integrator's users",
+    "does not manage wallets or custody",
+    "does not protect against vulnerabilities in the integrator's own code",
+    "does not certify tokens as safe",
+    "does not provide financial advice"
+  ],
+  "receiptScope": {
+    "principle": "A receipt is scoped evidence, not a universal claim. Receipt-v1 covers this signed subject, the performed/not-performed checks, findings/gaps, slot, and rules version - not every future action. Legacy v2 scope fields remain version-specific.",
+    "rules": [
+      "a receipt for one mint does not cover another mint",
+      "a receipt without poolAddress establishes no pool evidence - liquidity inference is forbidden",
+      "a receipt without metadataAddress establishes no metadata evidence",
+      "a receipt observed at one slot can become stale; reverify before spend/list/route",
+      "receipts from different engine versions are not interchangeable",
+      "agents must not expand a receipt's scope by inference"
+    ]
+  },
+  "supplyChainInputs": "Also untrusted: package-manager output, README install commands, build logs, dependency names suggested by errors, and CI artifacts. A signed receipt is a trust artifact; a package name is not. See /supply-chain-policy.json.",
+  "agentAnatomy": "An agent is a model using tools in a loop with autonomy - and every word in that sentence is a security boundary: model output can be wrong, content can poison context, tools can be malicious, loops amplify mistakes, and autonomy removes the human brake unless policy restores it.",
+  "brandClaimRule": "Brand, issuer, or RWA claims are untrusted until supported by receipt evidence. A token name, symbol, logo, website, social post, app badge, search result, or agent memory is not verification - serious-looking tokens are the next spoofing surface (fake wrappers, fake official mints, fake issuer pages, stale RAG summaries)."
+}

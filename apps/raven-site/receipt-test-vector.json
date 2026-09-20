@@ -1,0 +1,118 @@
+{
+  "schema": "raven-legacy-official-attestation-v2-test-vector/1",
+  "purpose": "LEGACY official-attestation v2 ONLY. NOT for receipt-v1 verifier. Kept for historical POST /verify compatibility tests. Primary receipt-v1 vector is /receipt-v1-test-vector.json.",
+  "family": "legacy-official-attestation-v2",
+  "compatibility": "Legacy fields verdict, replayHash, officialAttestationHash, and domain raven-official-attestation are v2-only. Do not treat this file as a receipt-v1 test vector.",
+  "pubkey_response": {
+    "keys": [
+      {
+        "keyId": "rvk_c2997e90215279c2",
+        "publicKeyBase64": "MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=",
+        "alg": "ed25519"
+      }
+    ],
+    "domain": "raven-official-attestation",
+    "version": "v2"
+  },
+  "receipt": {
+    "ok": true,
+    "verdict": "risk",
+    "engineOutcome": "risk",
+    "reason": "issuer_control_finding_present",
+    "findingCodes": [
+      "issuer_control.mint_authority_active",
+      "issuer_control.freeze_authority_active",
+      "venue.infrastructure_tier_immutable"
+    ],
+    "triggeringFindingCodes": [
+      "issuer_control.mint_authority_active",
+      "issuer_control.freeze_authority_active"
+    ],
+    "findings": [
+      {
+        "code": "issuer_control.mint_authority_active",
+        "source": "mint_account_evidence",
+        "subject": "mint_authority",
+        "evidence": {
+          "optionTag": 1,
+          "present": true,
+          "address": "BJE5MMbqXjVwjAF7oxwPYXnTXDyspzZyt4vwenNw5ruG"
+        }
+      },
+      {
+        "code": "issuer_control.freeze_authority_active",
+        "source": "mint_account_evidence",
+        "subject": "freeze_authority",
+        "evidence": {
+          "optionTag": 1,
+          "present": true,
+          "address": "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar"
+        }
+      },
+      {
+        "code": "venue.infrastructure_tier_immutable",
+        "source": "token_program_dependency_evidence",
+        "subject": "token_program_dependency",
+        "evidence": {
+          "tokenProgramAddress": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "dependencyKind": "known_policy_program",
+          "programFamilyName": "SPL Token Program",
+          "classification": "immutable_infrastructure",
+          "phase0IdentityStatus": "verified_present",
+          "phase0MutabilityStatus": "immutable",
+          "upgradeAuthority": null
+        }
+      }
+    ],
+    "coverageGaps": [
+      "liquidity",
+      "top_holders",
+      "deployer_outcomes"
+    ],
+    "replayable": true,
+    "rpc": {
+      "commitment": "finalized",
+      "mintAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "metadataAddress": null,
+      "observedSlot": 424327592
+    },
+    "engineVersion": "raven-solana-live-scan@0.1.0",
+    "raven_version": "raven-acp-0.1.0",
+    "replayHash": "sha256:7138cae394a76527bacef488583d2c1bb81ca35d547488460d259c3613384c6a",
+    "officialAttestationHash": "sha256:9c01d49a8c7887bb2136fc325c320e5e7c46ffcdb10b71a3e7b23da3fbbc1213",
+    "keyId": "rvk_c2997e90215279c2",
+    "issuedAt": "2026-06-04T21:46:17.980Z",
+    "signature": "wXKUnCWSqW4Od6k/dGA2uPcDU5HeBfX9fVI603GVEsu7K5TW1qq1gNFOLp8HKrIlyjwbeQVeeE3PsV6mLB8dBQ==",
+    "attestationPublicKey": "MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=",
+    "signatureAlg": "ed25519",
+    "served_at": "2026-06-04T21:46:17.981Z"
+  },
+  "unsigned": {
+    "notEvaluatedSurfaces": {
+      "offchain": [
+        "offchain_claims_not_evaluated",
+        "team_identity_not_evaluated",
+        "promotion_disclosure_not_evaluated"
+      ],
+      "futureLifecycle": [
+        "creator_fee_history_not_evaluated",
+        "prelaunch_funding_graph_not_evaluated",
+        "metadata_clone_check_not_evaluated"
+      ]
+    },
+    "note": "Unsigned response annotation. NOT part of the signed receipt and NOT receipt authority. The authoritative, signed limitation list is coverageGaps."
+  },
+  "expected": {
+    "keyId_matches_pubkey": true,
+    "signatureAlg": "ed25519",
+    "replayHash": "sha256:7138cae394a76527bacef488583d2c1bb81ca35d547488460d259c3613384c6a",
+    "officialAttestationHash": "sha256:9c01d49a8c7887bb2136fc325c320e5e7c46ffcdb10b71a3e7b23da3fbbc1213",
+    "signature_verifies": "ed25519_verify(publicKey, utf8(signature_preimage_utf8), base64decode(signature)) === true",
+    "signature_preimage_recipe": "canonical JSON (keys sorted lexicographically, no whitespace) of {domain:'raven-official-attestation', issuedAt, keyId, officialAttestationHash, version:'v2'} — values copied verbatim from the receipt",
+    "signature_preimage_utf8": "{\"domain\":\"raven-official-attestation\",\"issuedAt\":\"2026-06-04T21:46:17.980Z\",\"keyId\":\"rvk_c2997e90215279c2\",\"officialAttestationHash\":\"sha256:9c01d49a8c7887bb2136fc325c320e5e7c46ffcdb10b71a3e7b23da3fbbc1213\",\"version\":\"v2\"}",
+    "verdict": "risk",
+    "coverageGaps_nonempty": true,
+    "note": "signature_preimage_utf8 is the EXACT byte string that was signed (UTF-8). Verify by byte-comparing your canonical-JSON output against it, then ed25519-verifying. replayHash recomputation requires the canonical-JSON recipe in the repo; hash equality checks above can be done without it."
+  },
+  "disclaimer": "Historical receipt for verifier testing. Raven signs evidence; not financial advice."
+}

@@ -1,0 +1,196 @@
+{
+  "schema": "raven-rubrics/1",
+  "purpose": "What a good Raven LaunchGuard integration looks like — scoreable, not vibes.",
+  "contractBoundary": "Current signed integrations use POST /receipt/v1 and verify payloadHash, receiptId, signature, signerPublicKey trust, subject, rules, freshness and coverage separately. Verdict/keyId rubrics are legacy v2 policy projection only.",
+  "rubrics": [
+    {
+      "id": "signature_verification",
+      "description": "Receipts verified before use",
+      "passCriteria": "receipt-v1 payloadHash/receiptId/signature verified and signerPublicKey matched to an independently authenticated pin every call",
+      "failExamples": "trusting embedded signerPublicKey or same-host /pubkey without an independent pin",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "verdict_interpretation",
+      "description": "Legacy v2 verdicts, when present, remain version-labelled policy inputs",
+      "passCriteria": "legacy v2 only: risk->block/escalate; warning->approval; unknowable->not verified; current receipt-v1 decisions derive from signed findings/gaps plus consumer policy",
+      "failExamples": "inventing a verdict field for receipt-v1 or auto-proceeding on a legacy warning",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "coverage_gap_handling",
+      "description": "Gaps treated as unverified",
+      "passCriteria": "gaps listed, compared to accepted-gaps list, surfaced to users",
+      "failExamples": "summarizing gaps away; calling gaps 'fine'",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "stale_receipt_handling",
+      "description": "Re-verification before material actions",
+      "passCriteria": "re-verify pre-trade/spend/list and at delayed execution",
+      "failExamples": "acting on a week-old receipt for a swap",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "language_exactitude",
+      "description": "Wording follows /language-policy.json",
+      "passCriteria": "'not enough evidence for a full pass' used; banned phrases absent",
+      "failExamples": "saying 'safe' anywhere",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "no_financial_advice",
+      "description": "No advice leakage",
+      "passCriteria": "verification-only language; buy/sell questions refused",
+      "failExamples": "'looks like a good buy'",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "no_price_prediction",
+      "description": "No price claims",
+      "passCriteria": "facts only; no forecasts",
+      "failExamples": "'likely to pump'",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "operational_fail_closed",
+      "description": "Errors never become verdicts",
+      "passCriteria": "401/429/5xx/network -> not verified; retry/escalate",
+      "failExamples": "treating a timeout as a pass",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "secret_handling",
+      "description": "No secrets anywhere near receipts",
+      "passCriteria": "keys in env server-side only; never in memory/receipts/logs",
+      "failExamples": "API key in stored receipt",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "runtime_permissions",
+      "description": "Read-only preflight respected",
+      "passCriteria": "no wallet/signer scope for the Raven tool; egress limited",
+      "failExamples": "Raven tool sharing wallet capability",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "receipt_storage",
+      "description": "Schema-correct, append-only storage",
+      "passCriteria": "rawResponse intact; deterministic lookup keys; never overwrite",
+      "failExamples": "editing stored receipts",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "agent_handoff",
+      "description": "Receipts travel with handoffs",
+      "passCriteria": "downstream agent receives + re-verifies receipt",
+      "failExamples": "passing a bare verdict string",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "crypto_agility_claims",
+      "description": "No overclaims",
+      "passCriteria": "Ed25519 stated; no quantum-safe claims; key states understood",
+      "failExamples": "'quantum-proof receipts'",
+      "relatedPages": [
+        "/decision-policy.html",
+        "/language-policy.html",
+        "/agent-runtime-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "tamper_rejection_tested",
+      "description": "Tampered/missing-signature receipts are rejected (drilled)",
+      "passCriteria": "drills 1-3 of /failure-drills.json pass",
+      "failExamples": "never tried tampering a receipt",
+      "relatedPages": [
+        "/failure-drills.html",
+        "/anti-slop-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "rate_limit_handling",
+      "description": "429s back off; errors never become verdicts",
+      "passCriteria": "429 -> backoff; 5xx -> fail closed",
+      "failExamples": "retry storm; timeout treated as pass",
+      "relatedPages": [
+        "/failure-drills.html",
+        "/anti-slop-policy.html"
+      ],
+      "relatedEvalIds": []
+    },
+    {
+      "id": "external_receipts_measured",
+      "description": "Integration measures EXTERNAL signed receipts used in real workflows",
+      "passCriteria": "externalReceiptReuseCount tracked; internal AI activity not counted as traction",
+      "failExamples": "celebrating tokens consumed or agent steps as quality",
+      "relatedPages": [
+        "/failure-drills.html",
+        "/anti-slop-policy.html"
+      ],
+      "relatedEvalIds": []
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "policyName": "raven-deployment-surfaces",
+  "version": "1.1",
+  "contractBoundary": "Current signed customer path is POST /receipt/v1 with local raven-receipt-verifier checks and an independently authenticated signer pin. POST /verify is legacy v2 compatibility. Local MCP is unsigned developer output.",
+  "surfaces": {
+    "hosted_verifier": "keyed POST /receipt/v1 API on Render; signed receipt-v1 evidence; server-side RPC",
+    "local_mcp": "free developer/agent-native local path (npx -y raven-verify-mcp); unsigned output against your RPC, not a signed receipt-v1",
+    "acp_provider": "sandbox only, not publicly listed or hireable; no live paid-job capability claimed",
+    "solana_agent_kit_plugin": "toolkit surface (raven-solana-agent-kit-plugin); no wallet scope needed",
+    "static_console": "human-readable docs + machine manifests; no live verification in the browser",
+    "backend_integration": "server-to-server via OpenAPI contract"
+  },
+  "commonRequirements": [
+    "verify signed receipts before action regardless of surface",
+    "local context never overrides verifier evidence",
+    "no API keys in browser code"
+  ],
+  "forbiddenClaims": [
+    "fully offline FRESH verification (offline re-verification of a STORED receipt is fine: receipt + public key suffice; fresh on-chain state needs a live check)"
+  ],
+  "keyHandlingRules": [
+    "hosted keys server-side env only",
+    "never in browsers, repos, agent memory, or receipts"
+  ],
+  "executionModes": {
+    "local_loop": "dev/testing surface; must not expose .env, wallet files, browser sessions, signer material, package or deployment tokens",
+    "local_scheduled_task": "must re-verify after sleep, resume, or catch-up; missed runs must not bulk-proceed on old receipts",
+    "cloud_routine": "server-side key handling, quotas, backoff, logs, fail-closed behavior required",
+    "backend_script": "preferred for deterministic checks - signature verification and decision mapping need no LLM",
+    "agent_sdk_harness": "may call and explain Raven; may not override receipt, verdict, or gaps",
+    "human_review_console": "best place to inspect receipt, gaps, staleness, and policy before action; cannot validate invalid signatures"
+  },
+  "scheduledAgentRule": "Scheduled agents re-verify before material action. Cron/loop jitter means 'scheduled at X' is not proof of freshness; catch-up runs after downtime must not bulk-proceed using old receipts. Every scheduled Raven check needs max runs, max retries, timeout, and fail-closed behavior."
+}

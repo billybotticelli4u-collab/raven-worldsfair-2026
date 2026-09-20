@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ravenattest.com/receipt-schema.json",
+  "title": "LEGACY V2 Stored Raven Receipt (storage envelope — NOT receipt-v1)",
+  "description": "LEGACY V2 COMPATIBILITY storage envelope for persisting a POST /verify response. This is not the current receipt-v1 customer contract. New integrations use POST /receipt/v1, preserve the exact receipt-v1 object, and follow /receipt-v1-test-vector.json plus the maintained raven-receipt-verifier. To validate the archived legacy v2 wire receipt published in /receipt-test-vector.json, use /receipt-wire-schema.json. rawResponse is the source of truth and must remain byte-unmodified; derivedExplanation never replaces it; policyDecision must not upgrade the legacy verdict; coverageGaps must remain visible.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "receiptType",
+    "mintAddress",
+    "tokenProgramAddress",
+    "request",
+    "verdict",
+    "findingCodes",
+    "coverageGaps",
+    "observedSlot",
+    "engineVersion",
+    "keyId",
+    "replayHash",
+    "officialAttestationHash",
+    "signature",
+    "createdAt",
+    "source",
+    "rawResponse"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "raven-stored-receipt/1"
+    },
+    "receiptType": {
+      "const": "raven_token_verification"
+    },
+    "mintAddress": {
+      "type": "string"
+    },
+    "tokenProgramAddress": {
+      "type": "string"
+    },
+    "request": {
+      "type": "object",
+      "description": "The exact request sent (never includes rpcUrl/issuerIdentity)."
+    },
+    "verdict": {
+      "enum": [
+        "pass",
+        "pass_with_info_finding",
+        "warning",
+        "risk",
+        "unknowable"
+      ]
+    },
+    "findingCodes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "coverageGaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Normative. Must never be summarized away."
+    },
+    "unsigned": {
+      "type": "object",
+      "description": "Unsigned response annotation; not receipt authority; the signed coverageGaps are the authoritative limitation list. Explicitly NOT part of the signed receipt. Carries notEvaluatedSurfaces (a constant scope disclaimer) and an explanatory note.",
+      "properties": {
+        "notEvaluatedSurfaces": {
+          "type": "object",
+          "description": "Unsigned response annotation; not receipt authority; the signed coverageGaps are the authoritative limitation list. Constant declarative object of surfaces this receipt does NOT evaluate, grouped into offchain (surfaces Raven structurally does NOT evaluate from on-chain data, e.g. team identity, promotion disclosure) and futureLifecycle (on-chain-adjacent surfaces this receipt did not evaluate, e.g. creator-fee history). Separate from coverageGaps; does NOT affect the verdict. A clean on-chain verdict is never evidence about these surfaces.",
+          "properties": {
+            "offchain": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "futureLifecycle": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "string",
+          "description": "Human-readable statement that this annotation is unsigned and not receipt authority."
+        }
+      }
+    },
+    "observedSlot": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "engineVersion": {
+      "type": "string"
+    },
+    "keyId": {
+      "type": "string",
+      "examples": [
+        "rvk_c2997e90215279c2"
+      ]
+    },
+    "replayHash": {
+      "type": "string"
+    },
+    "officialAttestationHash": {
+      "type": "string"
+    },
+    "signature": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "enum": [
+        "hosted_api",
+        "mcp",
+        "acp",
+        "manual_import"
+      ]
+    },
+    "rawResponse": {
+      "type": "object",
+      "description": "The unmodified verifier response. Source of truth."
+    },
+    "metadataAddress": {
+      "type": "string"
+    },
+    "poolAddress": {
+      "type": "string"
+    },
+    "commitment": {
+      "enum": [
+        "finalized",
+        "confirmed",
+        "processed"
+      ]
+    },
+    "namespace": {
+      "type": "string",
+      "examples": [
+        "raven/{project}/{agent}/{environment}"
+      ]
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "agentId": {
+      "type": "string"
+    },
+    "policyDecision": {
+      "enum": [
+        "proceed",
+        "block",
+        "escalate",
+        "unresolved"
+      ],
+      "description": "Caller policy outcome. Must not upgrade the verdict."
+    },
+    "humanReviewRequired": {
+      "type": "boolean"
+    },
+    "humanReviewReason": {
+      "type": "string"
+    },
+    "derivedExplanation": {
+      "type": "string",
+      "description": "Optional derived text. Never replaces rawResponse."
+    },
+    "storageProvider": {
+      "type": "string"
+    },
+    "storagePointer": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

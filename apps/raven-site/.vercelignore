@@ -1,0 +1,13 @@
+operator/
+scripts/
+evidence/*
+!evidence/usdc.json
+!evidence/risk-pump.json
+!evidence/fresh-pump.json
+README.md
+SECURITY-CHECKLIST.md
+build.js
+index.template.html
+receipts.template.html
+test.mjs
+.vercel
