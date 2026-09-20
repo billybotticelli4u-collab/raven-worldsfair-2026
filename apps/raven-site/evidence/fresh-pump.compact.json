@@ -1,0 +1,26 @@
+{
+ "mintAddress": "CVueTzk4KdmFmi65CbckcTr2hxtS85jAyMeSJiF6pump",
+ "tokenProgramAddress": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+ "verdict": "pass_with_info_finding",
+ "engineOutcome": "pass_with_info_finding",
+ "reason": "mutable_but_known_infrastructure_dependency",
+ "findingCodes": [
+  "token2022.metadata_pointer_present",
+  "token2022.token_metadata_present",
+  "venue.infrastructure_tier_mutable_but_known"
+ ],
+ "coverageGaps": [
+  "liquidity",
+  "top_holders",
+  "deployer_outcomes"
+ ],
+ "engineVersion": "raven-solana-live-scan@0.1.0",
+ "observedSlot": 424327609,
+ "issuedAt": "2026-06-04T21:46:24.706Z",
+ "replayHash": "sha256:dc290e91972ce2b7a48fa5b9796b5954aabb91849122e1c2de634a0c57538b11",
+ "officialAttestationHash": "sha256:e0e0c39950a4280a0c10c0f30331f66de4e42f4240a5dc51e0231d325fcf2fe4",
+ "keyId": "rvk_c2997e90215279c2",
+ "signature": "WFr8bp1+rjlL7FNYJKfsL0KW7FNqDPOi5nyDSPFlwebkcXxLkHyv23dZIae/SWcKzD91z5oPobFXL+ITqvRODg==",
+ "attestationPublicKey": "MCowBQYDK2VwAyEASGJt4Ilx2Z6g0BVC1VQIfaUcV0nr8WB1J45/8vfje6w=",
+ "signatureAlg": "ed25519"
+}
