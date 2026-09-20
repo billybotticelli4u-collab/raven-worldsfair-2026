@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Raven Conformance — Crypto World's Fair</title>
+  <meta name="description" content="Raven builds inspectable evidence for humans and software agents. Try Raven Conformance: pick a target, run stated behavior, inspect disagreements, download evidence, reproduce.">
+  <meta property="og:title" content="Raven Conformance — Crypto World's Fair">
+  <meta property="og:description" content="Inspectable evidence for humans and software agents. Live Conformance demo, pitch, and reproduction package.">
+  <meta property="og:image" content="https://ravenattest.com/raven-logo.svg">
+  <link rel="icon" type="image/svg+xml" href="/raven-logo.svg">
+  <link rel="stylesheet" href="/worldsfair/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <a class="logo" href="/" aria-label="Raven home">
+        <span class="logo-mark templvm"><img src="/worldsfair/media/raven-templvm-mark.png" alt="" width="36" height="36"></span>
+        RAVEN<span class="dot">.</span>
+      </a>
+      <nav class="nav" aria-label="Fair">
+        <a href="#pitch">Watch</a>
+        <a href="#demo">Demo</a>
+        <a href="#download">Download</a>
+        <a href="#built">Built at Fair</a>
+        <a href="/">Main site</a>
+        <a class="cta" href="#demo">Run live test</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="shell">
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <p class="eyebrow">Crypto World's Fair · live product</p>
+          <h1 id="hero-title">Crypto infrastructure evidence for humans and AI agents.</h1>
+          <p class="lead">
+            Raven issues <strong>signed, scope-bounded evidence receipts</strong>.
+            At the Fair we ship <strong>Raven Conformance</strong>: pick a target, run stated behavior,
+            inspect disagreements, export evidence, and reproduce the run.
+          </p>
+          <div class="actions">
+            <a class="btn primary" href="#demo">Run a live test</a>
+            <a class="btn" href="https://raven-worldsfair-2026.vercel.app/" target="_blank" rel="noopener">Open full Conformance UI</a>
+            <a class="btn ghost" href="#download">Developer package</a>
+          </div>
+          <div class="trust-row" aria-label="Honest scope">
+            <span class="chip"><i></i> Raven-owned demo targets</span>
+            <span class="chip"><i></i> No invented partners</span>
+            <span class="chip"><i></i> Reproducible export</span>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="/worldsfair/media/hero-evidence.svg" width="720" height="520" alt="Abstract lattice of agents, receipts, and verification nodes">
+          <div class="float">
+            <div class="mini ok"><strong>Conformant · 12/12</strong>Matching cases on reference target</div>
+            <div class="mini warn"><strong>Broken subtle</strong>Disagreements on V07 + V08</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" class="reveal">
+        <div class="section-head">
+          <h2>How a Conformance run works</h2>
+          <p>Same flow judges and developers see in the live UI — stated vectors, observed results, exportable evidence.</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <span class="tag">01</span>
+            <h3>Pick a target</h3>
+            <p class="muted">Conformant reference or deliberately broken subtle — both Raven-owned.</p>
+          </article>
+          <article class="card">
+            <span class="tag">02</span>
+            <h3>Run stated behavior</h3>
+            <p class="muted">Corpus vectors execute; the UI shows pass and disagreement rows with expected vs observed.</p>
+          </article>
+          <article class="card">
+            <span class="tag">03</span>
+            <h3>Export &amp; reproduce</h3>
+            <p class="muted">Download evidence and follow the developer notes to re-check hashes on your machine.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="demo" class="reveal">
+        <div class="section-head">
+          <h2>Run a live Conformance test</h2>
+          <p>
+            This is the real Fair judge — not a mock. Choose a Raven-owned target below,
+            click <strong>Run Conformance (live)</strong>, and watch PASS / DIVERGENCE evidence stream in.
+            Expect about a minute for a full corpus pass.
+          </p>
+        </div>
+        <div class="live-runner">
+          <div class="live-toolbar">
+            <span class="tag ok">Live</span>
+            <span class="mono">host · raven-worldsfair-2026.vercel.app</span>
+            <a class="btn ghost" href="https://raven-worldsfair-2026.vercel.app/" target="_blank" rel="noopener">Open in new tab</a>
+          </div>
+          <div class="live-frame-wrap">
+            <iframe
+              id="liveRunner"
+              title="Raven Conformance live test runner"
+              src="https://raven-worldsfair-2026.vercel.app/"
+              loading="eager"
+              referrerpolicy="no-referrer-when-downgrade"
+              allow="clipboard-write"
+            ></iframe>
+          </div>
+          <p class="muted live-fallback">
+            Prefer a larger workspace? Use the full UI in a new tab.
+            Targets are Raven-owned demo fixtures (conformant reference and deliberately broken subtle) — not third-party systems.
+          </p>
+        </div>
+        <table>
+          <thead><tr><th>Vector</th><th>On broken subtle</th></tr></thead>
+          <tbody>
+            <tr><td><code>V07_unexpected_top_level_field</code></td><td>Expect disagreement</td></tr>
+            <tr><td><code>V08_unexpected_extension_key</code></td><td>Expect disagreement</td></tr>
+            <tr><td>Other corpus vectors</td><td>May still PASS — read the report</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+                  <section id="pitch" class="reveal">
+        <div class="section-head">
+          <h2>Watch the product</h2>
+          <p>Primary: real-screen Conformance walkthrough (see review sidecar — mp4 overlay still reads Media review pending). Short pitch: reviewed V4R3. The 2-minute cut is not on this page: GROK claim-copy PASS is bound to digest 3b879392…; KIMI media is not bound; Owner bind is not bound.</p>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Product videos">
+          <button type="button" class="tab" role="tab" aria-selected="true" aria-controls="panel-walk" id="tab-walk">Product walkthrough</button>
+          <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="panel-v4" id="tab-v4">Short pitch (V4R3)</button>
+        </div>
+        <div class="panel card" role="tabpanel" id="panel-walk" aria-labelledby="tab-walk">
+          <h3>Real product walkthrough</h3>
+          <video controls playsinline preload="metadata"
+            src="/worldsfair/media/raven-real-product-walkthrough.mp4"
+            aria-label="Raven Conformance real product walkthrough"></video>
+          <p class="muted">Recorded Raven-owned demo targets. Matching this corpus is not a safety claim. SHA-256 <code>d20dfcac4b30f0c6942e416fa4372390feb49d8446b21e489d5cb12ba24f46b7</code>.</p>
+        </div>
+        <div class="panel card" role="tabpanel" id="panel-v4" aria-labelledby="tab-v4" hidden>
+          <h3>Reviewed short pitch (V4R3)</h3>
+          <video controls playsinline preload="metadata"
+            src="/worldsfair/media/raven-conformance-pitch-v4r3-reviewed.mp4"
+            aria-label="Raven Conformance reviewed short pitch V4R3"></video>
+        </div>
+      </section>
+
+      <section id="download" class="reveal">
+        <div class="section-head">
+          <h2>Developer / reproduction package</h2>
+          <p>Start with the notes zip (tested path). The sealed A1 git bundle is larger; the README points to it and hash-check steps.</p>
+        </div>
+        <div class="card">
+          <div class="actions">
+            <a class="btn primary" href="/worldsfair/download/raven-conformance-fair-developer-notes.zip">Download developer notes (.zip)</a>
+            <a class="btn" href="/worldsfair/download/raven-conformance-judge-package-2026-09-20-34453300.zip">Download sealed judge package (.zip)</a>
+            <a class="btn" href="/worldsfair/download/README.md">Read README</a>
+          </div>
+          <p class="muted">No untested one-line install command is advertised here.</p>
+        </div>
+      </section>
+
+      <section id="built" class="reveal">
+        <div class="section-head">
+          <h2>Built during the hackathon</h2>
+          <p>Clear line between Fair work, pre-existing Raven foundations, and claims we do not make.</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <h3>Completed here</h3>
+            <p class="muted">Bounded runner + judge UI, failure/retry presentation, evidence export, reproduction command, Fair landing at <code>/worldsfair</code>, verify-judge-url harness, A1 runtime-root guard work.</p>
+          </article>
+          <article class="card">
+            <h3>Pre-existing foundations</h3>
+            <p class="muted">Raven evidence-receipt product, site, and verifier surfaces on ravenattest.com (unchanged by this Fair page).</p>
+          </article>
+          <article class="card">
+            <h3>Not claimed</h3>
+            <p class="muted">No invented adoption, partners, on-chain results, or safety certification. Future integrations are invitations, not shipped facts.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="invite" class="card reveal">
+        <h2>Developer invitation</h2>
+        <p>Try the package, contribute corpus cases, report problems, and propose integrations via the contact paths on the main Raven site.</p>
+        <div class="actions">
+          <a class="btn" href="/contact.html">Contact</a>
+          <a class="btn" href="/agents.html">For agents</a>
+          <a class="btn" href="/">Evidence receipts home</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Raven · Crypto World's Fair · Conformance demo targets are Raven-owned · Not financial advice</span>
+      <a href="/">ravenattest.com</a>
+    </footer>
+  </div>
+  <script src="/worldsfair/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" role="img" aria-labelledby="t d">
+  <title id="t">Raven evidence lattice</title>
+  <desc id="d">Abstract network of agents, receipts, and verification nodes</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="55%" stop-color="#101a2e"/>
+      <stop offset="100%" stop-color="#0a0f18"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5ccfe6" stop-opacity=".15"/>
+      <stop offset="50%" stop-color="#7aa2f7" stop-opacity=".55"/>
+      <stop offset="100%" stop-color="#87d96c" stop-opacity=".2"/>
+    </linearGradient>
+    <linearGradient id="node" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9ec1ff"/>
+      <stop offset="100%" stop-color="#5a7fd4"/>
+    </linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#1e2a40" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="720" height="520" rx="28" fill="url(#bg)"/>
+  <rect width="720" height="520" rx="28" fill="url(#grid)" opacity=".55"/>
+  <ellipse cx="360" cy="260" rx="220" ry="140" fill="url(#glow)" opacity=".9"/>
+  <!-- links -->
+  <g stroke="#3d5278" stroke-width="1.5" fill="none" opacity=".85">
+    <path d="M120 140 C200 180, 240 200, 300 220"/>
+    <path d="M600 130 C520 170, 480 200, 420 230"/>
+    <path d="M140 390 C220 340, 260 310, 320 290"/>
+    <path d="M580 400 C500 350, 460 320, 400 295"/>
+    <path d="M360 120 V220"/>
+    <path d="M360 300 V400"/>
+    <path d="M220 260 H500"/>
+  </g>
+  <!-- pulse arcs -->
+  <g fill="none" stroke="#7aa2f7" stroke-width="2" opacity=".55">
+    <circle cx="360" cy="260" r="58"/>
+    <circle cx="360" cy="260" r="98" stroke-dasharray="6 10" opacity=".7"/>
+  </g>
+  <!-- center receipt -->
+  <g filter="url(#soft)">
+    <rect x="300" y="210" width="120" height="100" rx="14" fill="#121c30" stroke="#7aa2f7" stroke-width="2"/>
+    <rect x="318" y="232" width="84" height="8" rx="4" fill="#5ccfe6" opacity=".9"/>
+    <rect x="318" y="250" width="64" height="6" rx="3" fill="#3d5278"/>
+    <rect x="318" y="264" width="72" height="6" rx="3" fill="#3d5278"/>
+    <rect x="318" y="278" width="48" height="6" rx="3" fill="#87d96c" opacity=".85"/>
+  </g>
+  <!-- agent nodes -->
+  <g>
+    <circle cx="120" cy="140" r="18" fill="url(#node)"/>
+    <circle cx="600" cy="130" r="16" fill="url(#node)"/>
+    <circle cx="140" cy="390" r="16" fill="url(#node)"/>
+    <circle cx="580" cy="400" r="18" fill="url(#node)"/>
+    <circle cx="360" cy="110" r="14" fill="#5ccfe6"/>
+    <circle cx="360" cy="410" r="14" fill="#87d96c"/>
+  </g>
+  <!-- labels -->
+  <g font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#8b94a8">
+    <text x="96" y="175">agent</text>
+    <text x="568" y="165">agent</text>
+    <text x="318" y="198">receipt</text>
+    <text x="330" y="440">verify</text>
+    <text x="92" y="420">corpus</text>
+    <text x="548" y="430">report</text>
+  </g>
+  <text x="36" y="48" font-family="-apple-system,Segoe UI,sans-serif" font-size="15" font-weight="700" fill="#dbe2f0">Inspectable evidence</text>
+  <text x="36" y="70" font-family="-apple-system,Segoe UI,sans-serif" font-size="12" fill="#8b94a8">humans · agents · reproducible runs</text>
+</svg>

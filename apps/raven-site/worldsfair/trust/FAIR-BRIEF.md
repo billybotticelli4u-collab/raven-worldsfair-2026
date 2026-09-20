@@ -1,0 +1,15 @@
+> Local draft for independent review. Author: desktop CODEX. Source: Fair candidate `7c61124c54c61537c5240be3bc88c60855201234`, tree `1bc9409820ef9128798c2d7e6940b8b840b4644b`. These documents do not establish what is currently deployed. Independent reviewer: GROK; corrections await re-review. The author cannot self-approve.
+
+# Raven Conformance: test a claim, keep the evidence
+
+When software says it follows a rule, developers need a way to check that claim and reproduce disagreements. Raven Conformance runs a selected implementation against an explicit profile and a fixed corpus, then produces a report of what happened.
+
+The current Fair demonstration uses three Raven-owned targets and twelve self-contained fixtures for `raven-canonical-envelope/1`. The reference target is expected to pass all twelve. The deliberately subtle broken target is expected to disagree on V07 and V08, showing how a plausible-looking implementation can violate a stated rule. These are demonstration targets, not findings against outside libraries.
+
+The product loop is: choose a target → run the corpus → inspect the result → download evidence → reproduce. A disagreement means an observed decision differs from the fixture expectation. It does not, by itself, establish a vulnerability or unsafe token.
+
+For a local demonstration, bind this integration worktree: HEAD `7c61124c54c61537c5240be3bc88c60855201234`, TREE `1bc9409820ef9128798c2d7e6940b8b840b4644b`. The trust-folder `MANIFEST.json` hashes only these three markdown files; it is not a source-delivery ZIP manifest. Do not clone from in-tree `apps/raven-conformance/RELEASE-HANDOFF.md` (`codex/c2-release-successor-2026-09-19`); that recipe binds ancestor `1641d46b`, not this candidate. Use the verified checkout and Node 22.18.0 or 24.20.0. From `apps/raven-conformance`, run `npm run conform -- --target CONFORMANT_REFERENCE`, then `npm run conform -- --target BROKEN_SUBTLE`. Expected exits are 0 and 1 respectively. Start the local UI with `npm start`. Default listen address is `http://127.0.0.1:8791`. Without production environment flags, that local process is not the production identity-gate runtime. Inspect the disclosed isolation mode and download the report. Replay that newly generated report from the same app directory with `npm run replay -- --report reports/<actual-run-id>.json`, replacing the placeholder with the real filename. Historical reports can be refused if identities differ; do not bypass those checks.
+
+This brief is not a fresh-clone delivery recipe. Use the exact reviewed bundle and its accompanying identity document; a newer local candidate must not be obtained by silently substituting an older bundle.
+
+Raven's broader receipt/verifier research predates this Fair work. This demonstration is the Conformance product, not a promise that every broader Raven component is integrated. Developers can help by reproducing results, challenging expectations and proposing a clearly specified target/profile comparison. Arbitrary public code upload is not offered by this candidate.

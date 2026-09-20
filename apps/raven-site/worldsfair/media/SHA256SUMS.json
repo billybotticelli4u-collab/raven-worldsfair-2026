@@ -1,0 +1,11 @@
+{
+  "algo": "sha256",
+  "files": {
+    "hero-evidence.svg": "5be4eedb0d47d5fe25dca41651479901c12effd7b8bb0738d06f98f7c14da48a",
+    "hero-visual.svg": "5be4eedb0d47d5fe25dca41651479901c12effd7b8bb0738d06f98f7c14da48a",
+    "raven-conformance-pitch-v4r3-reviewed.mp4": "c19b55a86e92a3a0ba2c710d06e2f1a8f75ebb6ae1fa6088427be5630e0e9650",
+    "raven-logo.svg": "85998dd1afb60883033d11c02e0bc647220be6980df57ff82eb1fa219d1c5206",
+    "raven-real-product-walkthrough.mp4": "d20dfcac4b30f0c6942e416fa4372390feb49d8446b21e489d5cb12ba24f46b7",
+    "raven-templvm-mark.png": "31af9bcdb36f51b7eb582c22f1c45b3f8de439d2311ef18b4054aeb3d4f29748"
+  }
+}
