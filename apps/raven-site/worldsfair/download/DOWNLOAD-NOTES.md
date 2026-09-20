@@ -46,3 +46,13 @@ The current sealed package's local server uses the URL printed by the server. In
 - This is not an RFC 8032 verdict, not Corpus 0, not Solana-chain verification, not a third-party vulnerability claim, not a certificate, and not a signed receipt.
 - Demo targets are Raven-owned fixtures.
 - Production deploy, Vercel settings, required checks, and Colosseum submission remain Owner-controlled decisions.
+
+## Exportable cleanliness before reseal
+
+When resealing or composing a judge package for this download surface, run from the Fair INTEGRATION-LANE worktree root:
+
+```sh
+node scripts/artifact-sealing.mjs /path/to/unpacked-package
+```
+
+Absolute path leaks (including `/private/tmp` and `/var/folders`) must fail closed. See `scripts/check-exportable-cleanliness.mjs` (CLAUDE-068).
