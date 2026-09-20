@@ -13,6 +13,7 @@
  * Exits non-zero on any failed check. Prints PASS/FAIL table + deployed commit.
  */
 import http from "node:http";
+import https from "node:https";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,7 +48,8 @@ async function req(route, init = {}) {
 function rawPost(route, hdrs, body) {
   return new Promise((resolve, reject) => {
     const u = new URL(base + route);
-    const req = http.request({
+    const lib = u.protocol === "https:" ? https : http;
+    const req = lib.request({
       protocol: u.protocol,
       hostname: u.hostname,
       port: u.port || (u.protocol === "https:" ? 443 : 80),

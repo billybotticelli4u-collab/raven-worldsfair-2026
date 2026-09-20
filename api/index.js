@@ -1,6 +1,14 @@
 /**
- * Vercel entry for apps/raven-conformance.
+ * Vercel / local adapter entry for apps/raven-conformance.
+ *
+ * Routing: all HTTP handled by the relocated src/server.js under RUNTIME_ROOT.
+ * includeFiles: apps/raven-conformance/** (see vercel.json).
+ * Identity: build-info / disclosure come from the app; this adapter only
+ * validates RAVEN_CONFORMANCE_RUNTIME_ROOT then copies source → runtime.
+ *
  * DEFECT A-1: validate RAVEN_CONFORMANCE_RUNTIME_ROOT before any fs mutation.
+ * G-1: runtime root must be a strict descendant of os.tmpdir() (not equal).
+ * G-2: non-existent paths under tmp are resolved via deepest existing ancestor.
  */
 import { cpSync, mkdirSync, rmSync } from "node:fs";
 import os from "node:os";

@@ -2,18 +2,32 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-function realOrResolve(p) {
-  try {
-    return fs.existsSync(p) ? fs.realpathSync(p) : path.resolve(p);
-  } catch {
-    return path.resolve(p);
+/** Realpath deepest existing ancestor, then append remaining segments (G-2). */
+export function realpathExistingAncestor(p) {
+  const abs = path.resolve(p);
+  let cur = abs;
+  const missing = [];
+  while (true) {
+    try {
+      if (fs.existsSync(cur)) {
+        const real = fs.realpathSync(cur);
+        return missing.length ? path.join(real, ...missing.reverse()) : real;
+      }
+    } catch {
+      /* walk up */
+    }
+    const parent = path.dirname(cur);
+    if (parent === cur) return abs;
+    missing.push(path.basename(cur));
+    cur = parent;
   }
 }
 
-function isInside(parent, child) {
-  const P = realOrResolve(parent);
-  const C = realOrResolve(child);
-  if (C === P) return true;
+/** Strict descendant: child under parent, not equal (G-1). */
+export function isStrictInside(parent, child) {
+  const P = path.resolve(parent);
+  const C = path.resolve(child);
+  if (C === P) return false;
   const rel = path.relative(P, C);
   return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
 }
@@ -32,7 +46,12 @@ export function resolveRuntimeRoot({
   const allowExternal = env.RAVEN_CONFORMANCE_ALLOW_EXTERNAL_ROOT === "1";
   const repo = path.resolve(repoRoot);
   const source = path.resolve(sourceRoot);
-  const tmp = realOrResolve(tmpdir);
+  let tmp;
+  try {
+    tmp = fs.realpathSync(path.resolve(tmpdir));
+  } catch {
+    tmp = path.resolve(tmpdir);
+  }
 
   let resolved;
   if (raw === undefined || raw === null || raw === "") {
@@ -44,23 +63,38 @@ export function resolveRuntimeRoot({
     if (!path.isAbsolute(raw)) {
       throw new Error(`RAVEN_CONFORMANCE_RUNTIME_ROOT refused (relative): ${raw}`);
     }
-    resolved = path.resolve(raw);
+    resolved = realpathExistingAncestor(raw);
   }
 
-  if (isInside(repo, resolved)) {
-    throw new Error(
-      `RAVEN_CONFORMANCE_RUNTIME_ROOT refused (inside repository root ${repo}): ${raw ?? resolved}`,
-    );
+  // G-1 first: must be strict descendant of tmpdir (unless override)
+  if (!allowExternal) {
+    if (resolved === tmp || !isStrictInside(tmp, resolved)) {
+      throw new Error(
+        `RAVEN_CONFORMANCE_RUNTIME_ROOT refused (outside os.tmpdir() / not a strict descendant of ${tmp}; set RAVEN_CONFORMANCE_ALLOW_EXTERNAL_ROOT=1 to override): ${raw ?? resolved}`,
+      );
+    }
   }
 
-  if (resolved === source || isInside(resolved, source)) {
-    throw new Error(`refusing to relocate onto the source tree: ${resolved}`);
+  // refuse inside repo (including equality)
+  {
+    const relToRepo = path.relative(repo, resolved);
+    const insideOrEqual =
+      resolved === repo || (relToRepo !== "" && !relToRepo.startsWith("..") && !path.isAbsolute(relToRepo));
+    if (insideOrEqual) {
+      throw new Error(
+        `RAVEN_CONFORMANCE_RUNTIME_ROOT refused (inside repository root ${repo}): ${raw ?? resolved}`,
+      );
+    }
   }
 
-  if (!isInside(tmp, resolved) && !allowExternal) {
-    throw new Error(
-      `RAVEN_CONFORMANCE_RUNTIME_ROOT refused (outside os.tmpdir() ${tmp}; set RAVEN_CONFORMANCE_ALLOW_EXTERNAL_ROOT=1 to override): ${raw ?? resolved}`,
-    );
+  // refuse if runtime root would contain or equal the source tree
+  {
+    const rel = path.relative(resolved, source);
+    const containsOrEqual =
+      resolved === source || (rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel));
+    if (containsOrEqual) {
+      throw new Error(`refusing to relocate onto the source tree: ${resolved}`);
+    }
   }
 
   return resolved;

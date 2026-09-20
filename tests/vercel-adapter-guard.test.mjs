@@ -33,17 +33,31 @@ test("refuse relative RAVEN_CONFORMANCE_RUNTIME_ROOT", () => {
 
 test("refuse runtime root equal to repository root", () => {
   const msg = refuse(REPO_ROOT);
-  assert.ok(msg && msg.includes("inside repository root"), msg);
+  // G-1: paths outside tmpdir refuse first (outside/strict-descendant); with allow=1 would hit repo check
+  assert.ok(msg && /refused|inside repository|outside os\.tmpdir|strict descendant/.test(msg), msg);
   assert.ok(msg.includes(REPO_ROOT), msg);
 });
 
 test("refuse runtime root inside repository (descendant)", () => {
   const child = path.join(SOURCE_ROOT, "corpus");
   const msg = refuse(child);
+  assert.ok(msg && /refused|inside repository|outside os\.tmpdir|strict descendant/.test(msg), msg);
+  assert.ok(msg.includes("corpus"), msg);
+});
+
+
+test("refuse runtime root inside repository when external allowed", () => {
+  const child = path.join(SOURCE_ROOT, "corpus");
+  const msg = refuse(child, { RAVEN_CONFORMANCE_ALLOW_EXTERNAL_ROOT: "1" });
   assert.ok(msg && msg.includes("inside repository root"), msg);
   assert.ok(msg.includes("corpus"), msg);
 });
 
+test("refuse runtime root equal to repository when external allowed", () => {
+  const msg = refuse(REPO_ROOT, { RAVEN_CONFORMANCE_ALLOW_EXTERNAL_ROOT: "1" });
+  assert.ok(msg && msg.includes("inside repository root"), msg);
+  assert.ok(msg.includes(REPO_ROOT), msg);
+});
 test("refuse runtime root outside os.tmpdir() without allow", () => {
   const outside = fs.mkdtempSync(path.join(os.homedir(), "raven-a1-outside-"));
   try {
@@ -156,7 +170,7 @@ test("adapter relocates, serves report, digest matches second adapter run", asyn
   assert.equal(d1, d2, "adapter digests not stable across runs");
 });
 
-test("read-only source: cpSync from chmod a-w mirror or skip named", (t) => {
+test("cpSync can read chmod a-w one-file mirror (not full adapter RO source; rename honesty G-3)", (t) => {
   const mirror = fs.mkdtempSync(path.join(os.tmpdir(), "raven-a1-ro-src-"));
   const dest = fs.mkdtempSync(path.join(os.tmpdir(), "raven-a1-ro-dst-"));
   t.after(() => {
@@ -175,4 +189,45 @@ test("read-only source: cpSync from chmod a-w mirror or skip named", (t) => {
   fs.rmSync(dest, { recursive: true, force: true });
   fs.cpSync(mirror, dest, { recursive: true });
   assert.equal(fs.readFileSync(path.join(dest, "marker.txt"), "utf8"), "x");
+});
+
+test("G-1 refuse RAVEN_CONFORMANCE_RUNTIME_ROOT equal to os.tmpdir()", () => {
+  const tmp = os.tmpdir();
+  assert.throws(
+    () =>
+      resolveRuntimeRoot({
+        env: { RAVEN_CONFORMANCE_RUNTIME_ROOT: tmp },
+        sourceRoot: path.join(tmp, "src-never"),
+        repoRoot: path.join(tmp, "repo-never"),
+        tmpdir: tmp,
+      }),
+    /strict descendant|refused/,
+  );
+});
+
+test("G-1 refuse /tmp when it realpaths to tmpdir root (or equals)", () => {
+  const tmp = fs.realpathSync(os.tmpdir());
+  // Candidate equal to tmp after resolve/realpath must refuse
+  assert.throws(
+    () =>
+      resolveRuntimeRoot({
+        env: { RAVEN_CONFORMANCE_RUNTIME_ROOT: tmp },
+        sourceRoot: path.join(tmp, "src-x"),
+        repoRoot: path.join(tmp, "repo-x"),
+        tmpdir: tmp,
+      }),
+    /strict descendant|refused/,
+  );
+});
+
+test("G-2 accept fresh (non-existent) path under tmpdir", () => {
+  const tmp = os.tmpdir();
+  const fresh = path.join(tmp, `raven-a1-fresh-${process.pid}-${Date.now()}`);
+  const got = resolveRuntimeRoot({
+    env: { RAVEN_CONFORMANCE_RUNTIME_ROOT: fresh },
+    sourceRoot: path.join(tmp, "src-y"),
+    repoRoot: path.join(tmp, "repo-y"),
+    tmpdir: tmp,
+  });
+  assert.ok(got.includes("raven-a1-fresh"), got);
 });
