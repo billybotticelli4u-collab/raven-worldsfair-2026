@@ -18,6 +18,14 @@ import {
 } from "./lib/runner.js";
 import { replayReport } from "./lib/replay.js";
 import { readBuildInfo } from "./lib/buildInfo.js";
+import {
+  isProductionRuntime,
+  identityBlocksServing,
+  isIdentityExemptPath,
+  identityUnavailableBody,
+  healthIdentityField,
+  loadServingIdentity,
+} from "./lib/identityGate.js";
 import { adaptReport, classifyResult } from "./lib/displayAdapter.js";
 import { HttpError, readJsonObject, validateRunOptions, decodeId, containedFile, localReplayPath } from "./lib/httpBoundary.js";
 
@@ -93,6 +101,16 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url || "/", `http://${HOST}`);
 
+    // I-2: production + UNKNOWN identity → fail closed (except health + build-info).
+    const servingIdentity = loadServingIdentity(APP_ROOT);
+    if (
+      isProductionRuntime() &&
+      identityBlocksServing(servingIdentity) &&
+      !isIdentityExemptPath(url.pathname)
+    ) {
+      return sendJson(res, 503, identityUnavailableBody(servingIdentity));
+    }
+
     if (req.method === "GET" && url.pathname === "/api/build-info") {
       return sendJson(res, 200, readBuildInfo());
     }
@@ -101,6 +119,7 @@ const server = http.createServer(async (req, res) => {
         ok: true,
         engine: "raven-conformance-runner",
         active_run: activeRun ? { target: activeRun.target, started_at: activeRun.startedAt } : null,
+        identity: healthIdentityField(servingIdentity),
       });
     }
     if (req.method === "GET" && url.pathname === "/api/targets") {

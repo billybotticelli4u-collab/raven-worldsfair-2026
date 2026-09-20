@@ -1,3 +1,23 @@
+
+function applyIdentityBadge(status) {
+  let el = document.getElementById("identity-badge");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "identity-badge";
+    el.setAttribute("role", "status");
+    el.style.cssText = "position:sticky;top:0;z-index:50;padding:0.4rem 0.75rem;font:600 0.85rem/1.3 system-ui,sans-serif;text-align:center";
+    document.body.prepend(el);
+  }
+  const s = String(status || "");
+  if (s === "UNKNOWN" || s === "CONFLICT") {
+    el.hidden = false;
+    el.textContent = s === "UNKNOWN" ? "Identity UNKNOWN — fail-closed in production" : "Identity CONFLICT — claims disagree";
+    el.style.background = s === "UNKNOWN" ? "#7a1f1f" : "#7a5a00";
+    el.style.color = "#fff";
+  } else {
+    el.hidden = true;
+  }
+}
 /**
  * Challenge 2 Judge UI — text-only XSS-safe; live SSE progress; display adapter via server ui payload.
  */
@@ -353,6 +373,7 @@ els.aboutBtn.addEventListener("click", async () => {
     const addP = (text) => { const p = document.createElement("p"); textOnly(p, text); els.aboutBody.appendChild(p); };
     addP("Reported commit: " + (info.fairBuildCommit || "unknown"));
     addP("Identity: " + info.identityStatus + " / " + info.commitSource);
+    applyIdentityBadge(info.identityStatus);
     addP("Warnings: " + (info.identityWarnings || []).join(", "));
     addP("Public UI fingerprint: " + (info.publicFingerprint?.sha256 || "unavailable"));
     addP(info.identityLimit || "Commit not independently verified.");

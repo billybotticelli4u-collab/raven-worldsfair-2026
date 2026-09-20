@@ -72,3 +72,7 @@ dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--c
 
 /* Build fingerprints and commit assertions must wrap on narrow displays. */
 .about { min-width: 0; overflow-wrap: anywhere; }
+
+.identity-warn { color: #b45309; font-weight: 600; }
+#identity-badge[hidden] { display: none !important; }
+

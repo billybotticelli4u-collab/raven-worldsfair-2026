@@ -32,12 +32,25 @@ export function selectIdentity({ env = {}, gitCommit = null, generated = null } 
   const conflict = new Set(claims.map(c => c.commit)).size > 1;
   if (conflict) warnings.push('COMMIT_CLAIMS_DISAGREE');
   const selected = claims.find(c => !c.source.startsWith('operator_'));
+  // Operator claims are never selected. If they are the only claims, expose them as
+  // operator_asserted (unverified) for display — status remains UNKNOWN (fail-closed).
+  const displayClaims = claims.map((c) => {
+    if (!c.source.startsWith('operator_')) return c;
+    return {
+      ...c,
+      displaySource: 'operator_asserted (unverified)',
+      selectable: false,
+    };
+  });
+  if (!selected && claims.some((c) => c.source.startsWith('operator_'))) {
+    warnings.push('OPERATOR_ONLY_UNVERIFIED');
+  }
   return {
     fairBuildCommit: selected?.commit ?? null,
     fairBuildBranch: null,
     commitSource: selected?.source ?? 'unavailable',
     identityStatus: conflict ? 'CONFLICT' : selected ? 'UNVERIFIED_ASSERTION' : 'UNKNOWN',
-    identityClaims: claims, identityWarnings: warnings,
+    identityClaims: displayClaims, identityWarnings: warnings,
     identityLimit: IDENTITY_LIMIT,
   };
 }

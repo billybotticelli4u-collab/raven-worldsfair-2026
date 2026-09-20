@@ -34,7 +34,11 @@ test('operator-only assertion stays unknown; malformed platform falls through wi
  const operator = selectIdentity({env: {WORLDSFAIR_BUILD_COMMIT: 'a'.repeat(40)}});
  assert.equal(operator.fairBuildCommit, null);
  assert.equal(operator.identityStatus, 'UNKNOWN');
- assert.deepEqual(operator.identityClaims, [{source:'operator_worldsfair',commit:'a'.repeat(40)}]);
+ assert.equal(operator.identityClaims.length, 1);
+ assert.equal(operator.identityClaims[0].source, 'operator_worldsfair');
+ assert.equal(operator.identityClaims[0].commit, 'a'.repeat(40));
+ assert.equal(operator.identityClaims[0].displaySource, 'operator_asserted (unverified)');
+ assert.equal(operator.identityClaims[0].selectable, false);
  const fallback = selectIdentity({env:{VERCEL_GIT_COMMIT_SHA:'bad'},gitCommit:'b'.repeat(40)});
  assert.equal(fallback.commitSource,'git_checkout');
  assert.ok(fallback.identityWarnings.includes('INVALID:platform_asserted'));
