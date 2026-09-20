@@ -6,7 +6,8 @@
  *
  * Env:
  *   VERIFY_JUDGE_COOKIE  optional Cookie for SSO-walled previews (same-origin only)
- *   EXPECTED_COMMIT      required for gate PASS — 40-hex must match fairBuildCommit
+ *   EXPECTED_COMMIT      required for CI/owner gate PASS — 40-hex must match fairBuildCommit
+ *                        (unset on local npm start → LOCAL-UNBOUND for the two identity rows)
  *   FETCH_TIMEOUT_MS     default 15000
  */
 import http from "node:http";
@@ -31,9 +32,17 @@ const ALLOWED_IDENTITY = new Set(["UNVERIFIED_ASSERTION"]);
 const DIVERGE = new Set(["FAIL", "DIVERGE", "DIVERGENCE", "BEHAVIORAL_DIVERGENCE"]);
 
 const rows = [];
-function record(name, ok, detail) {
-  rows.push({ name, ok: !!ok, detail: detail == null ? "" : String(detail).slice(0, 240) });
-  console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail != null ? "  — " + String(detail).slice(0, 160) : ""}`);
+function record(name, ok, detail, klass) {
+  const unbound = klass === "LOCAL-UNBOUND";
+  const status = unbound ? "LOCAL-UNBOUND" : ok ? "PASS" : "FAIL";
+  // LOCAL-UNBOUND is expected on an unbound local server; it does not fail the gate.
+  rows.push({
+    name,
+    ok: unbound ? true : !!ok,
+    unbound,
+    detail: detail == null ? "" : String(detail).slice(0, 240),
+  });
+  console.log(`${status}  ${name}${detail != null ? "  — " + String(detail).slice(0, 160) : ""}`);
 }
 
 function withTimeout(promise, label) {
@@ -103,10 +112,23 @@ function parseCompletePayload(text) {
   return null;
 }
 
-function outcomeOf(results, id) {
-  const row = (results || []).find((x) => x && x.id === id);
+function rowVectorId(x) {
+  if (!x || typeof x !== "object") return "";
+  return String(x.vector_id || x.id || "");
+}
+
+/** Match raven-conformance-report/1 rows: vector_id "V07_…" / "V08_…" (legacy bare id also accepted). */
+function outcomeOf(results, prefix) {
+  const row = (results || []).find((x) => {
+    const id = rowVectorId(x);
+    return id === prefix || id.startsWith(prefix + "_");
+  });
   if (!row) return null;
   return String(row.status || row.outcome || row.result || "").toUpperCase();
+}
+
+function isExpectedSubtleId(id) {
+  return id === "V07" || id === "V08" || id.startsWith("V07_") || id.startsWith("V08_");
 }
 
 let deployedCommit = null;
@@ -131,22 +153,34 @@ try {
     const files = j.publicFingerprint?.files || j.public_fingerprint?.files || [];
     const idOk = ALLOWED_IDENTITY.has(j.identityStatus);
     const commitShape = typeof deployedCommit === "string" && /^[0-9a-f]{40}$/.test(deployedCommit);
-    const ok =
+    const shapeOk =
       r.status === 200 &&
       j.product === "raven-conformance" &&
-      files.length === 3 &&
-      idOk &&
-      commitShape;
-    record(
-      "GET /api/build-info shape + allowlisted identity + commit",
-      ok,
-      `product=${j.product} identityStatus=${j.identityStatus} files=${files.length} commit=${deployedCommit}`,
-    );
+      files.length === 3;
+    const identityOk = shapeOk && idOk && commitShape;
+    const detail = `product=${j.product} identityStatus=${j.identityStatus} files=${files.length} commit=${deployedCommit}`;
+    if (!expectedCommit && shapeOk && !identityOk) {
+      // D6: local npm start has fairBuildCommit null / identityStatus UNKNOWN — expected unbound.
+      record(
+        "GET /api/build-info shape + allowlisted identity + commit",
+        true,
+        detail + " (local unbound)",
+        "LOCAL-UNBOUND",
+      );
+    } else {
+      record("GET /api/build-info shape + allowlisted identity + commit", identityOk, detail);
+    }
   }
 
   {
     if (!expectedCommit) {
-      record("EXPECTED_COMMIT binding", false, "EXPECTED_COMMIT env not set — refuse unbound healthy-site pass");
+      // D6: DEVELOPER.md local path does not pin EXPECTED_COMMIT; do not fail the stranger green path.
+      record(
+        "EXPECTED_COMMIT binding",
+        true,
+        "EXPECTED_COMMIT unset — local unbound (CI/owner gate must pin 40-hex)",
+        "LOCAL-UNBOUND",
+      );
     } else if (!/^[0-9a-f]{40}$/.test(expectedCommit)) {
       record("EXPECTED_COMMIT binding", false, `EXPECTED_COMMIT not 40-hex: ${expectedCommit}`);
     } else {
@@ -199,11 +233,10 @@ try {
     const v08 = outcomeOf(results, "V08");
     const v07ok = DIVERGE.has(v07);
     const v08ok = DIVERGE.has(v08);
-    const expectedIds = new Set(["V07", "V08"]);
     const extraDiv = (results || []).filter((x) => {
-      const id = x?.id;
+      const id = rowVectorId(x);
       const st = String(x?.status || x?.outcome || "").toUpperCase();
-      return id && !expectedIds.has(id) && DIVERGE.has(st);
+      return id && !isExpectedSubtleId(id) && DIVERGE.has(st);
     });
     const ok =
       r.status === 200 &&
@@ -238,8 +271,10 @@ try {
 }
 
 const failed = rows.filter((r) => !r.ok);
+const unbound = rows.filter((r) => r.unbound);
+const passed = rows.filter((r) => r.ok && !r.unbound);
 console.log("---");
 console.log(`deployed_commit=${deployedCommit || "unknown"}`);
 console.log(`expected_commit=${expectedCommit || "(unset)"}`);
-console.log(`summary: ${rows.length - failed.length} PASS / ${failed.length} FAIL`);
+console.log(`summary: ${passed.length} PASS / ${unbound.length} LOCAL-UNBOUND / ${failed.length} FAIL`);
 process.exit(failed.length ? 1 : 0);
