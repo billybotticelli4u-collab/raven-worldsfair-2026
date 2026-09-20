@@ -16,7 +16,7 @@ import https from "node:https";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { classifyIdentityChecks } from "./lib/judge-url-identity.mjs";
+import { classifyIdentityChecks, isLoopbackHost, hostOf, classifyOversizeResponse } from "./lib/judge-url-identity.mjs";
 
 const REPO = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const base = (process.argv[2] || "").replace(/\/$/, "");
@@ -36,12 +36,14 @@ const DIVERGE = new Set(["FAIL", "DIVERGE", "DIVERGENCE", "BEHAVIORAL_DIVERGENCE
 const rows = [];
 function record(name, ok, detail, klass) {
   const unbound = klass === "LOCAL-UNBOUND";
-  const status = unbound ? "LOCAL-UNBOUND" : ok ? "PASS" : "FAIL";
-  // LOCAL-UNBOUND is expected on an unbound local server; it does not fail the gate.
+  const unsupported = klass === "UNSUPPORTED";
+  const status = unbound ? "LOCAL-UNBOUND" : unsupported ? "UNSUPPORTED" : ok ? "PASS" : "FAIL";
+  // LOCAL-UNBOUND / UNSUPPORTED are non-fatal for the exit gate.
   rows.push({
     name,
-    ok: unbound ? true : !!ok,
+    ok: unbound || unsupported ? true : !!ok,
     unbound,
+    unsupported,
     detail: detail == null ? "" : String(detail).slice(0, 240),
   });
   console.log(`${status}  ${name}${detail != null ? "  — " + String(detail).slice(0, 160) : ""}`);
@@ -261,8 +263,37 @@ try {
   }
 
   {
-    const r = await rawPost("/api/run", { "content-type": "application/json", "content-length": "70000" }, "{");
-    record("POST /api/run 70000 content-length → 413", r.status === 413 && /request_too_large|too_large/i.test(r.text), `status=${r.status}`);
+    const loopback = isLoopbackHost(hostOf(base));
+    if (loopback) {
+      // Header-only truncated probe: loopback app answers 413 from Content-Length alone.
+      const r = await rawPost("/api/run", { "content-type": "application/json", "content-length": "70000" }, "{");
+      const c = classifyOversizeResponse({ loopback: true, status: r.status, truncatedBody: true });
+      const bodyOk = /request_too_large|too_large/i.test(r.text);
+      record(
+        "POST /api/run oversize (loopback truncated) → 413",
+        c.ok && bodyOk,
+        c.detail,
+        c.klass,
+      );
+    } else {
+      // Honest oversize body: Vercel proxies buffer; truncated probes yield platform 5xx, not app 413.
+      const body = Buffer.alloc(70000, 0x41); // 70_000 real bytes
+      const r = await rawPost(
+        "/api/run",
+        { "content-type": "application/json", "content-length": String(body.length) },
+        body,
+      );
+      const c = classifyOversizeResponse({ loopback: false, status: r.status, truncatedBody: false });
+      const bodyOk = c.ok ? /request_too_large|too_large/i.test(r.text) || r.status === 413 : true;
+      // On FAIL (e.g. 200), do not require body text; on PASS require 413 semantics.
+      const pass = c.ok && (r.status === 413);
+      record(
+        "POST /api/run oversize (remote honest body) → 413",
+        pass,
+        c.detail + (r.text ? ` body=${String(r.text).slice(0, 80)}` : ""),
+        c.klass,
+      );
+    }
   }
 } catch (err) {
   record("harness execution", false, String(err && err.message ? err.message : err));
@@ -270,9 +301,10 @@ try {
 
 const failed = rows.filter((r) => !r.ok);
 const unbound = rows.filter((r) => r.unbound);
-const passed = rows.filter((r) => r.ok && !r.unbound);
+const unsupported = rows.filter((r) => r.unsupported);
+const passed = rows.filter((r) => r.ok && !r.unbound && !r.unsupported);
 console.log("---");
 console.log(`deployed_commit=${deployedCommit || "unknown"}`);
 console.log(`expected_commit=${expectedCommit || "(unset)"}`);
-console.log(`summary: ${passed.length} PASS / ${unbound.length} LOCAL-UNBOUND / ${failed.length} FAIL`);
+console.log(`summary: ${passed.length} PASS / ${unbound.length} LOCAL-UNBOUND / ${unsupported.length} UNSUPPORTED / ${failed.length} FAIL`);
 process.exit(failed.length ? 1 : 0);

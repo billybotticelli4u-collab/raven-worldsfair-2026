@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   isLoopbackHost,
   classifyIdentityChecks,
+  classifyOversizeResponse,
 } from "./lib/judge-url-identity.mjs";
 
 test("loopback hosts", () => {
@@ -200,3 +201,31 @@ for (const [label, identityStatus, deployedCommit] of [
     assert.equal(r.buildInfo.ok && r.expectedCommit.ok, false);
   });
 }
+
+test("oversize: loopback truncated probe requires 413", () => {
+  const pass = classifyOversizeResponse({ loopback: true, status: 413, truncatedBody: true });
+  const fail = classifyOversizeResponse({ loopback: true, status: 200, truncatedBody: true });
+  assert.equal(pass.ok, true);
+  assert.equal(fail.ok, false);
+  assert.equal(pass.klass, undefined);
+});
+
+test("oversize: remote honest body 413 passes", () => {
+  const r = classifyOversizeResponse({ loopback: false, status: 413, truncatedBody: false });
+  assert.equal(r.ok, true);
+  assert.notEqual(r.klass, "UNSUPPORTED");
+});
+
+test("oversize: remote platform 5xx on truncated → UNSUPPORTED (non-fatal)", () => {
+  const r = classifyOversizeResponse({ loopback: false, status: 500, truncatedBody: true });
+  assert.equal(r.ok, true);
+  assert.equal(r.klass, "UNSUPPORTED");
+  const r502 = classifyOversizeResponse({ loopback: false, status: 502, truncatedBody: true });
+  assert.equal(r502.klass, "UNSUPPORTED");
+});
+
+test("oversize: remote 200 on honest oversize still FAILS", () => {
+  const r = classifyOversizeResponse({ loopback: false, status: 200, truncatedBody: false });
+  assert.equal(r.ok, false);
+  assert.notEqual(r.klass, "UNSUPPORTED");
+});

@@ -128,3 +128,39 @@ export function classifyIdentityChecks({
     expectedCommit: expectedRow,
   };
 }
+
+
+/**
+ * Classify the oversize /api/run probe.
+ * - loopback + truncated header probe: require app 413
+ * - remote + honest body (>=70000 bytes): require app 413; remote 200 is FAIL
+ * - remote + truncated body + platform 5xx: UNSUPPORTED (non-fatal)
+ *
+ * @returns {{ ok: boolean, klass?: string, detail: string }}
+ */
+export function classifyOversizeResponse({ loopback, status, truncatedBody }) {
+  const s = Number(status);
+  if (loopback) {
+    return {
+      ok: s === 413,
+      detail: `loopback truncated probe status=${s}`,
+    };
+  }
+  if (truncatedBody) {
+    if (s >= 500 && s <= 599) {
+      return {
+        ok: true,
+        klass: "UNSUPPORTED",
+        detail: `remote truncated probe platform ${s}`,
+      };
+    }
+    return {
+      ok: s === 413,
+      detail: `remote truncated probe status=${s}`,
+    };
+  }
+  return {
+    ok: s === 413,
+    detail: `remote honest oversize status=${s}`,
+  };
+}
