@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import { verifyReceipt, assertDevnetRpc, NETWORK } from '../lib/conformanceReceipt.js';
+import { verifyReceipt, verifyAnchor, NETWORK } from '../lib/conformanceReceipt.js';
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(name);
@@ -27,44 +27,34 @@ const out = {
 };
 
 if (anchorPath) {
-  const anchor = JSON.parse(fs.readFileSync(anchorPath, 'utf8'));
-  out.anchor = { present: true, signature: anchor.signature, explorerUrl: anchor.explorerUrl };
-  if (anchor.reportDigest !== receipt.reportDigest) {
-    out.ok = false;
-    out.reasons.push('anchor_digest_mismatch');
-  }
-  if (anchor.network !== NETWORK || anchor.labeled !== 'DEVNET') {
-    out.ok = false;
-    out.reasons.push('anchor_not_labeled_devnet');
-  }
-  const rpc = process.env.RAVEN_CONFORMANCE_DEVNET_RPC || 'https://api.devnet.solana.com';
+  // Fail closed: any RPC error, missing/failed transaction, wrong cluster, wrong
+  // program, or inexact memo bytes makes the whole verification fail (CODEX B3/B4).
+  let anchor;
   try {
-    assertDevnetRpc(rpc);
-    const { Connection, PublicKey } = await import('@solana/web3.js');
-    const connection = new Connection(rpc, 'confirmed');
-    const tx = await connection.getTransaction(anchor.signature, {
-      maxSupportedTransactionVersion: 0,
-      commitment: 'confirmed',
-    });
-    if (!tx) {
-      out.ok = false;
-      out.reasons.push('anchor_tx_not_found');
-    } else {
-      const logs = (tx.meta && tx.meta.logMessages) || [];
-      const memoNeedle = `raven-conformance-receipt/1:${receipt.reportDigest}`;
-      const hay = logs.join('\n') + JSON.stringify(tx.transaction);
-      if (!hay.includes(receipt.reportDigest) && !hay.includes(memoNeedle)) {
-        // soft: memo may be in compiled message bytes only
-        out.anchor.rpcChecked = true;
-        out.anchor.memoVerified = 'inconclusive_logs';
-      } else {
-        out.anchor.rpcChecked = true;
-        out.anchor.memoVerified = true;
-      }
-      void PublicKey;
-    }
+    anchor = JSON.parse(fs.readFileSync(anchorPath, 'utf8'));
   } catch (e) {
-    out.anchor.rpcError = String(e.message || e);
+    out.ok = false;
+    out.reasons.push(`anchor_unreadable:${e.message}`);
+    anchor = null;
+  }
+  if (anchor) {
+    out.anchor = { present: true, signature: anchor.signature, explorerUrl: anchor.explorerUrl };
+    const rpc = process.env.RAVEN_CONFORMANCE_DEVNET_RPC || 'https://api.devnet.solana.com';
+    let result;
+    try {
+      const { Connection } = await import('@solana/web3.js');
+      const connection = new Connection(rpc, 'confirmed');
+      result = await verifyAnchor(receipt, anchor, { connection, rpcUrl: rpc });
+    } catch (e) {
+      result = { ok: false, reasons: [`anchor_rpc_error:${e.message || e}`], detail: null };
+    }
+    out.anchor.rpc = rpc;
+    out.anchor.verified = result.ok;
+    out.anchor.detail = result.detail;
+    if (!result.ok) {
+      out.ok = false;
+      out.reasons.push(...result.reasons);
+    }
   }
 }
 

@@ -23,8 +23,8 @@ const outDir = arg('--out-dir', 'receipts');
 fs.mkdirSync(outDir, { recursive: true });
 
 try {
+  const { report, digest } = loadReport(reportPath); // validate BEFORE any key use
   const key = loadKeypair();
-  const { report, digest } = loadReport(reportPath);
   const body = buildBody({ digest, report });
   const receipt = signBody(body, key);
   const stem = path.basename(reportPath, path.extname(reportPath));
@@ -43,6 +43,10 @@ try {
   if (e.code === 'MISSING_KEY') {
     console.error(e.message);
     process.exit(2);
+  }
+  if (e.code === 'INVALID_REPORT') {
+    console.error(JSON.stringify({ ok: false, error: 'invalid_report', reasons: e.reasons }));
+    process.exit(1);
   }
   console.error(e.message || e);
   process.exit(1);

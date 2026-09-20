@@ -326,21 +326,24 @@ const server = http.createServer(async (req, res) => {
       } finally { activeRun = null; }
     }
     if (req.method === "POST" && url.pathname === "/api/receipt/issue") {
-      // Local-only helper: signs a raven-conformance-receipt/1 over report digest.
-      // Does NOT anchor. Requires RAVEN_CONFORMANCE_RECEIPT_KEYPAIR. DEVNET-labeled.
+      // Default OFF. Enabled only by RAVEN_CONFORMANCE_RECEIPT_HTTP_ISSUE=local on a
+      // loopback bind, from a loopback peer, never under VERCEL/NODE_ENV=production
+      // (CODEX B2). Otherwise the route does not exist (404), so a hosted server can
+      // never act as a signing oracle even if a key path is configured.
+      const { receiptHttpIssueAllowed, validateReportForReceipt, loadKeypair, buildBody, signBody, NETWORK } =
+        await import("./lib/conformanceReceipt.js");
+      const gate = receiptHttpIssueAllowed({ boundHost: HOST, remoteAddress: req.socket.remoteAddress });
+      if (!gate.allowed) return sendJson(res, 404, { error: "not_found", reason: gate.reason });
       const body = await readJsonObject(req);
-      const report = body.report;
-      if (!report || typeof report !== "object") {
-        return sendJson(res, 400, { error: "missing_report" });
+      let validated;
+      try {
+        validated = validateReportForReceipt(body.report); // same validator as the CLI (CODEX B1)
+      } catch (e) {
+        return sendJson(res, 400, { error: "invalid_report", reasons: e.reasons || [String(e.message)] });
       }
       try {
-        const { loadKeypair, buildBody, signBody, NETWORK } = await import("./lib/conformanceReceipt.js");
-        const digest =
-          report.deterministic_report_sha256 ||
-          report.binding?.deterministic_report_sha256;
-        if (!digest) return sendJson(res, 400, { error: "missing_digest" });
         const key = loadKeypair();
-        const receipt = signBody(buildBody({ digest: String(digest).toLowerCase(), report }), key);
+        const receipt = signBody(buildBody({ digest: validated.digest, report: validated.report }), key);
         return sendJson(res, 200, {
           labeled: "DEVNET",
           network: NETWORK,
