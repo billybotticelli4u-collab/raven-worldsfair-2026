@@ -5,6 +5,7 @@ evidence/*
 !evidence/risk-pump.json
 !evidence/fresh-pump.json
 README.md
+!worldsfair/download/README.md
 SECURITY-CHECKLIST.md
 build.js
 index.template.html
