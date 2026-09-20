@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import {
   revalidate,
   loadBaselineReport,
@@ -16,29 +17,50 @@ import {
   resolveTargetRef,
 } from "../src/lib/revalidate.js";
 import { runConformance } from "../src/lib/runner.js";
-import { APP_ROOT } from "../src/lib/paths.js";
+import { fileURLToPath } from "node:url";
 
-const FIX = path.join(APP_ROOT, "fixtures", "revalidate");
-const PASS_FIXTURE = path.join(FIX, "subject_pass.mjs");
-const FAIL_FIXTURE = path.join(FIX, "subject_fail.mjs");
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const BIN = path.join(HERE, "../src/bin/revalidate.js");
 
 describe("revalidate", () => {
-  it("resolves approved demo ids and fixture paths", () => {
+  it("resolves registered demo ids only", () => {
     const id = resolveTargetRef("CONFORMANT_REFERENCE");
     assert.equal(id.kind, "id");
+    assert.equal(id.id, "CONFORMANT_REFERENCE");
     assert.equal(id.approved_demo, true);
-    const p = resolveTargetRef(PASS_FIXTURE);
-    assert.equal(p.kind, "path");
-    assert.ok(p.entryAbs.endsWith("subject_pass.mjs"));
+    assert.equal(id.entryAbs, null);
   });
 
-  it("pass→pass is UNCHANGED and keeps two immutable reports", async () => {
-    const outDir = mkdtempSync(path.join(tmpdir(), "reval-pp-"));
+  it("refuses path-like refs with TARGET_NOT_REGISTERED + D1 registration message", () => {
+    const pathArgs = [
+      "./fixtures/revalidate/subject_pass.mjs",
+      "fixtures/revalidate/subject_pass.mjs",
+      "/tmp/not-registered.mjs",
+      "subject_pass.mjs",
+      "..\\windows\\path.js",
+    ];
+    for (const p of pathArgs) {
+      assert.throws(
+        () => resolveTargetRef(p),
+        (err) =>
+          err.code === "TARGET_NOT_REGISTERED" &&
+          /targets\/manifests\.json/.test(err.message) &&
+          /D1 pattern/.test(err.message),
+      );
+    }
+    assert.throws(
+      () => resolveTargetRef("NOT_REGISTERED_AT_ALL"),
+      (err) => err.code === "TARGET_NOT_REGISTERED",
+    );
+  });
+
+  it("REFERENCE→REFERENCE is UNCHANGED with two immutable reports", async () => {
+    const outDir = mkdtempSync(path.join(tmpdir(), "reval-rr-"));
     const r = await revalidate({
-      baseline: PASS_FIXTURE,
-      proposed: PASS_FIXTURE,
+      baseline: "CONFORMANT_REFERENCE",
+      proposed: "CONFORMANT_REFERENCE",
       outDir,
-      sessionId: "test_pass_pass",
+      sessionId: "test_ref_ref",
     });
     assert.equal(r.comparison.verdict, "UNCHANGED");
     assert.equal(r.exitCode, 0);
@@ -51,31 +73,33 @@ describe("revalidate", () => {
     assert.ok(files.some((f) => f.startsWith("proposed_") && f.endsWith(".json")));
   });
 
-  it("pass→fail is REGRESSED (defect injection)", async () => {
-    const outDir = mkdtempSync(path.join(tmpdir(), "reval-pf-"));
+  it("REFERENCE→SUBTLE is REGRESSED with exactly 2 regressions", async () => {
+    const outDir = mkdtempSync(path.join(tmpdir(), "reval-rs-"));
     const r = await revalidate({
-      baseline: PASS_FIXTURE,
-      proposed: FAIL_FIXTURE,
+      baseline: "CONFORMANT_REFERENCE",
+      proposed: "BROKEN_SUBTLE",
       outDir,
-      sessionId: "test_pass_fail",
+      sessionId: "test_ref_subtle",
     });
     assert.equal(r.baselineReport.summary.overall, "CONFORMANT");
     assert.equal(r.proposedReport.summary.overall, "DIVERGENT");
     assert.equal(r.comparison.verdict, "REGRESSED");
-    assert.ok(r.comparison.counts.regressions >= 1);
+    assert.equal(r.comparison.counts.regressions, 2);
+    assert.equal(r.comparison.counts.improvements, 0);
+    assert.equal(r.comparison.counts.unchanged, 10);
     assert.equal(r.exitCode, 1);
   });
 
-  it("fail→pass is IMPROVED (fix)", async () => {
-    const outDir = mkdtempSync(path.join(tmpdir(), "reval-fp-"));
+  it("SUBTLE→REFERENCE is IMPROVED (fix)", async () => {
+    const outDir = mkdtempSync(path.join(tmpdir(), "reval-sr-"));
     const r = await revalidate({
-      baseline: FAIL_FIXTURE,
-      proposed: PASS_FIXTURE,
+      baseline: "BROKEN_SUBTLE",
+      proposed: "CONFORMANT_REFERENCE",
       outDir,
-      sessionId: "test_fail_pass",
+      sessionId: "test_subtle_ref",
     });
     assert.equal(r.comparison.verdict, "IMPROVED");
-    assert.ok(r.comparison.counts.improvements >= 1);
+    assert.equal(r.comparison.counts.improvements, 2);
     assert.equal(r.exitCode, 0);
   });
 
@@ -84,7 +108,7 @@ describe("revalidate", () => {
       () =>
         revalidate({
           baselineReportPath: path.join(tmpdir(), "no-such-baseline-report.json"),
-          proposed: PASS_FIXTURE,
+          proposed: "CONFORMANT_REFERENCE",
           outDir: mkdtempSync(path.join(tmpdir(), "reval-miss-")),
         }),
       (err) => err.code === "BASELINE_REPORT_MISSING",
@@ -108,7 +132,7 @@ describe("revalidate", () => {
       () =>
         revalidate({
           baselineReportPath: dirty,
-          proposed: PASS_FIXTURE,
+          proposed: "CONFORMANT_REFERENCE",
           outDir: mkdtempSync(path.join(tmpdir(), "reval-tamp-out-")),
         }),
       (err) => err.code === "BASELINE_REPORT_TAMPERED",
@@ -128,7 +152,6 @@ describe("revalidate", () => {
   });
 
   it("compareReports self is UNCHANGED", () => {
-    // lightweight structural check using two identical synthetic result sets
     const mk = (overall) => ({
       corpus: { sha256: "abc" },
       claimed_profile: { sha256: "def" },
@@ -141,5 +164,24 @@ describe("revalidate", () => {
     const c = compareReports(mk("CONFORMANT"), mk("CONFORMANT"));
     assert.equal(c.verdict, "UNCHANGED");
     assert.equal(c.counts.unchanged, 2);
+  });
+
+  it("CLI path-like --proposed exits 2 with registration message", () => {
+    const r = spawnSync(
+      process.execPath,
+      [
+        BIN,
+        "--baseline",
+        "CONFORMANT_REFERENCE",
+        "--proposed",
+        "./fixtures/revalidate/subject_pass.mjs",
+      ],
+      { encoding: "utf8" },
+    );
+    assert.equal(r.status, 2);
+    const err = (r.stderr || "") + (r.stdout || "");
+    assert.match(err, /TARGET_NOT_REGISTERED/);
+    assert.match(err, /targets\/manifests\.json/);
+    assert.match(err, /D1 pattern/);
   });
 });

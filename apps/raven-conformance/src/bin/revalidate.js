@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * Local Conformance revalidation CLI.
+ * Local Conformance revalidation CLI (registered target ids only).
  *
  * Usage:
  *   npm run revalidate -- --baseline CONFORMANT_REFERENCE --proposed BROKEN_SUBTLE
- *   npm run revalidate -- --baseline-report reports/<run>.json --proposed ./fixtures/revalidate/subject_pass.mjs
+ *   npm run revalidate -- --baseline-report reports/<run>.json --proposed CONFORMANT_REFERENCE
  *
  * Fail-closed: missing/tampered --baseline-report → exit 2 (never manufactures success).
+ * Path-like --baseline/--proposed → exit 2 TARGET_NOT_REGISTERED (register in targets/manifests.json).
  * Regressions / incomparable / mixed → exit 1. Unchanged / improved → exit 0.
  *
  * Probabilistic: preserves trial reports; does not promise identical re-runs.
@@ -48,18 +49,21 @@ Re-run the SAME approved Conformance suite for baseline vs proposed targets.
 Keeps both immutable reports and emits comparison (improvements / regressions /
 unchanged / incomparable). Reuses runConformance — no second evaluator.
 
+Targets: registered ids only (D1 pattern). Path-like args are refused.
+Register subjects in targets/manifests.json before revalidate.
+
 Usage:
-  npm run revalidate -- --baseline <id|path> --proposed <id|path>
-  npm run revalidate -- --baseline-report <report.json> --proposed <id|path>
-  npm run revalidate -- --baseline <id|path> --proposed <id|path> --json
-  npm run revalidate -- --baseline <id|path> --proposed <id|path> --out-dir <dir>
+  npm run revalidate -- --baseline <id> --proposed <id>
+  npm run revalidate -- --baseline-report <report.json> --proposed <id>
+  npm run revalidate -- --baseline <id> --proposed <id> --json
+  npm run revalidate -- --baseline <id> --proposed <id> --out-dir <dir>
 
 Approved demo target ids: ${[...APPROVED_DEMO_IDS].join(" | ")}
 
 Exit codes:
   0  UNCHANGED / IMPROVED / UNCHANGED_WITH_INCOMPARABLE
   1  REGRESSED / MIXED / INCOMPARABLE
-  2  missing/tampered baseline report or usage/identity failure (fail-closed)
+  2  missing/tampered baseline report, unregistered/path target, or usage (fail-closed)
 
 Probabilistic note: trial reports are preserved; identical re-runs are not promised.
 `);
@@ -103,5 +107,6 @@ try {
 } catch (err) {
   const code = err?.code || "";
   console.error("revalidate failed:", err?.message || err);
+  if (code) console.error("code:", code);
   process.exit(2);
 }

@@ -2,6 +2,7 @@
  * Local Conformance revalidation.
  * Re-runs the SAME approved suite (runConformance) for baseline vs proposed,
  * keeps both immutable reports, emits comparison. No second evaluator.
+ * Registered target ids only — no filesystem path mode (CLAUDE-066).
  *
  * Probabilistic note: preserves trials; does not promise identical re-runs.
  */
@@ -43,32 +44,52 @@ export function fileSha256(p) {
   return sha256Hex(readFileSync(p));
 }
 
-function isPathLike(s) {
+/**
+ * Revalidate accepts registered target ids only (D1 pattern).
+ * Path-like args are refused — register in targets/manifests.json first.
+ */
+function looksLikePath(s) {
   if (!s || typeof s !== "string") return false;
-  return (
-    s.includes("/") ||
-    s.includes("\\") ||
-    s.endsWith(".mjs") ||
-    s.endsWith(".js") ||
-    existsSync(s)
-  );
+  if (path.isAbsolute(s)) return true;
+  if (s.includes("/") || s.includes("\\")) return true;
+  if (/\.(mjs|cjs|js|ts|mts|cts)$/i.test(s)) return true;
+  try {
+    if (existsSync(s) && statSync(s).isFile()) return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
 }
 
 export function resolveTargetRef(ref) {
-  if (!ref) {
+  if (!ref || typeof ref !== "string") {
     throw Object.assign(new Error("missing_target_ref"), { code: "MISSING_TARGET_REF" });
   }
-  if (isPathLike(ref) && existsSync(ref) && statSync(ref).isFile()) {
-    const abs = path.resolve(ref);
-    return {
-      kind: "path",
-      id: path.basename(abs, path.extname(abs)),
-      entryAbs: abs,
-      display: abs,
-      approved_demo: false,
-    };
+  if (looksLikePath(ref)) {
+    throw Object.assign(
+      new Error(
+        "TARGET_NOT_REGISTERED: " +
+          JSON.stringify(ref) +
+          " looks like a filesystem path. Revalidate accepts registered target ids only. " +
+          "Register the target in targets/manifests.json (D1 pattern) before revalidate.",
+      ),
+      { code: "TARGET_NOT_REGISTERED" },
+    );
   }
-  const t = getTarget(ref);
+  let t;
+  try {
+    t = getTarget(ref);
+  } catch (err) {
+    throw Object.assign(
+      new Error(
+        "TARGET_NOT_REGISTERED: " +
+          JSON.stringify(ref) +
+          " is not a registered target id. " +
+          "Register the target in targets/manifests.json (D1 pattern) before revalidate.",
+      ),
+      { code: "TARGET_NOT_REGISTERED", cause: err },
+    );
+  }
   return {
     kind: "id",
     id: t.id,
@@ -329,17 +350,15 @@ export function compareReports(baselineReport, proposedReport) {
 }
 
 export async function executeTarget(targetRef, { runIdPrefix = "reval" } = {}) {
+  if (targetRef.kind !== "id") {
+    throw Object.assign(
+      new Error("TARGET_NOT_REGISTERED: executeTarget requires a registered id ref"),
+      { code: "TARGET_NOT_REGISTERED" },
+    );
+  }
   const suffix = sha256Hex(targetRef.display).slice(0, 8);
   const runId = runIdPrefix + "_" + Date.now().toString(36) + "_" + suffix;
-  const opts = { write: true, runId };
-  if (targetRef.kind === "path") {
-    return runConformance(targetRef.id, {
-      ...opts,
-      entryAbs: targetRef.entryAbs,
-      targetId: targetRef.id,
-    });
-  }
-  return runConformance(targetRef.id, opts);
+  return runConformance(targetRef.id, { write: true, runId });
 }
 
 export function formatComparisonText(comparison, { baselinePath, proposedPath, sessionDir } = {}) {
