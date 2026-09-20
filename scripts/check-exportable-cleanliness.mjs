@@ -217,6 +217,9 @@ function isAbsoluteFsPathLike(s) {
     return false;
   }
 
+  // JS/CSS comments begin with / but are not filesystem paths.
+  if (s.startsWith("//") || s.startsWith("/*")) return false;
+
   if (!s.startsWith("/")) return false;
 
   // Single-segment like "/" or "/api" — route-ish unless FS root name.
