@@ -17,7 +17,8 @@
     "probes": "node src/bin/probes.js",
     "build": "node scripts/generate-build-info.mjs && node --check src/server.js && node --check src/cli.js && node --check src/lib/displayAdapter.js && node --check public/app.js",
     "verify:browser": "node scripts/browser-verify.mjs",
-    "generate:build-info": "node scripts/generate-build-info.mjs"
+    "generate:build-info": "node scripts/generate-build-info.mjs",
+    "revalidate": "node src/bin/revalidate.js"
   },
   "keywords": [
     "raven",

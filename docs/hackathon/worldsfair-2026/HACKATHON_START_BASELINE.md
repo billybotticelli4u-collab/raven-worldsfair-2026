@@ -68,6 +68,6 @@ first provenance commit that introduces this document set.
 ## Method note
 
 Baseline was taken via `git fetch origin main` against the existing local clone
-`/Users/ROBY/launchguard`, then `git worktree add` to
-`/Users/ROBY/launchguard-billy-worldsfair-2026-day1` at `origin/main` tip
+`/Users/TESTUSER/launchguard`, then `git worktree add` to
+`/Users/TESTUSER/launchguard-billy-worldsfair-2026-day1` at `origin/main` tip
 `18b1a13…`. No fresh clone. No history rewrite.

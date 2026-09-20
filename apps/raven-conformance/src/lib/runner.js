@@ -263,15 +263,38 @@ export async function runVector(entryAbs, inputObj, opts = {}) {
 export async function runConformance(targetId, opts = {}) {
   const profile = loadProfile();
   const corpus = loadCorpus();
-  const target = getTarget(targetId);
+  // Optional local fixture path (revalidate): opts.entryAbs bypasses manifests entry only.
+  // Evaluation path is unchanged — same corpus/profile/classify/isolation.
+  let target;
+  let entryAbs;
+  if (opts.entryAbs) {
+    entryAbs = path.resolve(opts.entryAbs);
+    if (!existsSync(entryAbs)) throw new Error(`missing_target_entry:${entryAbs}`);
+    target = {
+      id: opts.targetId || targetId || path.basename(entryAbs, path.extname(entryAbs)),
+      name: opts.targetName || path.basename(entryAbs),
+      version: opts.targetVersion || "fixture",
+      entry: entryAbs,
+      claimed_conformance_profile: profile.data.name,
+      claimed_conformance_profile_version: profile.data.version,
+      invocation_interface: "stdin_json_line",
+      description: opts.targetDescription || "local fixture target",
+      probe: false,
+    };
+  } else {
+    target = getTarget(targetId);
+    if (target.claimed_conformance_profile !== profile.data.name ||
+        target.claimed_conformance_profile_version !== profile.data.version || corpus.data.profile !== profile.data.name)
+      refuse("PROFILE_MISMATCH");
+    if (target.probe) {
+      throw new Error(`target_is_probe_use_runProbe:${targetId}`);
+    }
+    entryAbs = path.join(TARGETS_DIR, target.entry);
+    if (!existsSync(entryAbs)) throw new Error(`missing_target_entry:${entryAbs}`);
+  }
   if (target.claimed_conformance_profile !== profile.data.name ||
       target.claimed_conformance_profile_version !== profile.data.version || corpus.data.profile !== profile.data.name)
     refuse("PROFILE_MISMATCH");
-  if (target.probe) {
-    throw new Error(`target_is_probe_use_runProbe:${targetId}`);
-  }
-  const entryAbs = path.join(TARGETS_DIR, target.entry);
-  if (!existsSync(entryAbs)) throw new Error(`missing_target_entry:${entryAbs}`);
 
   const targetDigest = fileSha256(entryAbs);
   const runId = opts.runId || `run_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
