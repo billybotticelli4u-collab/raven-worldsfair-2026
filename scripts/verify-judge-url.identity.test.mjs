@@ -178,3 +178,25 @@ test("remote git-checkout-shaped response with unset EXPECTED_COMMIT still fails
   assert.notEqual(r.expectedCommit.klass, "LOCAL-UNBOUND");
   assert.equal(r.expectedCommit.ok, false);
 });
+
+for (const [label, identityStatus, deployedCommit] of [
+  ["UNKNOWN + 40-hex commit", "UNKNOWN", "b29c1f25acff34942a90074a5e7889e05351866f"],
+  ["UNVERIFIED_ASSERTION + null commit", "UNVERIFIED_ASSERTION", null],
+  ["null identity + 40-hex commit", null, "b29c1f25acff34942a90074a5e7889e05351866f"],
+]) {
+  test(`mixed tuple on loopback is not LOCAL-UNBOUND: ${label} (CODEX B2 re-review)`, () => {
+    const r = classifyIdentityChecks({
+      baseUrl: "http://127.0.0.1:8791/",
+      expectedCommit: "",
+      identityStatus,
+      deployedCommit,
+      shapeOk: true,
+      allowlistedIdentity: identityStatus === "UNVERIFIED_ASSERTION",
+      commitShapeOk: typeof deployedCommit === "string",
+    });
+    assert.notEqual(r.buildInfo.klass, "LOCAL-UNBOUND");
+    assert.notEqual(r.expectedCommit.klass, "LOCAL-UNBOUND");
+    assert.equal(r.expectedCommit.ok, false);
+    assert.equal(r.buildInfo.ok && r.expectedCommit.ok, false);
+  });
+}

@@ -41,10 +41,11 @@ export function classifyIdentityChecks({
   //   - plain extracted package: identityStatus UNKNOWN (or null), commit null;
   //   - git checkout: identityStatus UNVERIFIED_ASSERTION, commit = HEAD (40-hex).
   // CONFLICT, CORRUPTED, or a malformed commit never qualify.
-  const commitWellFormed = commit === null || /^[0-9a-f]{40}$/.test(commit);
-  const wellFormedLocalIdentity =
-    id === null || id === "UNKNOWN" || id === "UNVERIFIED_ASSERTION";
-  const localUnboundState = loopback && wellFormedLocalIdentity && commitWellFormed;
+  // Exact pairs only (CODEX B2 re-review): mixed tuples such as UNKNOWN+40-hex,
+  // UNVERIFIED_ASSERTION+null, or null+40-hex are NOT local shapes and never soft-pass.
+  const extractedPackageShape = (id === null || id === "UNKNOWN") && commit === null;
+  const gitCheckoutShape = id === "UNVERIFIED_ASSERTION" && /^[0-9a-f]{40}$/.test(commit || "");
+  const localUnboundState = loopback && (extractedPackageShape || gitCheckoutShape);
 
   const identityOk = !!(shapeOk && allowlistedIdentity && commitShapeOk);
   const detail = `host=${host || "?"} product-shape=${shapeOk ? "ok" : "bad"} identityStatus=${id} commit=${commit}`;
