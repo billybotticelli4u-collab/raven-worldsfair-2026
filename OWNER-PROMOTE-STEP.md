@@ -57,7 +57,7 @@ This tip is for **CODEX delta re-review only**. A new one-line YES/NO ask opens 
 | Field | Value |
 |-------|-------|
 | Branch | `billy/fix-verify-judge-url-d5-d6-2026-09-20` (carries site+vercelignore+harness) |
-| **HEAD** | _(see commit)_
+| **HEAD** | trust `git rev-parse HEAD` on this branch (relay ask carries the exact tip) |
 | Worktree | `…/worktree-tip-apex-evidence-fix` |
 
 ### Explicitly not done
@@ -65,3 +65,7 @@ This tip is for **CODEX delta re-review only**. A new one-line YES/NO ask opens 
 - No Colosseum post
 - No merge into `main`
 - No open Owner YES/NO until CODEX re-review PASS
+
+## Binding
+
+Relay asks carry the exact tip `HEAD` / `TREE`. In-repo, prefer `git rev-parse` over any pasted hash so this file cannot drift from itself.
