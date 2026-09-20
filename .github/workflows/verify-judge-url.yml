@@ -54,8 +54,8 @@ jobs:
           SKIP="false"
           if [ "$EVENT_NAME" = "deployment_status" ]; then
             if [ "$DEPLOY_STATE" != "success" ]; then
-              echo "Non-success deployment_status=$DEPLOY_STATE — not a verification PASS; skipping without synthesizing success."
-              SKIP=true
+              echo "::error::deployment_status=$DEPLOY_STATE did not execute verification; required checks must fail closed."
+              exit 1
             else
               URL="$DEPLOY_URL"
             fi
@@ -70,10 +70,8 @@ jobs:
             exit 1
           fi
           if [ "$SKIP" = "true" ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "base=" >> "$GITHUB_OUTPUT"
-            echo "expected=" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "::error::internal error: verification skip requested in required gate"
+            exit 1
           fi
           URL="${URL%/}"
           echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -106,4 +104,6 @@ jobs:
 
       - name: Non-success deployment notice
         if: steps.url.outputs.skip == 'true'
-        run: echo "Skipped non-success deployment_status — check did not claim verification PASS."
+        run: |
+          echo "::error::Verification was skipped in a required gate"
+          exit 1
