@@ -255,7 +255,7 @@ video {
 table { width: 100%; border-collapse: collapse; font-size: .92rem; margin-top: 1.25rem; }
 th, td { text-align: left; padding: .55rem .4rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--muted); font-weight: 600; }
-code { font-family: var(--mono); font-size: .9em; }
+code { font-family: var(--mono); font-size: .9em; overflow-wrap: anywhere; word-break: break-all; }
 
 .reveal { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .5s ease; }
 .reveal.in { opacity: 1; transform: none; }
