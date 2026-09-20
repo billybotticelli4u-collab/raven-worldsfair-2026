@@ -9,6 +9,9 @@ import path from 'node:path';
 import {
   KEY_ENV,
   loadKeypair,
+  verifyReceipt,
+  keyMatchesReceiptSigner,
+  receiptSignerBase58,
   assertDevnetRpc,
   assertDevnetCluster,
   DEVNET_GENESIS_HASH,
@@ -21,21 +24,33 @@ function arg(name, fallback) {
 }
 
 const receiptPath = arg('--receipt');
-if (!receiptPath) {
-  console.error('usage: receipt:anchor --receipt <receipt.json> [--rpc URL]');
+const reportPath = arg('--report');
+if (!receiptPath || !reportPath) {
+  console.error('usage: receipt:anchor --receipt <receipt.json> --report <report.json> [--rpc URL]');
   process.exit(2);
 }
 const rpc = arg('--rpc', process.env.RAVEN_CONFORMANCE_DEVNET_RPC || 'https://api.devnet.solana.com');
 
 try {
   assertDevnetRpc(rpc); // URL pre-check only
-  const key = loadKeypair();
   const receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
   if (receipt.network !== NETWORK) {
     throw new Error(`receipt.network must be ${NETWORK}`);
   }
+  // F2: verify the receipt against its report BEFORE any key use, balance lookup or transaction.
+  const verdict = verifyReceipt(receipt, reportPath);
+  if (!verdict.ok) {
+    const err = new Error(`receipt invalid: ${verdict.reasons.join(', ')}`);
+    err.code = 'INVALID_RECEIPT';
+    throw err;
+  }
   const digest = receipt.reportDigest;
-  if (!digest) throw new Error('receipt missing reportDigest');
+  const key = loadKeypair();
+  if (!keyMatchesReceiptSigner(key, receipt)) {
+    const err = new Error(`local keypair is not the receipt signer (${receiptSignerBase58(receipt)}). Refusing to anchor with an unrelated payer.`);
+    err.code = 'SIGNER_MISMATCH';
+    throw err;
+  }
 
   const { Connection, Keypair, Transaction, TransactionInstruction, PublicKey, sendAndConfirmTransaction } =
     await import('@solana/web3.js');
@@ -75,6 +90,8 @@ try {
     signature: sig,
     explorerUrl,
     payer: payer.publicKey.toBase58(),
+    payerIsReceiptSigner: true,
+    receiptSigner: receiptSignerBase58(receipt),
     anchoredAt: new Date().toISOString(),
   };
   const stem = path.basename(receiptPath, '.conformance-receipt.json');
@@ -85,6 +102,10 @@ try {
   if (e.code === 'MISSING_KEY') {
     console.error(e.message);
     process.exit(2);
+  }
+  if (e.code === 'INVALID_RECEIPT' || e.code === 'SIGNER_MISMATCH') {
+    console.error(JSON.stringify({ ok: false, error: e.code.toLowerCase(), message: e.message }));
+    process.exit(1);
   }
   console.error(e.stack || e.message || e);
   process.exit(1);

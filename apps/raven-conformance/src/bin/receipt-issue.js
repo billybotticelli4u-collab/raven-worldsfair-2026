@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   KEY_ENV,
-  loadReport,
+  admitReportForIssuance,
   loadKeypair,
   buildBody,
   signBody,
@@ -23,7 +23,7 @@ const outDir = arg('--out-dir', 'receipts');
 fs.mkdirSync(outDir, { recursive: true });
 
 try {
-  const { report, digest } = loadReport(reportPath); // validate BEFORE any key use
+  const { report, digest, derivation } = await admitReportForIssuance(reportPath); // validate + REPLAY before any key use (F1)
   const key = loadKeypair();
   const body = buildBody({ digest, report });
   const receipt = signBody(body, key);
@@ -36,6 +36,7 @@ try {
     network: receipt.network,
     reportDigest: digest,
     receiptId: receipt.receiptId,
+    derivation,
     path: out,
     note: 'DEVNET-capable receipt issued offline; not yet anchored. Digests only — no report body on chain.',
   }, null, 2));

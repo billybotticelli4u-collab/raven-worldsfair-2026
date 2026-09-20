@@ -1,7 +1,9 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { canonicalJson } from './canonicalJson.js';
-import { checkReportIntegrity } from './replay.js';
+import os from 'node:os';
+import path from 'node:path';
+import { checkReportIntegrity, replayReport } from './replay.js';
 
 export const KIND = 'raven-conformance-receipt/1';
 export const DOMAIN = 'raven-conformance-receipt';
@@ -320,7 +322,7 @@ export function decodeMessageInstructions(message) {
  */
 export async function verifyAnchor(receipt, anchor, { connection, rpcUrl } = {}) {
   const reasons = [];
-  const detail = { genesisHash: null, txFound: false, txSucceeded: null, memoProgram: false, memoExact: false };
+  const detail = { genesisHash: null, txFound: false, txSucceeded: null, signerBound: false, memoProgram: false, memoExact: false };
   if (!anchor || typeof anchor !== 'object') return { ok: false, reasons: ['anchor_not_object'], detail };
   if (anchor.reportDigest !== receipt.reportDigest) reasons.push('anchor_digest_mismatch');
   if (anchor.network !== NETWORK || anchor.labeled !== 'DEVNET') reasons.push('anchor_not_labeled_devnet');
@@ -328,6 +330,14 @@ export async function verifyAnchor(receipt, anchor, { connection, rpcUrl } = {})
   if (typeof anchor.signature !== 'string' || !BASE58_SIG.test(anchor.signature)) reasons.push('anchor_signature_malformed');
   const memo = expectedMemoFor(receipt.reportDigest);
   if (anchor.memo !== undefined && anchor.memo !== memo) reasons.push('anchor_memo_mismatch');
+  // F2: the anchor payer must be the receipt signer (raw Ed25519 key, base58).
+  let signerB58 = null;
+  try {
+    signerB58 = receiptSignerBase58(receipt);
+  } catch {
+    reasons.push('receipt_signer_unreadable');
+  }
+  if (signerB58 && anchor.payer !== signerB58) reasons.push('anchor_payer_not_receipt_signer');
   if (reasons.length) return { ok: false, reasons, detail };
 
   try {
@@ -350,15 +360,120 @@ export async function verifyAnchor(receipt, anchor, { connection, rpcUrl } = {})
       return { ok: false, reasons: ['anchor_tx_failed_or_meta_missing'], detail };
     }
     detail.txSucceeded = true;
-    const ixs = decodeMessageInstructions(tx.transaction?.message);
-    const memoIxs = ixs.filter((ix) => ix.programId === MEMO_PROGRAM_ID);
+    const message = tx.transaction?.message;
+    const ixs = decodeMessageInstructions(message);
+    // F2: the receipt signer must be a REQUIRED signer of the transaction.
+    const keys = message.staticAccountKeys.map((k) => (typeof k === 'string' ? k : k.toBase58()));
+    const numRequired = Number(message.header?.numRequiredSignatures);
+    if (!Number.isInteger(numRequired) || numRequired < 1) return { ok: false, reasons: ['anchor_tx_header_unreadable'], detail };
+    const signerIndex = keys.indexOf(signerB58);
+    if (signerIndex < 0 || signerIndex >= numRequired) return { ok: false, reasons: ['anchor_tx_not_signed_by_receipt_signer'], detail };
+    detail.signerBound = true;
+    const memoIxs = ixs
+      .map((ix, i) => ({ ...ix, accounts: message.compiledInstructions[i].accountKeyIndexes || [] }))
+      .filter((ix) => ix.programId === MEMO_PROGRAM_ID);
     if (memoIxs.length === 0) return { ok: false, reasons: ['anchor_no_memo_program_instruction'], detail };
     detail.memoProgram = true;
-    const exact = memoIxs.some((ix) => ix.data.equals(Buffer.from(memo, 'utf8')));
-    if (!exact) return { ok: false, reasons: ['anchor_memo_bytes_mismatch'], detail };
+    // The exact memo must be in an instruction whose account list includes the receipt signer.
+    const exact = memoIxs.some((ix) => ix.data.equals(Buffer.from(memo, 'utf8')) && ix.accounts.includes(signerIndex));
+    if (!exact) {
+      const bytesOk = memoIxs.some((ix) => ix.data.equals(Buffer.from(memo, 'utf8')));
+      return { ok: false, reasons: [bytesOk ? 'anchor_memo_account_not_receipt_signer' : 'anchor_memo_bytes_mismatch'], detail };
+    }
     detail.memoExact = true;
     return { ok: true, reasons: [], detail };
   } catch (e) {
     return { ok: false, reasons: [`anchor_rpc_error:${String(e && e.message ? e.message : e)}`], detail };
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* F1 — authenticated derivation: replay before any signature.               */
+/* ------------------------------------------------------------------------ */
+/**
+ * A self-consistent report (correct self-hashes over fabricated observations)
+ * passes validateReportForReceipt(). Issuance therefore also REPLAYS the report
+ * against the pinned profile/corpus/target in this checkout and requires bundle
+ * identity match AND semantic match (summary + every result row). Throws
+ * ReceiptValidationError (code INVALID_REPORT) otherwise. Never signs.
+ */
+export async function authenticateReportDerivation(reportPath, { timeoutMs } = {}) {
+  let replay;
+  try {
+    replay = await replayReport(reportPath, { write: false, timeoutMs });
+  } catch (e) {
+    throw new ReceiptValidationError(`replay failed: ${e.message}`, ['derivation_replay_error']);
+  }
+  const reasons = [];
+  if (replay.error) reasons.push(`derivation:${replay.error}`);
+  if (!replay.bundle_match) reasons.push('derivation_bundle_mismatch');
+  if (!replay.semantic_match) reasons.push('derivation_semantic_mismatch');
+  if (!replay.ok || reasons.length) {
+    throw new ReceiptValidationError(
+      `report derivation not authenticated: ${reasons.join(', ') || 'replay_not_ok'}`,
+      reasons.length ? reasons : ['derivation_replay_not_ok'],
+    );
+  }
+  return {
+    replayed: true,
+    replay_deterministic_sha256: replay.replay_deterministic_sha256,
+    isolation_replay: replay.isolation_replay ?? null,
+  };
+}
+
+/** Full issuance gate: static validation, then authenticated derivation. */
+export async function admitReportForIssuance(reportPath, opts) {
+  const validated = loadReport(reportPath);
+  const derivation = await authenticateReportDerivation(reportPath, opts);
+  return { ...validated, derivation };
+}
+
+/** HTTP helper: persist a caller-supplied report object to a private temp file and admit it. */
+export async function admitReportObjectForIssuance(report, opts) {
+  const validated = validateReportForReceipt(report);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'raven-receipt-admit-'));
+  const tmp = path.join(dir, 'report.json');
+  try {
+    fs.writeFileSync(tmp, JSON.stringify(report));
+    const derivation = await authenticateReportDerivation(tmp, opts);
+    return { ...validated, derivation };
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* F2 — signer binding: receipt signer == anchor payer == on-chain signer.   */
+/* ------------------------------------------------------------------------ */
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+export function base58Encode(bytes) {
+  const b = Buffer.from(bytes);
+  let zeros = 0;
+  while (zeros < b.length && b[zeros] === 0) zeros++;
+  let n = BigInt('0x' + (b.length ? b.toString('hex') : '0'));
+  let out = '';
+  while (n > 0n) { out = B58[Number(n % 58n)] + out; n /= 58n; }
+  return '1'.repeat(zeros) + out;
+}
+
+const ED25519_SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
+/** Raw 32-byte Ed25519 key from the receipt's SPKI DER (base64). Throws on any other shape. */
+export function receiptSignerRaw32(receipt) {
+  const der = Buffer.from(String(receipt?.signerPublicKey || ''), 'base64');
+  if (der.length !== 44 || !der.subarray(0, 12).equals(ED25519_SPKI_PREFIX)) {
+    throw new Error('receipt_signer_not_ed25519_spki');
+  }
+  return der.subarray(12);
+}
+export function receiptSignerBase58(receipt) {
+  return base58Encode(receiptSignerRaw32(receipt));
+}
+
+/** True when the local keypair is the receipt signer (raw public key bytes equal). */
+export function keyMatchesReceiptSigner(key, receipt) {
+  try {
+    return Buffer.from(key.publicKey32).equals(receiptSignerRaw32(receipt));
+  } catch {
+    return false;
   }
 }

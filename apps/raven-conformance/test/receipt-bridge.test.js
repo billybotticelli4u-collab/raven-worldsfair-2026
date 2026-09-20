@@ -16,15 +16,24 @@ import {
   KIND, NETWORK, KEY_ENV, HTTP_ISSUE_ENV, DEVNET_GENESIS_HASH, MAINNET_GENESIS_HASH, MEMO_PROGRAM_ID,
   validateReportForReceipt, loadKeypair, buildBody, signBody, verifyReceipt, verifyAnchor,
   receiptHttpIssueAllowed, expectedMemoFor, ReceiptValidationError,
+  admitReportForIssuance, authenticateReportDerivation, receiptSignerBase58, keyMatchesReceiptSigner, base58Encode,
 } from '../src/lib/conformanceReceipt.js';
+import { runConformance, computeDeterministicDigest } from '../src/lib/runner.js';
+import { sha256Hex } from '../src/lib/digest.js';
 
 const app = fileURLToPath(new URL('..', import.meta.url));
-const GOOD_REPORT_PATH = path.join(app, 'examples', 'sample-report-CONFORMANT_REFERENCE-challenge1.json');
+// A GENUINE report produced by this checkout's runner (replays clean). The shipped
+// examples/ samples are historical and do not replay against the current target.
+let GOOD_REPORT_PATH;
 const goodReport = () => JSON.parse(readFileSync(GOOD_REPORT_PATH, 'utf8'));
 let tmp, keyPath, key;
 
-before(() => {
+before(async () => {
   tmp = mkdtempSync(path.join(os.tmpdir(), 'raven-receipt-'));
+  const produced = await runConformance('CONFORMANT_REFERENCE', { write: true });
+  GOOD_REPORT_PATH = path.join(tmp, 'genuine-report.json');
+  cpSync(produced._written_path, GOOD_REPORT_PATH);
+  rmSync(produced._written_path, { force: true });
   // Ephemeral Ed25519 seed as a 64-byte Solana-style JSON array (seed||pub).
   const kp = crypto.generateKeyPairSync('ed25519');
   const seed = Buffer.from(kp.privateKey.export({ format: 'jwk' }).d, 'base64url');
@@ -34,6 +43,23 @@ before(() => {
   key = loadKeypair(keyPath);
 });
 after(() => rmSync(tmp, { recursive: true, force: true }));
+
+/** F1 probe: forge every observation, then recompute BOTH self-hashes so static validation passes. */
+function selfConsistentForgery() {
+  const r = goodReport();
+  for (const row of r.results) {
+    row.status = 'PASS';
+    if (row.observed) { row.observed.decision = row.expected?.decision ?? row.observed.decision; row.observed.reason = 'forged_without_execution'; }
+  }
+  r.summary = { ...r.summary, overall: 'CONFORMANT', pass: r.results.length, divergence: 0 };
+  delete r._written_path;
+  const det = computeDeterministicDigest(r);
+  r.deterministic_report_sha256 = det;
+  r.binding.deterministic_report_sha256 = det;
+  const { report_content_digest_sha256, deterministic_report_sha256, ...body } = r;
+  r.report_content_digest_sha256 = sha256Hex(JSON.stringify(body, null, 2) + '\n');
+  return r;
+}
 
 const fabricated = () => ({
   schema: 'raven-conformance-report/1', run_id: 'run_fabricated', summary: { pass: 12, total: 12 },
@@ -82,8 +108,9 @@ test('positive offline path: CLI issue + verify green on the genuine report', ()
   const r = spawnSync(process.execPath, ['src/bin/receipt-issue.js', '--report', GOOD_REPORT_PATH, '--out-dir', outDir],
     { cwd: app, env: { ...process.env, [KEY_ENV]: keyPath }, encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
-  const receiptPath = path.join(outDir, 'sample-report-CONFORMANT_REFERENCE-challenge1.conformance-receipt.json');
+  const receiptPath = path.join(outDir, 'genuine-report.conformance-receipt.json');
   assert.ok(existsSync(receiptPath));
+  assert.equal(JSON.parse(r.stdout).derivation.replayed, true);
   const v = spawnSync(process.execPath, ['src/bin/receipt-verify.js', '--report', GOOD_REPORT_PATH, '--receipt', receiptPath],
     { cwd: app, encoding: 'utf8' });
   assert.equal(v.status, 0, v.stdout + v.stderr);
@@ -188,16 +215,19 @@ test('B1+B2 HTTP local mode: fabricated report → 400 invalid_report; genuine r
 // ---------- B3/B4: anchor verification fails closed with exact proof ----------
 const SIG = '5'.repeat(88);
 function mkReceipt() { return signBody(buildBody(validateReportForReceipt(goodReport())), key); }
+const signerB58 = () => receiptSignerBase58(mkReceipt());
 function mkAnchor(receipt, over = {}) {
   return { labeled: 'DEVNET', network: NETWORK, genesisHash: DEVNET_GENESIS_HASH, reportDigest: receipt.reportDigest,
-    memo: expectedMemoFor(receipt.reportDigest), signature: SIG, ...over };
+    memo: expectedMemoFor(receipt.reportDigest), signature: SIG, payer: receiptSignerBase58(receipt), ...over };
 }
-function mkTx(memoBytes, { program = MEMO_PROGRAM_ID, err = null, meta = true } = {}) {
+const OTHER_KEY = 'J8w7EcfAgQw3xz2tsbSJdU8iSV6qfMnY6UGESzzKJJSY';
+function mkTx(memoBytes, { program = MEMO_PROGRAM_ID, err = null, meta = true, signer = signerB58(), numRequired = 1, memoAccounts = [0] } = {}) {
   return {
     meta: meta ? { err, logMessages: ['Program log: irrelevant'] } : null,
     transaction: { message: {
-      staticAccountKeys: ['J8w7EcfAgQw3xz2tsbSJdU8iSV6qfMnY6UGESzzKJJSY', program],
-      compiledInstructions: [{ programIdIndex: 1, accountKeyIndexes: [0], data: Buffer.from(memoBytes, 'utf8') }],
+      header: { numRequiredSignatures: numRequired, numReadonlySignedAccounts: 0, numReadonlyUnsignedAccounts: 1 },
+      staticAccountKeys: [signer, program],
+      compiledInstructions: [{ programIdIndex: 1, accountKeyIndexes: memoAccounts, data: Buffer.from(memoBytes, 'utf8') }],
     } },
   };
 }
@@ -282,7 +312,7 @@ test('B4: anchor digest / label / memo disagreement rejected offline', async () 
 test('B4 positive: exact DEVNET successful Memo transaction accepted (legacy-shaped and v0-shaped messages)', async () => {
   const receipt = mkReceipt(); const memo = expectedMemoFor(receipt.reportDigest);
   const legacy = await verifyAnchor(receipt, mkAnchor(receipt), { connection: conn({ tx: mkTx(memo) }), rpcUrl: 'https://api.devnet.solana.com' });
-  assert.deepEqual(legacy, { ok: true, reasons: [], detail: { genesisHash: DEVNET_GENESIS_HASH, txFound: true, txSucceeded: true, memoProgram: true, memoExact: true } });
+  assert.deepEqual(legacy, { ok: true, reasons: [], detail: { genesisHash: DEVNET_GENESIS_HASH, txFound: true, txSucceeded: true, signerBound: true, memoProgram: true, memoExact: true } });
   // v0-shaped: PublicKey-like objects with toBase58 and Uint8Array data
   const v0 = mkTx(memo);
   v0.transaction.message.staticAccountKeys = v0.transaction.message.staticAccountKeys.map((k) => ({ toBase58: () => k }));
@@ -301,4 +331,97 @@ test('B3 CLI receipt:verify --anchor: unreachable devnet-looking RPC → exit 1 
   assert.equal(out.ok, false);
   assert.ok(out.reasons.some((x) => x.startsWith('anchor_rpc_error:')), JSON.stringify(out.reasons));
   assert.equal(out.anchor.verified, false);
+});
+
+// ---------- F1: authenticated derivation (replay before signature) ----------
+test('F1: self-consistent forgery passes static validation but is REFUSED at issuance (derivation replay)', async () => {
+  const forged = selfConsistentForgery();
+  assert.equal(validateReportForReceipt(forged).digest, forged.deterministic_report_sha256, 'static validator alone is fooled (documented)');
+  const p = path.join(tmp, 'forged-self-consistent.json'); writeFileSync(p, JSON.stringify(forged));
+  await assert.rejects(admitReportForIssuance(p), (e) => e.code === 'INVALID_REPORT' && e.reasons.includes('derivation_semantic_mismatch'));
+});
+test('F1 CLI: self-consistent forgery → exit 1, no receipt, key untouched', () => {
+  const p = path.join(tmp, 'forged-cli.json'); writeFileSync(p, JSON.stringify(selfConsistentForgery()));
+  const outDir = path.join(tmp, 'out-forged');
+  const r = spawnSync(process.execPath, ['src/bin/receipt-issue.js', '--report', p, '--out-dir', outDir],
+    { cwd: app, env: { ...process.env, [KEY_ENV]: '/nonexistent/key-must-not-be-read.json' }, encoding: 'utf8', timeout: 120000 });
+  assert.equal(r.status, 1, r.stderr);
+  assert.match(r.stderr, /derivation_semantic_mismatch/);
+  assert.equal(existsSync(path.join(outDir, 'forged-cli.conformance-receipt.json')), false);
+});
+test('F1: genuine report replays clean and is admitted', async () => {
+  const d = await authenticateReportDerivation(GOOD_REPORT_PATH);
+  assert.equal(d.replayed, true);
+  assert.equal(d.replay_deterministic_sha256, goodReport().deterministic_report_sha256);
+});
+test('F1: historical example report (bundle ok, semantic drift) is refused, not signed', async () => {
+  await assert.rejects(admitReportForIssuance(path.join(app, 'examples', 'sample-report-CONFORMANT_REFERENCE-challenge1.json')),
+    (e) => e.code === 'INVALID_REPORT');
+});
+test('F1 HTTP local mode: self-consistent forgery → 400 with derivation reason; genuine → 200 with derivation.replayed', async () => {
+  const s = await startServer({ [HTTP_ISSUE_ENV]: 'local' });
+  try {
+    const bad = await s.post({ report: selfConsistentForgery() });
+    assert.equal(bad.status, 400); assert.ok(bad.json.reasons.includes('derivation_semantic_mismatch'), JSON.stringify(bad.json));
+    const good = await s.post({ report: goodReport() });
+    assert.equal(good.status, 200, JSON.stringify(good.json)); assert.equal(good.json.derivation.replayed, true);
+  } finally { await s.stop(); }
+});
+
+// ---------- F2: signer binding ----------
+test('F2: receipt signer base58 derives from SPKI; local key matches its own receipt; foreign key does not', () => {
+  const receipt = mkReceipt();
+  assert.equal(receiptSignerBase58(receipt), base58Encode(key.publicKey32));
+  assert.equal(keyMatchesReceiptSigner(key, receipt), true);
+  const other = crypto.generateKeyPairSync('ed25519');
+  const seed = Buffer.from(other.privateKey.export({ format: 'jwk' }).d, 'base64url');
+  const pub = Buffer.from(other.publicKey.export({ format: 'jwk' }).x, 'base64url');
+  const otherPath = path.join(tmp, 'other-key.json'); writeFileSync(otherPath, JSON.stringify([...Buffer.concat([seed, pub])]));
+  assert.equal(keyMatchesReceiptSigner(loadKeypair(otherPath), receipt), false);
+});
+test('F2: anchor payer unrelated to receipt signer rejected offline (no RPC)', async () => {
+  const receipt = mkReceipt(); let called = false;
+  const c = { async getGenesisHash() { called = true; return DEVNET_GENESIS_HASH; }, async getTransaction() { called = true; return mkTx(expectedMemoFor(receipt.reportDigest)); } };
+  const r = await verifyAnchor(receipt, mkAnchor(receipt, { payer: OTHER_KEY }), { connection: c });
+  assert.deepEqual(r.reasons, ['anchor_payer_not_receipt_signer']); assert.equal(called, false);
+});
+test('F2: transaction signed by an unrelated key (payer label correct) rejected', async () => {
+  const receipt = mkReceipt();
+  const r = await verifyAnchor(receipt, mkAnchor(receipt), { connection: conn({ tx: mkTx(expectedMemoFor(receipt.reportDigest), { signer: OTHER_KEY }) }) });
+  assert.deepEqual(r.reasons, ['anchor_tx_not_signed_by_receipt_signer']);
+});
+test('F2: receipt signer present but not a REQUIRED signer (index beyond numRequiredSignatures) rejected', async () => {
+  const receipt = mkReceipt(); const tx = mkTx(expectedMemoFor(receipt.reportDigest));
+  tx.transaction.message.staticAccountKeys = [OTHER_KEY, MEMO_PROGRAM_ID, signerB58()];
+  tx.transaction.message.compiledInstructions[0].accountKeyIndexes = [2];
+  const r = await verifyAnchor(receipt, mkAnchor(receipt), { connection: conn({ tx }) });
+  assert.deepEqual(r.reasons, ['anchor_tx_not_signed_by_receipt_signer']);
+});
+test('F2: exact memo in an instruction whose accounts exclude the signer rejected', async () => {
+  const receipt = mkReceipt();
+  const r = await verifyAnchor(receipt, mkAnchor(receipt), { connection: conn({ tx: mkTx(expectedMemoFor(receipt.reportDigest), { memoAccounts: [] }) }) });
+  assert.deepEqual(r.reasons, ['anchor_memo_account_not_receipt_signer']);
+});
+test('F2: missing transaction header rejected', async () => {
+  const receipt = mkReceipt(); const tx = mkTx(expectedMemoFor(receipt.reportDigest)); delete tx.transaction.message.header;
+  const r = await verifyAnchor(receipt, mkAnchor(receipt), { connection: conn({ tx }) });
+  assert.deepEqual(r.reasons, ['anchor_tx_header_unreadable']);
+});
+test('F2 CLI receipt:anchor: invalid receipt → exit 1 before key/RPC; unrelated local key → signer_mismatch before RPC', () => {
+  const receipt = mkReceipt();
+  const rp = path.join(tmp, 'anchor-cli.receipt.json');
+  const tampered = { ...receipt, reportDigest: 'a'.repeat(64) }; writeFileSync(rp, JSON.stringify(tampered));
+  const bad = spawnSync(process.execPath, ['src/bin/receipt-anchor.js', '--receipt', rp, '--report', GOOD_REPORT_PATH, '--rpc', 'http://127.0.0.1:1/devnet'],
+    { cwd: app, env: { ...process.env, [KEY_ENV]: '/nonexistent/never-read.json' }, encoding: 'utf8', timeout: 60000 });
+  assert.equal(bad.status, 1, bad.stderr); assert.match(bad.stderr, /invalid_receipt/);
+  writeFileSync(rp, JSON.stringify(receipt));
+  const other = crypto.generateKeyPairSync('ed25519');
+  const seed = Buffer.from(other.privateKey.export({ format: 'jwk' }).d, 'base64url');
+  const pub = Buffer.from(other.publicKey.export({ format: 'jwk' }).x, 'base64url');
+  const otherPath = path.join(tmp, 'other-anchor-key.json'); writeFileSync(otherPath, JSON.stringify([...Buffer.concat([seed, pub])]));
+  const mis = spawnSync(process.execPath, ['src/bin/receipt-anchor.js', '--receipt', rp, '--report', GOOD_REPORT_PATH, '--rpc', 'http://127.0.0.1:1/devnet'],
+    { cwd: app, env: { ...process.env, [KEY_ENV]: otherPath }, encoding: 'utf8', timeout: 60000 });
+  assert.equal(mis.status, 1, mis.stderr); assert.match(mis.stderr, /signer_mismatch/); assert.doesNotMatch(mis.stderr, /fetch failed|ECONNREFUSED/);
+  const usage = spawnSync(process.execPath, ['src/bin/receipt-anchor.js', '--receipt', rp], { cwd: app, encoding: 'utf8' });
+  assert.equal(usage.status, 2, '--report is now required');
 });

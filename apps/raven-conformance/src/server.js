@@ -330,16 +330,21 @@ const server = http.createServer(async (req, res) => {
       // loopback bind, from a loopback peer, never under VERCEL/NODE_ENV=production
       // (CODEX B2). Otherwise the route does not exist (404), so a hosted server can
       // never act as a signing oracle even if a key path is configured.
-      const { receiptHttpIssueAllowed, validateReportForReceipt, loadKeypair, buildBody, signBody, NETWORK } =
+      const { receiptHttpIssueAllowed, admitReportObjectForIssuance, loadKeypair, buildBody, signBody, NETWORK } =
         await import("./lib/conformanceReceipt.js");
       const gate = receiptHttpIssueAllowed({ boundHost: HOST, remoteAddress: req.socket.remoteAddress });
       if (!gate.allowed) return sendJson(res, 404, { error: "not_found", reason: gate.reason });
       const body = await readJsonObject(req);
+      if (activeRun) return sendJson(res, 409, { error: "run_in_progress" });
       let validated;
+      activeRun = { target: "receipt-admit", startedAt: new Date().toISOString() };
       try {
-        validated = validateReportForReceipt(body.report); // same validator as the CLI (CODEX B1)
+        // Same gate as the CLI (CODEX B1 + F1): static validation, then replay in this checkout.
+        validated = await admitReportObjectForIssuance(body.report, { timeoutMs: body.timeout_ms });
       } catch (e) {
         return sendJson(res, 400, { error: "invalid_report", reasons: e.reasons || [String(e.message)] });
+      } finally {
+        activeRun = null;
       }
       try {
         const key = loadKeypair();
@@ -348,6 +353,7 @@ const server = http.createServer(async (req, res) => {
           labeled: "DEVNET",
           network: NETWORK,
           receipt,
+          derivation: validated.derivation,
           note: "Issued locally. Not anchored. Run npm run receipt:anchor to post digest memo on Solana DEVNET.",
         });
       } catch (e) {
