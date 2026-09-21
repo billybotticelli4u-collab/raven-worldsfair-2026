@@ -181,8 +181,11 @@ const FS_ROOTS = new Set([
 
 const WINDOWS_ABS_RE = /^[A-Za-z]:[\\/]/;
 const UNC_RE = /^\\\\[^\\\/]+[\\/]/;
-const TILDE_RE = /^~[\\/]/;
-const HOME_ENV_RE = /^\$HOME([\\/]|$)/i;
+// R1: one tilde pattern covers ~/ and ~user/ (KIMI: ~[^\\/\s]*[\\/])
+const TILDE_RE = /^~[^\\/\s$]*[\\/]/;
+// R2: one HOME env pattern covers $HOME, ${HOME}; symmetric %HOME% with %USERPROFILE%
+const HOME_ENV_RE = /^\$(?:\{HOME\}|HOME)([\\/]|$)/i;
+const HOME_PCT_RE = /%HOME%/i;
 const USERPROFILE_RE = /%USERPROFILE%/i;
 const HOMEPATH_RE = /%HOMEPATH%/i;
 const URL_SCHEME_RE = /^[a-zA-Z][a-zA-Z0-9+.-]*:/;
@@ -372,9 +375,11 @@ function hasHomeIdentity(s) {
   }
 
   for (const form of forms) {
-    if (TILDE_RE.test(form) || /(^|[\s"'`=(,:\[{])~\//.test(form)) return true;
-    if (HOME_ENV_RE.test(form) || /\$HOME[\\/]/i.test(form)) return true;
-    if (USERPROFILE_RE.test(form) || HOMEPATH_RE.test(form)) return true;
+    // R1: mid-string named tilde (~roby/…) same pattern as TILDE_RE
+    if (TILDE_RE.test(form) || /(^|[\s"'`=(,:\[{])~[^\\/\s$]*[\\/]/.test(form)) return true;
+    // R2: $HOME, ${HOME} mid-string; %HOME% symmetric with %USERPROFILE%
+    if (HOME_ENV_RE.test(form) || /\$(?:\{HOME\}|HOME)[\\/]/i.test(form)) return true;
+    if (HOME_PCT_RE.test(form) || USERPROFILE_RE.test(form) || HOMEPATH_RE.test(form)) return true;
     if (HOME_ROOT_RE.test(form)) return true;
     if (WIN_USERS_RE.test(form)) return true;
     // Explicit home roots with username (also Windows backslash form)
@@ -391,7 +396,13 @@ function hasHomeIdentity(s) {
 function isAbsoluteFsPathLike(s) {
   if (typeof s !== "string" || s.length < 2) return false;
 
-  if (TILDE_RE.test(s) || HOME_ENV_RE.test(s) || WINDOWS_ABS_RE.test(s) || UNC_RE.test(s)) {
+  if (
+    TILDE_RE.test(s) ||
+    HOME_ENV_RE.test(s) ||
+    HOME_PCT_RE.test(s) ||
+    WINDOWS_ABS_RE.test(s) ||
+    UNC_RE.test(s)
+  ) {
     return true;
   }
   // forward-slash UNC lookalike //server/share
@@ -498,7 +509,7 @@ function evaluateCandidate(value, fieldPath, hits, allow) {
 
 /** Also scan plain text for embedded absolute paths (not only whole-line). */
 const EMBEDDED_ABS_RE =
-  /(?:^|[\s"'`=(,:\[{])(\/(?:Users|home)\/[^\s"'`)\],;}{]+|\/(?:private|var|tmp|opt|etc|usr|workspace|Volumes|System|Library|Applications|root)\/[^\s"'`)\],;}{]+|~\/[^\s"'`)\],;}{]+|\$HOME\/[^\s"'`)\],;}{]+|[A-Za-z]:\\[^\s"'`)\],;}{]+|\\\\[^\\\s"'`)\],;}{]+|%USERPROFILE%[^\s"'`)\],;}{]*|file:\/+\/[^\s"'`)\],;}{]+)/gi;
+  /(?:^|[\s"'`=(,:\[{])(\/(?:Users|home)\/[^\s"'`)\],;}{]+|\/(?:private|var|tmp|opt|etc|usr|workspace|Volumes|System|Library|Applications|root)\/[^\s"'`)\],;}{]+|~[^\\/\s$]*\/[^\s"'`)\],;}{]+|\$(?:\{HOME\}|HOME)\/[^\s"'`)\],;}{]+|[A-Za-z]:\\[^\s"'`)\],;}{]+|\\\\[^\\\s"'`)\],;}{]+|%(?:HOME|USERPROFILE)%[^\s"'`)\],;}{]*|file:\/+\/[^\s"'`)\],;}{]+)/gi;
 
 function collectFromString(value, fieldPath, hits, allow) {
   if (typeof value !== "string") return;

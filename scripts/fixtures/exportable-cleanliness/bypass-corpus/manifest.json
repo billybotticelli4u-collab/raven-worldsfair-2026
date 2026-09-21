@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Adversarial bypass corpus for exportable-cleanliness (CLAUDE-072). NON-NORMATIVE vectors marked undecided.",
+  "description": "Adversarial bypass corpus for exportable-cleanliness (CLAUDE-072 + KIMI R1-R3). Controls W07/W08 retained for R1/R2 near-miss pairs; A08 near-miss for A07.",
   "defaultAllowlist": "scripts/fixtures/exportable-cleanliness/allowlists/judge-package-v5.2.txt",
   "vectors": [
     {
@@ -32,7 +32,7 @@
       "file": "artifacts/T04-reverse-traversal-into-sandbox.json",
       "expectedExit": 1,
       "allowlist": true,
-      "rationale": "B1 trap: raw /Users/TESTUSER/../../private/tmp/x resolves INTO sandbox but raw discloses home — must FAIL",
+      "rationale": "B1 trap: raw /Users/TESTUSER/../../private/tmp/x resolves INTO sandbox but raw discloses home \u2014 must FAIL",
       "undecided": false
     },
     {
@@ -96,7 +96,7 @@
       "file": "artifacts/B02-private-tmpX.json",
       "expectedExit": 1,
       "allowlist": true,
-      "rationale": "Boundary: /private/tmpX must NOT match allowlist prefix /private/tmp/ — still FS-root /private/… so exit 1 (not silently allowlisted)",
+      "rationale": "Boundary: /private/tmpX must NOT match allowlist prefix /private/tmp/ \u2014 still FS-root /private/\u2026 so exit 1 (not silently allowlisted)",
       "undecided": false
     },
     {
@@ -184,7 +184,7 @@
       "file": "artifacts/E01-unicode-slash-u002f.json",
       "expectedExit": 1,
       "allowlist": false,
-      "rationale": "JSON \\u002f decodes to / before walk — must see /Users/TESTUSER",
+      "rationale": "R3: file bytes contain literal JSON \\u002f escapes; JSON.parse decoding path must see /Users/TESTUSER",
       "undecided": false
     },
     {
@@ -192,7 +192,7 @@
       "file": "artifacts/E02-nfd-users.json",
       "expectedExit": 1,
       "allowlist": false,
-      "rationale": "NFD-ish path still matches home-identity via normalisation forms",
+      "rationale": "R3: real NFD combining acute (U+0301) in username path bytes; home-identity via normalisation",
       "undecided": false
     },
     {
@@ -216,7 +216,7 @@
       "file": "artifacts/E05-overlong-pct2e-double.json",
       "expectedExit": 1,
       "allowlist": true,
-      "rationale": "Double-encoded %252e%252e → after one decode still %2e%2e; second pass resolves",
+      "rationale": "Double-encoded %252e%252e \u2192 after one decode still %2e%2e; second pass resolves",
       "undecided": false
     },
     {
@@ -224,7 +224,7 @@
       "file": "artifacts/E06-homoglyph-undecided.json",
       "expectedExit": 1,
       "allowlist": false,
-      "rationale": "Homoglyph /Уsers/... evades ASCII home-identity but still fails via multi-segment absolute FS-like rule (depth>=3). Home-identity-only gap remains NON-NORMATIVE note.",
+      "rationale": "Homoglyph /\u0423sers/... evades ASCII home-identity but still fails via multi-segment absolute FS-like rule (depth>=3). Home-identity-only gap remains NON-NORMATIVE note.",
       "undecided": false
     },
     {
@@ -248,7 +248,7 @@
       "file": "artifacts/S03-markdown-fence.json",
       "expectedExit": 1,
       "allowlist": false,
-      "rationale": "Shape: markdown code fence containing home path (scanned as .md via sidecar — here JSON note field)",
+      "rationale": "Shape: markdown code fence containing home path (scanned as .md via sidecar \u2014 here JSON note field)",
       "undecided": false
     },
     {
@@ -321,6 +321,46 @@
       "expectedExit": 1,
       "allowlist": false,
       "rationale": "O4/$HOME: $HOME/secret.txt",
+      "undecided": false
+    },
+    {
+      "id": "R1-tilde-named-user",
+      "file": "artifacts/R1-tilde-named-user.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "R1: ~roby/secret.txt must fail; same TILDE_RE as control W07 ~/secret.txt",
+      "undecided": false
+    },
+    {
+      "id": "R2-brace-home",
+      "file": "artifacts/R2-brace-home.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "R2: ${HOME}/secret.txt must fail; same HOME_ENV_RE as control W08 $HOME/secret.txt",
+      "undecided": false
+    },
+    {
+      "id": "R2-pct-home",
+      "file": "artifacts/R2-pct-home.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "R2: %HOME% symmetric with $HOME / %USERPROFILE%",
+      "undecided": false
+    },
+    {
+      "id": "A07-key-glued-users-allowlist",
+      "file": "artifacts/A07-key-glued-users-allowlist.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "KIMI A07: B2 key-vector {\"/private/tmp/../../Users/TESTUSER/x\":\"clean\"} WITH allowlist \u2192 exit 1",
+      "undecided": false
+    },
+    {
+      "id": "A08-key-sandbox-allowlist",
+      "file": "artifacts/A08-key-sandbox-allowlist.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "KIMI A08: B2 key-vector {\"/private/tmp/x\":\"clean\"} WITH allowlist \u2192 exit 0 (paired near-miss to A07)",
       "undecided": false
     },
     {
