@@ -1,0 +1,8 @@
+{
+  "schema": "raven-conformance-comparison/fixture",
+  "note": "comparison.json session-metadata absolute path leak class (3/4)",
+  "paths": {
+    "node": "/Users/TESTUSER/Downloads/PROJECT-WORKSPACE-EXAMPLE/INTEGRATION-LANE/node-pins/node-v22.18.0-darwin-arm64/bin/node",
+    "cwd": "/Users/TESTUSER/Downloads/PROJECT-WORKSPACE-EXAMPLE/INTEGRATION-LANE/worktree-example"
+  }
+}

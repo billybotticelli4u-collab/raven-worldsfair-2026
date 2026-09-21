@@ -19,6 +19,37 @@ describe("result taxonomy", () => {
     assert.equal(r.status, "BEHAVIORAL_DIVERGENCE");
   });
 
+  it("compares version when the profile expectation includes it", () => {
+    const pass = classifyResult(
+      { observed: { decision: "ACCEPT", version: 1 }, exitCode: 0, timedOut: false, flooded: false },
+      { decision: "ACCEPT", version: 1, reason: "non-normative expectation note" },
+    );
+    const divergence = classifyResult(
+      { observed: { decision: "ACCEPT", version: 0 }, exitCode: 0, timedOut: false, flooded: false },
+      { decision: "ACCEPT", version: 1 },
+    );
+
+    assert.equal(pass.status, "PASS");
+    assert.equal(divergence.status, "BEHAVIORAL_DIVERGENCE");
+  });
+
+  it("refuses a missing version instead of normalizing it to null", () => {
+    assert.deepEqual(
+      classifyResult(
+        { observed: { decision: "REJECT" }, exitCode: 0, timedOut: false, flooded: false },
+        { decision: "REJECT", version: null },
+      ),
+      { status: "INVALID_OUTPUT", evidence_note: "missing_version" },
+    );
+    assert.deepEqual(
+      classifyResult(
+        { observed: { decision: "REJECT", version: null }, exitCode: 0, timedOut: false, flooded: false },
+        { decision: "REJECT", version: null },
+      ),
+      { status: "PASS", evidence_note: null },
+    );
+  });
+
   it("TIMEOUT never PASS", () => {
     const r = classifyResult(
       { observed: null, exitCode: null, timedOut: true, flooded: false, parseError: "timeout" },

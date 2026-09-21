@@ -1,0 +1,5 @@
+{
+  "note": "CLAUDE-068 amendment: no home-directory path present; only private-tmp class must still fail",
+  "workdir": "/private/tmp/raven-reviewer-scratch/session-1",
+  "report": "/var/folders/xx/abcdef/T/raven-report.json"
+}

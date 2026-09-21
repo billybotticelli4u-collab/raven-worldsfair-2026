@@ -1,0 +1,40 @@
+{
+  "targets": [
+    {
+      "id": "SOL_CONFORMANT_REFERENCE",
+      "name": "Solana txversion conformant reference",
+      "version": "0.1.0",
+      "entry": "solana/SOL_CONFORMANT_REFERENCE.mjs",
+      "claimed_conformance_profile": "raven-solana-txversion-experimental/0",
+      "claimed_conformance_profile_version": "0.2.0",
+      "invocation_interface": "stdin_json_line",
+      "description": "Correct envelope-admission implementation of the experimental profile — corpus should PASS entirely.",
+      "expected_outcome": "CONFORMANT",
+      "probe": false
+    },
+    {
+      "id": "SOL_BROKEN_OBVIOUS",
+      "name": "Solana txversion broken obvious",
+      "version": "0.1.0",
+      "entry": "solana/SOL_BROKEN_OBVIOUS.mjs",
+      "claimed_conformance_profile": "raven-solana-txversion-experimental/0",
+      "claimed_conformance_profile_version": "0.2.0",
+      "invocation_interface": "stdin_json_line",
+      "description": "Intentional straightforward violation: unconditional ACCEPT of anything that base64-decodes.",
+      "expected_outcome": "DIVERGENT",
+      "probe": false
+    },
+    {
+      "id": "SOL_BROKEN_SUBTLE",
+      "name": "Solana txversion broken subtle (stale pre-v1 parser)",
+      "version": "0.1.0",
+      "entry": "solana/SOL_BROKEN_SUBTLE.mjs",
+      "claimed_conformance_profile": "raven-solana-txversion-experimental/0",
+      "claimed_conformance_profile_version": "0.2.0",
+      "invocation_interface": "stdin_json_line",
+      "description": "Raven-owned demo of the stale-parser defect class: correct legacy/v0 logic, no knowledge of the v1 envelope described by SIMD-0385. False-rejects valid v1; misadmits non-canonical 0x81-prefixed bytes. Not a third-party vulnerability claim.",
+      "expected_outcome": "DIVERGENT",
+      "probe": false
+    }
+  ]
+}

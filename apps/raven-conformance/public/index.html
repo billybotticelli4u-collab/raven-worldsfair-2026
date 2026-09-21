@@ -14,7 +14,7 @@
       <p class="eyebrow">Crypto World's Fair 2026 · Build Stage · Conformance · Challenge 2</p>
       <h1>Raven Conformance — Judge UI</h1>
       <p class="lede" id="taskSentence">
-        Pick one Raven-owned demo target and run the deterministic corpus against its claimed profile to see PASS / DIVERGENCE evidence in about 60 seconds.
+        Run a named Raven corpus against a Raven-owned target and inspect the result.
       </p>
     </div>
     <div class="header-actions">
@@ -29,15 +29,18 @@
     <p class="muted" id="corpusScopeNote">Corpus scope: Raven-owned Fair demo fixtures only — not private production corpora.</p>
   </section>
   <section class="controls card" aria-labelledby="selectHeading">
-    <h2 id="selectHeading">1. Select a Raven-owned demo target</h2>
+    <h2 id="selectHeading">1. Select a profile</h2>
+    <div class="profile-tabs" id="profileRow" role="tablist" aria-label="Conformance profiles"></div>
+    <p class="muted" id="profileBlurb">Loading profiles…</p>
+    <h2 class="target-heading">2. Select a Raven-owned demo target</h2>
     <div class="btn-row target-grid" id="targetRow" role="group" aria-label="Demo targets"></div>
     <p class="muted" id="targetBlurb">Choose a target to load its claimed profile.</p>
-    <div class="scope card nested" aria-label="Claimed profile and corpus scope">
+    <div class="scope-panel" aria-label="Claimed profile and corpus scope">
       <h3 class="h3">Claimed profile &amp; corpus scope</h3>
       <dl class="kv" id="metaKv"></dl>
     </div>
     <div class="btn-row run-row">
-      <button type="button" id="runBtn" class="primary" disabled>2. Run Conformance (live)</button>
+      <button type="button" id="runBtn" class="primary" disabled>3. Run Conformance (live)</button>
       <button type="button" id="recordedBtn" class="ghost">Load recorded BROKEN_SUBTLE report</button>
     </div>
     <p class="muted small" id="recordedHint">Recorded fallback is clearly labeled and immutable — it never masquerades as a newly executed run.</p>
@@ -77,7 +80,11 @@
     <div class="btn-row">
       <button type="button" id="copyBtn" class="ghost" disabled>Copy reproduction command</button>
       <button type="button" id="downloadBtn" class="ghost" disabled>Download report JSON</button>
+      <button type="button" id="replayBtn" class="ghost" disabled>Replay report</button>
+      <button type="button" id="receiptBtn" class="ghost" disabled title="Issue local DEVNET-capable receipt (digest only)">Issue receipt (local)</button>
+      <a id="explorerLink" class="ghost" hidden rel="noopener" target="_blank">DEVNET explorer</a>
     </div>
+    <p id="replayStatus" class="muted" role="status" aria-live="polite">No replay yet.</p>
   </section>
   <dialog id="aboutDialog" aria-labelledby="aboutTitle">
     <form method="dialog" class="about">

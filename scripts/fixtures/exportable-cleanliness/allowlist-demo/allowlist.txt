@@ -1,0 +1,3 @@
+# Exportable-cleanliness allowlist (exact string OR prefix ending in /)
+# Format: one entry per line; # comments and blanks ignored.
+/private/tmp/raven-allowlisted-scratch/demo.json

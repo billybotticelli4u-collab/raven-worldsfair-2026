@@ -1,0 +1,6 @@
+{
+  "package": "clean-sealed-proxy",
+  "target": { "entry": "CONFORMANT_REFERENCE.mjs" },
+  "routes": ["/api/health", "/api/run"],
+  "url": "https://ravenattest.com/worldsfair/"
+}

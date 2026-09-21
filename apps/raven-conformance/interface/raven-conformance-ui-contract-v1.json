@@ -4,7 +4,7 @@
   "report_schema": "raven-conformance-report/1",
   "compatibility": {
     "mvp_ui": "public/app.js",
-    "mvp_server_routes": ["GET /api/build-info", "GET /api/targets", "GET /api/meta", "POST /api/run"],
+    "mvp_server_routes": ["GET /api/build-info", "GET /api/profiles", "GET /api/targets", "GET /api/meta", "POST /api/run", "POST /api/replay"],
     "notes": [
       "Additive report fields only; do not remove summary.pass, summary.divergence, summary.overall",
       "summary.divergence counts BEHAVIORAL_DIVERGENCE for UI compatibility",
@@ -32,6 +32,7 @@
     "type": "object",
     "required": ["target"],
     "properties": {
+      "profile": { "type": "string", "description": "Allowlisted profile name or alias. Omit for raven-canonical-envelope/1." },
       "target": { "type": "string" },
       "timeout_ms": { "type": "integer", "minimum": 100, "maximum": 10000, "default": 3000 },
       "run_id": { "type": "string", "pattern": "^run_[A-Za-z0-9]{1,64}$", "description": "Optional new report ID; an existing ID is refused with 409." }
@@ -59,6 +60,8 @@
   ],
   "error_codes": [
     "unknown_target",
+    "unknown_profile",
+    "invalid_profile",
     "missing_target_entry",
     "invalid_json",
     "invalid_request",

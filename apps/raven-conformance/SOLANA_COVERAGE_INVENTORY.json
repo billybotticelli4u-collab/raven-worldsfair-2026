@@ -1,0 +1,58 @@
+{
+  "schema": "raven-solana-coverage-inventory/1",
+  "profile": "raven-solana-txversion-experimental/0",
+  "integrated_corpus": "raven-solana-txversion-demo-corpus/1.2",
+  "source_corpus": "raven-solana-txversion-demo-corpus/1",
+  "source_corpus_version": "1.1.0",
+  "source_corpus_file_sha256": "edf533bd64bac1eb00de78833614edd94e190bef437c7f73b80b100e7ea5540e",
+  "source_corpus_content_digest_sha256": "c463a23b9ee3d1e91204e1d2bc9b1a3bf121e97ca9ba00e7a970b8fd97c5aa1a",
+  "source_vector_count": 26,
+  "integrated_vector_count": 12,
+  "included_from_source": [
+    { "source_id": "V01_valid_legacy", "role": "legacy happy path" },
+    { "source_id": "V02_valid_v0", "role": "v0 happy path" },
+    { "source_id": "V03_valid_v1", "role": "v1 happy path; subtle-target divergence" },
+    { "source_id": "V07_trailing_bytes_v0", "role": "exact-consumption rejection" },
+    { "source_id": "V16_valid_v1_two_instructions", "role": "grouped two-instruction v1 happy path; subtle-target divergence" },
+    { "source_id": "V17_v1_interleaved_layout", "role": "grouped-versus-interleaved rejection" },
+    { "source_id": "V19_legacy_signature_count_mismatch", "role": "signature-count binding rejection" },
+    { "source_id": "V20_v1_account_index_out_of_bounds", "role": "account-index bounds rejection" },
+    { "source_id": "V21_v1_size_cap_exceeded", "role": "v1 size-cap rejection" },
+    { "source_id": "V23_v1_ro_signed_equals_req_sig", "role": "header equality rejection" },
+    { "source_id": "V24_v1_instructions_cap", "role": "v1 instruction-count cap rejection" }
+  ],
+  "omitted_from_source": [
+    { "source_id": "V04_valid_v0_with_lookup_table", "loss": "v0 address-lookup-table accept arm" },
+    { "source_id": "V05_valid_legacy_duplicate_account", "loss": "legacy duplicate-account accept arm" },
+    { "source_id": "V06_truncated_legacy", "loss": "legacy truncation rejection" },
+    { "source_id": "V08_unsupported_tx_version_2", "loss": "transaction-envelope version-floor rejection" },
+    { "source_id": "V09_unsupported_message_version_3", "loss": "message-version-floor rejection" },
+    { "source_id": "V10_noncanonical_shortvec_sigcount", "loss": "non-canonical shortvec rejection and one subtle-target divergence row" },
+    { "source_id": "V11_inflated_sigcount", "loss": "inflated signature-section rejection" },
+    { "source_id": "V12_v1_duplicate_accounts", "loss": "v1 duplicate-address rejection" },
+    { "source_id": "V13_v1_heap_out_of_range", "loss": "v1 heap-bounds rejection" },
+    { "source_id": "V14_malformed_base64", "loss": "strict-base64 reason discrimination" },
+    { "source_id": "V15_malformed_input_shape", "loss": "source malformed-input shape row; replaced by a narrower Raven-local exact-key row" },
+    { "source_id": "V18_v1_header_req_sig_gt_accounts", "loss": "second v1 header-consistency arm" },
+    { "source_id": "V22_legacy_size_cap_exceeded", "loss": "legacy-only size-cap arm" },
+    { "source_id": "V25_v1_signatures_cap", "loss": "v1 signature-count cap arm" },
+    { "source_id": "V26_v1_addresses_cap", "loss": "v1 address-count cap arm" }
+  ],
+  "raven_local_additions": [
+    {
+      "id": "V15_unexpected_input_key",
+      "role": "fail-closed exact input-key guard",
+      "source": "profiles/raven-solana-txversion-experimental-0.json#R1",
+      "replaces_source_id": "V14_malformed_base64",
+      "note": "Raven-local profile transport vector; not represented as a published Solana requirement."
+    }
+  ],
+  "claim": "The target matched this named experimental corpus.",
+  "limits": [
+    "No signature verification claim.",
+    "No transaction-safety claim.",
+    "No wallet or Blink coverage claim.",
+    "No simulation or on-chain execution claim.",
+    "Family-level detections do not establish site-by-site coverage."
+  ]
+}

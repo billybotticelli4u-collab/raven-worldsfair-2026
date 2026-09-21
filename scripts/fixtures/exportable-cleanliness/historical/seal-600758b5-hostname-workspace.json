@@ -1,0 +1,11 @@
+{
+  "schema": "raven-evidence-seal/fixture",
+  "note": "seal 600758b5 class: hostname + /workspace paths in shipped evidence (constructed stand-in)",
+  "host": "fair-builder.local",
+  "evidence_path": "/workspace/INTEGRATION-LANE/worktree/apps/raven-conformance/evidence/out.json",
+  "workspace_root": "/workspace/INTEGRATION-LANE",
+  "isolation": {
+    "hostname": "fair-builder.local",
+    "cwd": "/workspace/seal-scratch/600758b5"
+  }
+}

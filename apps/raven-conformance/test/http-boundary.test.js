@@ -76,6 +76,38 @@ test('health and malformed JSON controls', async () => {
   const r = await request('/api/run', { method: 'POST', raw: '{' });
   assert.equal(r.status, 400); assert.equal(r.body.error, 'invalid_json');
 });
+test('profile discovery exposes envelope and Solana metadata with separate target families', async () => {
+  const profiles = await request('/api/profiles');
+  assert.equal(profiles.status, 200);
+  assert.deepEqual(
+    profiles.body.profiles.map(profile => profile.name),
+    ['raven-canonical-envelope/1', 'raven-solana-txversion-experimental/0'],
+  );
+
+  const targets = await request('/api/targets?profile=solana');
+  assert.equal(targets.status, 200);
+  assert.equal(targets.body.profile, 'raven-solana-txversion-experimental/0');
+  assert.deepEqual(
+    targets.body.targets.map(target => target.id),
+    ['SOL_CONFORMANT_REFERENCE', 'SOL_BROKEN_OBVIOUS', 'SOL_BROKEN_SUBTLE'],
+  );
+
+  const meta = await request('/api/meta?profile=solana');
+  assert.equal(meta.status, 200);
+  assert.equal(meta.body.profile.name, 'raven-solana-txversion-experimental/0');
+  assert.equal(meta.body.corpus.id, 'raven-solana-txversion-demo-corpus/1.2');
+  assert.equal(meta.body.corpus.vector_count, 12);
+  assert.equal(meta.body.claim, 'The target matched this named experimental corpus.');
+});
+test('unknown profile selection fails closed before target execution', async () => {
+  const meta = await request('/api/meta?profile=does-not-exist');
+  assert.equal(meta.status, 400); assert.equal(meta.body.error, 'unknown_profile');
+  const run = await request('/api/run', {
+    method: 'POST',
+    json: { profile: 'does-not-exist', target: 'SOL_CONFORMANT_REFERENCE' },
+  });
+  assert.equal(run.status, 400); assert.equal(run.body.error, 'unknown_profile');
+});
 for (const json of [null, [], 'target', 42]) test(`non-object request ${JSON.stringify(json)} is a client error`, async () => {
   for (const route of ['/api/run', '/api/replay']) {
     const r = await request(route, { method: 'POST', json });
@@ -165,6 +197,42 @@ test('live reference/subtle runs, download and replay preserve exact decisions',
   const subtle = await request('/api/run', { method: 'POST', json: { target: 'BROKEN_SUBTLE' } });
   assert.equal(subtle.status, 200); assert.equal(subtle.body.report.summary.pass, total - 2);
   assert.deepEqual(subtle.body.report.results.filter(row => row.status === 'BEHAVIORAL_DIVERGENCE').map(row => row.vector_id), ['V07_unexpected_top_level_field', 'V08_unexpected_extension_key']);
+});
+test('Solana HTTP reference, broken target, report download and replay preserve profile binding', async () => {
+  const reference = await request('/api/run', {
+    method: 'POST',
+    json: { profile: 'solana', target: 'SOL_CONFORMANT_REFERENCE', run_id: 'run_httpsolana' },
+  });
+  assert.equal(reference.status, 200);
+  assert.equal(reference.body.report.claimed_profile.name, 'raven-solana-txversion-experimental/0');
+  assert.equal(reference.body.report.summary.overall, 'CONFORMANT');
+  assert.equal(reference.body.report.summary.pass, 12);
+  assert.equal(reference.body.report.results.length, 12);
+
+  const download = await request('/api/report/run_httpsolana');
+  assert.equal(download.status, 200);
+  assert.deepEqual(download.body.results, reference.body.report.results);
+  const replay = await request('/api/replay', {
+    method: 'POST',
+    json: { report_path: 'reports/run_httpsolana.json' },
+  });
+  assert.equal(replay.status, 200);
+  assert.equal(replay.body.ok, true);
+  assert.equal(replay.body.bundle_match, true);
+  assert.equal(replay.body.semantic_match, true);
+
+  const subtle = await request('/api/run', {
+    method: 'POST',
+    json: { profile: 'solana', target: 'SOL_BROKEN_SUBTLE' },
+  });
+  assert.equal(subtle.status, 200);
+  assert.equal(subtle.body.report.summary.pass, 10);
+  assert.deepEqual(
+    subtle.body.report.results
+      .filter(row => row.status === 'BEHAVIORAL_DIVERGENCE')
+      .map(row => row.vector_id),
+    ['V03_valid_v1', 'V16_valid_v1_two_instructions'],
+  );
 });
 test('failed replay releases the execution lock', async () => {
   writeFileSync(path.join(dir, 'reports/run_bad.json'), '{');
