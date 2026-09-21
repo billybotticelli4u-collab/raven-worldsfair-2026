@@ -10,7 +10,7 @@ Fix tip after CODEX CHANGES_REQUESTED on `7390574`. **Not deployed. Not pushed. 
 5. **NEW (this fix):** full deployable `apps/raven-site/` static root from CODEX static deploy input `ab2a33fc…` (`vercel.json` outputDirectory `.`, agents/contact/logo, `/worldsfair` redirect). Tip-preserved repaired `worldsfair/` overlaid on that root.
 
 ## Download files
-- `README.md` `71ae943f9085200c55b75f02d16d18455a6f36b7c917ef24fbad4895d1805a51`
+- `DOWNLOAD-NOTES.md` `0649da09b18ad389b30b159cbae2bbe137731ed37e2d0cdb04d8cf20b84e3066`
 - `SHA256SUMS.txt` `f40b6fd4617884c19e0d9f56e23d07156686d40a19fe12a94f0d5f3f1ed21ad9`
 - `raven-conformance-fair-developer-notes.zip` `35168a947febd81d8b64fcad81af579f96cdfd13c907ab05d18e349e815fc44c`
 - `raven-conformance-judge-package-2026-09-20-34453300.zip` `34453300504b703b4c62de6ff5a885e80f8892c0217d66e1fb031716df3efe1e`
