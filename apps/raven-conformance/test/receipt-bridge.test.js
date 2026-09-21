@@ -16,7 +16,7 @@ import {
   KIND, NETWORK, KEY_ENV, HTTP_ISSUE_ENV, DEVNET_GENESIS_HASH, MAINNET_GENESIS_HASH, MEMO_PROGRAM_ID,
   validateReportForReceipt, loadKeypair, buildBody, signBody, verifyReceipt, verifyAnchor,
   receiptHttpIssueAllowed, expectedMemoFor, ReceiptValidationError,
-  admitReportForIssuance, authenticateReportDerivation, receiptSignerBase58, keyMatchesReceiptSigner, base58Encode,
+  admitReportForIssuance, admitReportObjectForIssuance, authenticateReportDerivation, receiptSignerBase58, keyMatchesReceiptSigner, base58Encode,
 } from '../src/lib/conformanceReceipt.js';
 import { runConformance, computeDeterministicDigest } from '../src/lib/runner.js';
 import { sha256Hex } from '../src/lib/digest.js';
@@ -369,6 +369,61 @@ test('F1 HTTP local mode: self-consistent forgery → 400 with derivation reason
 });
 
 // ---------- F2: signer binding ----------
+// ---------- F1 residual: forgery OUTSIDE the semantic slice (CODEX 83f3c134) ----------
+// selfConsistentForgery() above only rewrites status/decision/reason/summary, all of which sit
+// INSIDE semanticSlice(), so it can never exercise the class CODEX found: fields outside the
+// slice but inside the signed deterministic digest. These cases do. Each one recomputes BOTH
+// self-hashes, so the forgery is internally consistent and static validation is fooled.
+function outOfSliceForgery(mutate) {
+  const r = goodReport();
+  delete r._written_path;
+  mutate(r);
+  const det = computeDeterministicDigest(r);
+  r.deterministic_report_sha256 = det;
+  r.binding.deterministic_report_sha256 = det;
+  const { report_content_digest_sha256, deterministic_report_sha256, ...body } = r;
+  r.report_content_digest_sha256 = sha256Hex(JSON.stringify(body, null, 2) + '\n');
+  return r;
+}
+const OUT_OF_SLICE = [
+  ['evidence.stdout', (r) => { r.results[0].evidence.stdout = 'forged'; }],
+  ['evidence.stderr', (r) => { r.results[0].evidence.stderr = 'forged'; }],
+  ['isolation.verified_controls', (r) => { r.isolation.verified_controls = ['forged']; }],
+  ['isolation.assumed_controls', (r) => { r.isolation.assumed_controls = ['forged']; }],
+  ['isolation.platform', (r) => { r.isolation.platform = 'other-platform'; }],
+  ['limitations', (r) => { r.limitations = ['forged']; }],
+];
+for (const [field, mutate] of OUT_OF_SLICE) {
+  test(`F1 residual: forged ${field} (outside semantic slice) is REFUSED by digest, not by semantics`, async () => {
+    const forged = outOfSliceForgery(mutate);
+    // Positive control on the forgery itself: it must be self-consistent, or the test models no adversary.
+    assert.equal(validateReportForReceipt(forged).digest, forged.deterministic_report_sha256, 'forgery must fool static validation');
+    const p = path.join(tmp, `forged-oos-${field.replace(/\W+/g, '-')}.json`); writeFileSync(p, JSON.stringify(forged));
+    await assert.rejects(admitReportForIssuance(p), (e) => {
+      assert.equal(e.code, 'INVALID_REPORT');
+      assert.ok(e.reasons.includes('derivation_digest_mismatch'), JSON.stringify(e.reasons));
+      // Proves the field really is outside the slice: semantics alone would have admitted it.
+      assert.ok(!e.reasons.includes('derivation_semantic_mismatch'), `${field} was caught by semantics, so it is not an out-of-slice case: ${JSON.stringify(e.reasons)}`);
+      return true;
+    });
+  });
+}
+test('F1 residual: object entrypoint refuses an out-of-slice forgery too', async () => {
+  const forged = outOfSliceForgery((r) => { r.results[0].evidence.stdout = 'forged'; });
+  await assert.rejects(admitReportObjectForIssuance(forged),
+    (e) => e.code === 'INVALID_REPORT' && e.reasons.includes('derivation_digest_mismatch'));
+});
+test('F1 residual control: volatile-only change (durationMs) is ADMITTED, so the digest check is not over-strict', async () => {
+  const volatile = outOfSliceForgery((r) => { r.results[0].evidence.durationMs = 999999; });
+  const p = path.join(tmp, 'volatile-duration-only.json'); writeFileSync(p, JSON.stringify(volatile));
+  const admitted = await admitReportForIssuance(p);
+  assert.equal(admitted.derivation.replayed, true);
+});
+test('F1 residual control: unmodified genuine report is ADMITTED through the object entrypoint', async () => {
+  const admitted = await admitReportObjectForIssuance(goodReport());
+  assert.equal(admitted.derivation.replayed, true);
+});
+
 test('F2: receipt signer base58 derives from SPKI; local key matches its own receipt; foreign key does not', () => {
   const receipt = mkReceipt();
   assert.equal(receiptSignerBase58(receipt), base58Encode(key.publicKey32));
