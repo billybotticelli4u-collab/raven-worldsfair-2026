@@ -24,7 +24,7 @@ function applyIdentityBadge(status) {
 const $ = (id) => document.getElementById(id);
 const els = Object.fromEntries([
   "profileRow","profileBlurb","targetRow","targetBlurb","runBtn","recordedBtn","metaKv","corpusScopeNote","overall","summaryLine",
-  "countKv","idKv","vectorList","failurePre","reproPre","copyBtn","downloadBtn","aboutBtn","aboutDialog",
+  "countKv","idKv","vectorList","failurePre","reproPre","copyBtn","downloadBtn","receiptBtn","explorerLink","aboutBtn","aboutDialog",
   "aboutBody","progressBar","progressText","progressLog","sourceBanner","errorBanner","issuePanel",
   "replayBtn","replayStatus","liveRegion","alertRegion"
 ].map((id) => [id, $(id)]));
@@ -324,7 +324,7 @@ function renderPayload(data, opts = {}) {
   else if (data.replay_command) textOnly(els.reproPre, data.replay_command);
   else textOnly(els.reproPre, lastRepro || "No reproduction command in report.");
   if (!lastRepro && data.replay_command) lastRepro = data.replay_command;
-  els.copyBtn.disabled = !lastRepro; els.downloadBtn.disabled = !report; els.replayBtn.disabled = !lastReportPath;
+  els.copyBtn.disabled = !lastRepro; els.downloadBtn.disabled = !report; els.replayBtn.disabled = !lastReportPath; if (els.receiptBtn) els.receiptBtn.disabled = !report;
 }
 
 function renderIssue(issue) {
@@ -483,3 +483,36 @@ window.__ravenTextOnlyProbe = function (hostile) {
 };
 
 boot().catch((err) => showError("Boot failed: " + err));
+
+
+els.receiptBtn?.addEventListener("click", async () => {
+  if (!report) return;
+  try {
+    const res = await fetch("/api/receipt/issue", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ report }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      announce(body.error || "Receipt issue failed (is RAVEN_CONFORMANCE_RECEIPT_KEYPAIR set?)");
+      return;
+    }
+    announce("Local conformance receipt issued (DEVNET-capable; not anchored until receipt:anchor)");
+    if (body.explorerUrl && els.explorerLink) {
+      els.explorerLink.href = body.explorerUrl;
+      els.explorerLink.hidden = false;
+      els.explorerLink.textContent = "DEVNET explorer";
+    }
+    if (body.receipt) {
+      const blob = new Blob([JSON.stringify(body.receipt, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = (body.receipt.runId || "run") + ".conformance-receipt.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+  } catch (e) {
+    announce(String(e.message || e));
+  }
+});

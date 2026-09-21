@@ -129,3 +129,21 @@ The probe report distinguishes behavioral divergence from crash, timeout, invali
 The 12-vector corpus is a Fair demonstration slice selected from the reviewed 26-vector corpus `1.1.0`. The cut preserves one ACCEPT path per transaction version and the named behavior classes above, but it intentionally drops some per-arm mutation detections from the larger corpus: legacy-size-only, signature-cap-only, address-cap-only, heap-only, and v1-duplicate-address-only mutants can survive this slice. V15 exercises the fail-closed input-shape guard. Strict-base64 discrimination is not covered: the runner compares decision and detected version, not reason, so a permissive decoder can still refuse V14-class bytes for a different reason. Legacy/v0 header-inconsistency call sites and `writable_unsigned_overflow` are unvectored in both this slice and its 26-vector source corpus; V23 covers the v1 `ro_signed_gte_req` site only. Prior family-level mutant kills establish at least one covered site per named family, not site-by-site coverage across every target call site. A `CONFORMANT` result means only that the target matched this named corpus at its pinned digest.
 
 Use this claim for the experimental profile: **"The target matched this named experimental corpus."** Do not infer signature verification, transaction safety, wallet/Blink coverage, simulation, or on-chain execution.
+
+## Conformance receipt → Solana DEVNET (ugly bridge)
+
+New kind `raven-conformance-receipt/1` (receipt-v1 untouched). Digests only on-chain.
+
+```bash
+export RAVEN_CONFORMANCE_RECEIPT_KEYPAIR="$HOME/.raven/fair-conformance-devnet.json"
+# key = Solana JSON secret-key array; never commit
+
+npm run conform -- --target CONFORMANT_REFERENCE
+npm run receipt:issue -- --report reports/run_<id>.json
+npm run receipt:anchor -- --receipt receipts/run_<id>.conformance-receipt.json
+npm run receipt:verify -- --report reports/run_<id>.json \
+  --receipt receipts/run_<id>.conformance-receipt.json \
+  --anchor receipts/run_<id>.anchor.json
+```
+
+Refuses missing keypair and non-devnet RPC. Label everything DEVNET. No push/deploy from this lane.

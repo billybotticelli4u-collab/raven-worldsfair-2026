@@ -2,7 +2,7 @@
   "name": "raven-conformance",
   "version": "0.1.1",
   "private": true,
-  "description": "Crypto World's Fair 2026 \u2014 Raven Conformance Challenge 1: bounded isolation runner + taxonomy + probes + replay.",
+  "description": "Crypto World's Fair 2026 — Raven Conformance Challenge 1: bounded isolation runner + taxonomy + probes + replay.",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -19,7 +19,10 @@
     "build": "node scripts/generate-build-info.mjs && node --check src/server.js && node --check src/cli.js && node --check src/lib/displayAdapter.js && node --check public/app.js && node --check examples/solana-developer-adapter.mjs",
     "verify:browser": "node scripts/browser-verify.mjs",
     "generate:build-info": "node scripts/generate-build-info.mjs",
-    "revalidate": "node src/bin/revalidate.js"
+    "revalidate": "node src/bin/revalidate.js",
+    "receipt:issue": "node src/bin/receipt-issue.js",
+    "receipt:anchor": "node src/bin/receipt-anchor.js",
+    "receipt:verify": "node src/bin/receipt-verify.js"
   },
   "keywords": [
     "raven",
@@ -27,5 +30,8 @@
     "hackathon",
     "worldsfair"
   ],
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@solana/web3.js": "^1.98.4"
+  }
 }
