@@ -102,14 +102,26 @@ export function loadReport(reportPath) {
 
 export function checkBundleIdentities(report) {
   const diffs = [];
-  const profile = loadProfile();
-  const corpus = loadCorpus();
+  const profileName = report.claimed_profile?.name;
+  if (!profileName) {
+    diffs.push({ field: "claimed_profile.name", error: "missing" });
+    return { ok: false, diffs };
+  }
+  let profile;
+  let corpus;
+  try {
+    profile = loadProfile(profileName);
+    corpus = loadCorpus(profileName);
+  } catch (error) {
+    diffs.push({ field: "claimed_profile.name", error: error.code || String(error) });
+    return { ok: false, diffs };
+  }
   const targetId = report.target?.id;
   if (!targetId) {
     diffs.push({ field: "target.id", error: "missing" });
     return { ok: false, diffs };
   }
-  const target = getTarget(targetId);
+  const target = getTarget(targetId, profileName);
   const entryAbs = path.join(TARGETS_DIR, target.entry);
   const entryDigest = fileSha256(entryAbs);
 
@@ -131,7 +143,7 @@ export function checkBundleIdentities(report) {
     ["corpus.version", report.corpus?.version, corpus.data.version],
     ["corpus.vector_count", report.corpus?.vector_count, corpus.data.vectors.length],
   ]) if (actual !== expected) diffs.push({ field, expected, actual });
-  return { ok: diffs.length === 0, diffs, profile, corpus, entryDigest, targetId };
+  return { ok: diffs.length === 0, diffs, profile, corpus, entryDigest, targetId, profileName };
 }
 
 export function checkReportIntegrity(report) {
@@ -160,6 +172,8 @@ function semanticSlice(report) {
       expected: r.expected,
       observed: {
         decision: r.observed?.decision ?? null,
+        version: r.observed?.version ?? null,
+        version_present: r.observed?.version_present ?? null,
         reason: r.observed?.reason ?? null,
         parseError: r.observed?.parseError ?? null,
         timedOut: r.observed?.timedOut ?? false,
@@ -233,6 +247,7 @@ export async function replayReport(reportPath, opts = {}) {
   }
 
   const replayed = await runConformance(bundle.targetId, {
+    profile: bundle.profileName,
     write: opts.write === true,
     timeoutMs: opts.timeoutMs,
   });

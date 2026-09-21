@@ -14,6 +14,7 @@ import {
   loadProbeTargets,
   loadCorpus,
   loadProfile,
+  listProfiles,
   humanView,
 } from "./lib/runner.js";
 import { replayReport } from "./lib/replay.js";
@@ -70,13 +71,17 @@ function serveStatic(req, res) {
   res.end(readFileSync(filePath));
 }
 
+const SOLANA_PROFILE = "raven-solana-txversion-experimental/0";
+const SOLANA_CLAIM = "The target matched this named experimental corpus.";
+
 function publicize(report) {
   const { _written_path, ...publicReport } = report;
-  const adapted = adaptReport(publicReport, loadProfile().data);
+  const profileName = report.claimed_profile?.name || report.target?.claimed_conformance_profile;
+  const adapted = adaptReport(publicReport, loadProfile(profileName).data);
   return {
     report: publicReport,
     human: humanView(report),
-    written_path: _written_path || null,
+    written_path: _written_path ? path.join("reports", path.basename(_written_path)) : null,
     ui: adapted.ok
       ? {
           counts: adapted.display.counts,
@@ -118,12 +123,18 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         ok: true,
         engine: "raven-conformance-runner",
-        active_run: activeRun ? { target: activeRun.target, started_at: activeRun.startedAt } : null,
+        active_run: activeRun
+          ? { profile: activeRun.profile || null, target: activeRun.target, started_at: activeRun.startedAt }
+          : null,
         identity: healthIdentityField(servingIdentity),
       });
     }
+    if (req.method === "GET" && url.pathname === "/api/profiles") {
+      return sendJson(res, 200, { profiles: listProfiles() });
+    }
     if (req.method === "GET" && url.pathname === "/api/targets") {
-      return sendJson(res, 200, { targets: loadDemoTargets() });
+      const profile = loadProfile(url.searchParams.get("profile") || undefined).data.name;
+      return sendJson(res, 200, { profile, targets: loadDemoTargets(profile) });
     }
     if (req.method === "GET" && url.pathname === "/api/probes") {
       return sendJson(res, 200, { targets: loadProbeTargets() });
@@ -133,8 +144,8 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, JSON.parse(readFileSync(contractPath, "utf8")));
     }
     if (req.method === "GET" && url.pathname === "/api/meta") {
-      const profile = loadProfile();
-      const corpus = loadCorpus();
+      const profile = loadProfile(url.searchParams.get("profile") || undefined);
+      const corpus = loadCorpus(profile.data.name);
       return sendJson(res, 200, {
         profile: {
           name: profile.data.name,
@@ -149,9 +160,11 @@ const server = http.createServer(async (req, res) => {
           version: corpus.data.version,
           sha256: corpus.digest,
           vector_count: corpus.data.vectors.length,
-          scope_note:
-            "Raven-owned Fair demo corpus only — self-contained fixtures, not private production corpora.",
+          scope_note: profile.data.name === SOLANA_PROFILE
+            ? "Experimental 12-vector Fair slice for offline serialized-transaction admission; no signature, wallet, Blink, safety, or on-chain claim."
+            : "Raven-owned Fair demo corpus only — self-contained fixtures, not private production corpora.",
         },
+        claim: profile.data.name === SOLANA_PROFILE ? SOLANA_CLAIM : profile.data.claimed_conformance_meaning || null,
         ui_contract: "raven-conformance-ui-contract/1",
       });
     }
@@ -176,7 +189,8 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 404, { error: "recorded_not_found", id });
       }
       const report = JSON.parse(readFileSync(filePath, "utf8"));
-      const adapted = adaptReport(report, loadProfile().data);
+      const profileName = report.claimed_profile?.name || report.target?.claimed_conformance_profile;
+      const adapted = adaptReport(report, loadProfile(profileName).data);
       return sendJson(res, 200, {
         source: "recorded_report",
         recorded_label: "RECORDED DEMO REPORT — not a newly executed live run",
@@ -189,6 +203,7 @@ const server = http.createServer(async (req, res) => {
         replay_command:
           report.reproduction?.one_liner ||
           `cd apps/raven-conformance && npm run conform -- --target ${report.target?.id || id}`,
+        replay_path: path.join("examples", fileName),
         report,
         ui: adapted.ok
           ? {
@@ -222,6 +237,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "GET" && url.pathname === "/api/run-stream") {
       const targetId = url.searchParams.get("target");
+      const profile = loadProfile(url.searchParams.get("profile") || undefined).data.name;
       res.writeHead(200, {
         "content-type": "text/event-stream; charset=utf-8",
         "cache-control": "no-store",
@@ -236,7 +252,7 @@ const server = http.createServer(async (req, res) => {
         send("error", { error: "missing_target", message: "Query param target is required." });
         return res.end();
       }
-      const demos = loadDemoTargets().map((t) => t.id);
+      const demos = loadDemoTargets(profile).map((t) => t.id);
       if (!demos.includes(targetId)) {
         send("error", { error: "unknown_target", message: `Unknown or non-demo target: ${targetId}`, target: targetId });
         return res.end();
@@ -249,10 +265,11 @@ const server = http.createServer(async (req, res) => {
         });
         return res.end();
       }
-      activeRun = { target: targetId, startedAt: new Date().toISOString() };
-      send("status", { phase: "started", type: "run_started", target: targetId, at: activeRun.startedAt });
+      activeRun = { profile, target: targetId, startedAt: new Date().toISOString() };
+      send("status", { phase: "started", type: "run_started", profile, target: targetId, at: activeRun.startedAt });
       try {
         const report = await runConformance(targetId, {
+          profile,
           onProgress: (p) => {
             send("progress", {
               type: "vector_finished",
@@ -278,7 +295,8 @@ const server = http.createServer(async (req, res) => {
       validateRunOptions(body);
       const targetId = body.target;
       if (!targetId) return sendJson(res, 400, { error: "missing_target" });
-      const demos = loadDemoTargets().map((t) => t.id);
+      const profile = loadProfile(body.profile || undefined).data.name;
+      const demos = loadDemoTargets(profile).map((t) => t.id);
       if (!demos.includes(targetId)) {
         return sendJson(res, 400, {
           error: "unknown_target",
@@ -295,9 +313,13 @@ const server = http.createServer(async (req, res) => {
           active: { target: activeRun.target, started_at: activeRun.startedAt },
         });
       }
-      activeRun = { target: targetId, startedAt: new Date().toISOString() };
+      activeRun = { profile, target: targetId, startedAt: new Date().toISOString() };
       try {
-        const report = await runConformance(targetId, { timeoutMs: body.timeout_ms, runId: body.run_id });
+        const report = await runConformance(targetId, {
+          profile,
+          timeoutMs: body.timeout_ms,
+          runId: body.run_id,
+        });
         return sendJson(res, 200, publicize(report));
       } finally {
         activeRun = null;
@@ -335,8 +357,13 @@ const server = http.createServer(async (req, res) => {
         res.setHeader("connection", "close");
         return sendJson(res, err.status, { error: err.code });
       }
-      const code = message.startsWith("unknown_target") ? 400 : 500;
-      sendJson(res, code, { error: code === 400 ? "unknown_target" : "server_error", message });
+      const unknownProfile = message.startsWith("UNKNOWN_PROFILE:");
+      const unknownTarget = message.startsWith("unknown_target");
+      const code = unknownProfile || unknownTarget ? 400 : 500;
+      sendJson(res, code, {
+        error: unknownProfile ? "unknown_profile" : unknownTarget ? "unknown_target" : "server_error",
+        message,
+      });
     } else {
       try { res.end(); } catch { /* ignore */ }
     }

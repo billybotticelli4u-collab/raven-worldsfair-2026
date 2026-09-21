@@ -18,11 +18,11 @@ npm run demo          # CONFORMANT_REFERENCE + isolation disclosure
 npm start             # http://127.0.0.1:8791
 ```
 
-1. Select a demo target  
+1. Select a profile and demo target
 2. Click **Run Conformance**  
 3. Watch corpus results (CONFORMANT / DIVERGENT) + isolation mode  
 4. Open exact failure evidence  
-5. Copy the reproduction command  
+5. Download or replay the bound report
 
 ## CLI reproduction
 
@@ -30,6 +30,9 @@ npm start             # http://127.0.0.1:8791
 cd apps/raven-conformance && npm run conform -- --target CONFORMANT_REFERENCE
 cd apps/raven-conformance && npm run conform -- --target BROKEN_OBVIOUS
 cd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE
+npm run conform -- --profiles
+npm run conform -- --profile solana --target SOL_CONFORMANT_REFERENCE
+npm run conform -- --profile solana --target SOL_BROKEN_SUBTLE
 ```
 
 Exit code `0` = CONFORMANT; `1` = DIVERGENT / incomplete.
@@ -66,12 +69,32 @@ Corpus: `raven-canonical-envelope-demo-corpus/1` (12 vectors, self-contained)
 
 Paired proto vectors: `V11_proto_digest_includes_member` (ACCEPT) and `V12_proto_digest_omits_member` (REJECT). Ordinary own `__proto__` key semantics are preserved via `Object.create(null)` serializers. `INTEGER_KEY_ORDER` remains explicitly unresolved.
 
+## Solana transaction-version profile
+
+The second named profile, `raven-solana-txversion-experimental/0`, tests offline admission of serialized Solana legacy, v0, and v1 transaction envelopes. Its 12-vector Fair slice compares both the target's decision and detected transaction version.
+
+| Target | Expected result |
+|--------|-----------------|
+| `SOL_CONFORMANT_REFERENCE` | `CONFORMANT` — 12/12 PASS |
+| `SOL_BROKEN_OBVIOUS` | `DIVERGENT` on multiple rows |
+| `SOL_BROKEN_SUBTLE` | `DIVERGENT` on exactly `V03` and `V16` |
+
+The committed fixtures are synthetic or generated offline. This profile does not verify signatures, account state, blockhash freshness, simulation, execution, or any on-chain result. The 12-vector slice intentionally omits several per-arm detections from its 26-vector source corpus; see `DEVELOPER.md` for the exact limits and reproduction commands.
+
+The supported claim is: **“The target matched this named experimental corpus.”** The complete source-to-slice membership is machine-readable in `SOLANA_COVERAGE_INVENTORY.json`.
+
+### Developer adapter and CI
+
+`examples/solana-developer-adapter.mjs` is an executable process-adapter example for the JSON-line target contract. It delegates to the bundled reference implementation; a developer can replace its `IMPLEMENTATION_ENTRY` with their own compatible classifier without changing the runner.
+
+`.github/workflows/solana-profile-example.yml` runs the full app suite, keeps the envelope reference green, requires the Solana reference to pass 12/12, checks that the deliberately broken target differs on exactly `V03_valid_v1` and `V16_valid_v1_two_instructions`, and replays the bound reference report.
+
 ## Result taxonomy
 
 | Status | Meaning |
 |--------|---------|
-| `PASS` | Decision matches expected |
-| `BEHAVIORAL_DIVERGENCE` | Ran + parsed; decision ≠ expected |
+| `PASS` | All profile comparison fields match expected |
+| `BEHAVIORAL_DIVERGENCE` | Ran + parsed; decision or another profile comparison field differs |
 | `TARGET_CRASH` | Non-zero exit / crash without valid decision |
 | `TIMEOUT` | Killed after wall-clock timeout |
 | `INVALID_OUTPUT` | Unparseable / missing decision |
@@ -143,7 +166,7 @@ npm test
 npm start    # http://127.0.0.1:8791
 ```
 
-Live SSE progress (`/api/run-stream`), display adapter over Challenge 1 taxonomy, recorded-report fallback, download/repro, a11y + XSS text-only rendering. UI does not recalculate verdicts or maintain a second runner.
+Live SSE progress (`/api/run-stream`), selectable profile families, display adapter over Challenge 1 taxonomy, recorded-report fallback for the envelope profile, report download/replay, a11y + XSS text-only rendering. UI does not recalculate verdicts or maintain a second runner.
 
 ### HTTP admission limits
 
@@ -151,7 +174,10 @@ The local judge server accepts JSON objects up to 64 KiB and allows 5 seconds to
 finish sending a body. HTTP target timeouts must be integers from 100 to 10000 ms;
 the default stays 3000. Optional report IDs must be `run_` plus 1–64 letters or
 digits and cannot overwrite an existing report. All execution routes share one
-in-process lock. HTTP replay is limited to regular JSON files directly in this
+in-process lock. `GET /api/profiles` lists the allowlisted profile registry;
+`GET /api/targets?profile=…`, `GET /api/meta?profile=…`, SSE, and `POST /api/run`
+bind execution to one of those profiles and fail closed on unknown selectors.
+HTTP replay is limited to regular JSON files directly in this
 app's `reports/` or `examples/`; external paths remain available through the CLI.
 See the UI contract for exact errors and compatibility changes.
 

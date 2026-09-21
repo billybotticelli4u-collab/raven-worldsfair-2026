@@ -23,13 +23,15 @@ function applyIdentityBadge(status) {
  */
 const $ = (id) => document.getElementById(id);
 const els = Object.fromEntries([
-  "targetRow","targetBlurb","runBtn","recordedBtn","metaKv","corpusScopeNote","overall","summaryLine",
+  "profileRow","profileBlurb","targetRow","targetBlurb","runBtn","recordedBtn","metaKv","corpusScopeNote","overall","summaryLine",
   "countKv","idKv","vectorList","failurePre","reproPre","copyBtn","downloadBtn","aboutBtn","aboutDialog",
   "aboutBody","progressBar","progressText","progressLog","sourceBanner","errorBanner","issuePanel",
-  "liveRegion","alertRegion"
+  "replayBtn","replayStatus","liveRegion","alertRegion"
 ].map((id) => [id, $(id)]));
 
-let targets = [], selected = null, lastReport = null, lastRepro = "", lastSource = null;
+const DEFAULT_PROFILE = "raven-canonical-envelope/1";
+let profiles = [], selectedProfile = null, targets = [], selected = null;
+let lastReport = null, lastReportPath = null, lastRepro = "", lastSource = null;
 let runGeneration = 0, eventSource = null, runInFlight = false;
 
 function textOnly(el, v) { el.textContent = v == null ? "" : String(v); }
@@ -61,34 +63,28 @@ function badgeClass(kind) {
 async function boot() {
   clearError();
   try {
-    const [tRes, mRes, health] = await Promise.all([
-      fetch("/api/targets").then((r) => r.json()),
-      fetch("/api/meta").then((r) => r.json()),
+    const [pRes, health] = await Promise.all([
+      fetch("/api/profiles").then((r) => r.json()),
       fetch("/api/health").then((r) => r.json()).catch(() => ({ ok: false })),
     ]);
     if (!health.ok) showError("Engine health check failed — live runs may be unavailable.");
-    targets = tRes.targets || [];
-    clear(els.targetRow);
-    for (const t of targets) {
+    profiles = pRes.profiles || [];
+    clear(els.profileRow);
+    for (const profile of profiles) {
       const btn = document.createElement("button");
-      btn.type = "button"; btn.className = "target-card"; btn.dataset.id = t.id;
-      btn.setAttribute("aria-pressed", "false");
-      for (const [cls, val] of [["tid", t.id], ["tname", t.name], ["tdesc", t.description]]) {
-        const s = document.createElement("span"); s.className = cls; textOnly(s, val); btn.appendChild(s);
+      btn.type = "button"; btn.className = "profile-tab"; btn.dataset.profile = profile.name;
+      btn.setAttribute("role", "tab"); btn.setAttribute("aria-selected", "false");
+      const label = document.createElement("span"); textOnly(label, profile.label || profile.name); btn.appendChild(label);
+      if (profile.experimental) {
+        const flag = document.createElement("span"); flag.className = "experimental"; textOnly(flag, "Experimental"); btn.appendChild(flag);
       }
-      btn.addEventListener("click", () => selectTarget(t.id));
-      els.targetRow.appendChild(btn);
+      btn.addEventListener("click", () => {
+        selectProfile(profile.name).catch((err) => showError("Profile load failed: " + err));
+      });
+      els.profileRow.appendChild(btn);
     }
-    kv(els.metaKv, [
-      ["Profile", mRes.profile ? `${mRes.profile.name} @ ${mRes.profile.version}` : "—"],
-      ["Profile sha256", mRes.profile?.sha256 || "—"],
-      ["Corpus", mRes.corpus ? `${mRes.corpus.id} @ ${mRes.corpus.version}` : "—"],
-      ["Corpus sha256", mRes.corpus?.sha256 || "—"],
-      ["Vectors", String(mRes.corpus?.vector_count ?? "—")],
-      ["Scope", mRes.corpus?.scope_note || "Raven-owned Fair demo corpus only"],
-      ["UI contract", mRes.ui_contract || "—"],
-    ]);
-    if (mRes.corpus?.scope_note) textOnly(els.corpusScopeNote, "Corpus scope: " + mRes.corpus.scope_note);
+    if (!profiles.length) throw new Error("No conformance profiles available.");
+    await selectProfile(profiles[0].name, { initial: true });
     try {
       const saved = JSON.parse(sessionStorage.getItem("raven-conformance-last") || "null");
       if (saved?.report) {
@@ -99,6 +95,69 @@ async function boot() {
   } catch (err) {
     showError("Boot failed — engine unavailable: " + err);
     textOnly(els.progressText, "Engine unavailable.");
+  }
+}
+
+function renderTargets() {
+  clear(els.targetRow);
+  for (const target of targets) {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "target-card"; btn.dataset.id = target.id;
+    btn.setAttribute("aria-pressed", "false");
+    for (const [cls, val] of [["tid", target.id], ["tname", target.name], ["tdesc", target.description]]) {
+      const span = document.createElement("span"); span.className = cls; textOnly(span, val); btn.appendChild(span);
+    }
+    btn.addEventListener("click", () => selectTarget(target.id));
+    els.targetRow.appendChild(btn);
+  }
+}
+
+async function selectProfile(name, { initial = false } = {}) {
+  if (runInFlight) return;
+  clearError(); abortStream();
+  const generation = ++runGeneration;
+  selectedProfile = name; selected = null; targets = [];
+  els.runBtn.disabled = true;
+  for (const btn of els.profileRow.querySelectorAll("button")) {
+    const on = btn.dataset.profile === name;
+    btn.classList.toggle("selected", on);
+    btn.setAttribute("aria-selected", on ? "true" : "false");
+  }
+  const encoded = encodeURIComponent(name);
+  const [targetResponse, metaResponse] = await Promise.all([
+    fetch("/api/targets?profile=" + encoded),
+    fetch("/api/meta?profile=" + encoded),
+  ]);
+  const targetPayload = await targetResponse.json();
+  const meta = await metaResponse.json();
+  if (generation !== runGeneration) return;
+  if (!targetResponse.ok || !metaResponse.ok) {
+    throw new Error(targetPayload.message || targetPayload.error || meta.message || meta.error || "profile_load_failed");
+  }
+  targets = targetPayload.targets || [];
+  renderTargets();
+  const descriptor = profiles.find(profile => profile.name === name);
+  textOnly(els.profileBlurb, meta.claim || descriptor?.label || name);
+  kv(els.metaKv, [
+    ["Profile", meta.profile ? `${meta.profile.name} @ ${meta.profile.version}` : "—"],
+    ["Profile sha256", meta.profile?.sha256 || "—"],
+    ["Corpus", meta.corpus ? `${meta.corpus.id} @ ${meta.corpus.version}` : "—"],
+    ["Corpus sha256", meta.corpus?.sha256 || "—"],
+    ["Vectors", String(meta.corpus?.vector_count ?? "—")],
+    ["Scope", meta.corpus?.scope_note || "—"],
+    ["UI contract", meta.ui_contract || "—"],
+  ]);
+  if (meta.corpus?.scope_note) textOnly(els.corpusScopeNote, "Corpus scope: " + meta.corpus.scope_note);
+  textOnly(els.targetBlurb, "Choose a target for " + (descriptor?.label || name) + ".");
+  els.recordedBtn.disabled = name !== DEFAULT_PROFILE;
+  if (!initial) {
+    lastReport = null; lastReportPath = null; lastRepro = ""; lastSource = null;
+    textOnly(els.overall, "—"); els.overall.className = "outcome";
+    textOnly(els.summaryLine, "No run yet"); clear(els.countKv); clear(els.idKv); clear(els.vectorList);
+    textOnly(els.failurePre, "Select a vector row after a run.");
+    textOnly(els.reproPre, "Run conformance to populate.");
+    textOnly(els.replayStatus, "No replay yet.");
+    els.copyBtn.disabled = true; els.downloadBtn.disabled = true; els.replayBtn.disabled = true;
   }
 }
 
@@ -118,7 +177,9 @@ function selectTarget(id) {
 function setRunningUi(on) {
   runInFlight = on;
   els.runBtn.disabled = on || !selected;
-  els.recordedBtn.disabled = on;
+  els.recordedBtn.disabled = on || selectedProfile !== DEFAULT_PROFILE;
+  els.replayBtn.disabled = on || !lastReportPath;
+  for (const btn of els.profileRow.querySelectorAll("button")) btn.disabled = on;
   els.progressText.classList.toggle("loading-pulse", on);
 }
 function resetProgress() {
@@ -144,7 +205,9 @@ async function runConformanceLive() {
   textOnly(wait, "Waiting for first vector event…"); els.issuePanel.appendChild(wait);
   announce("Starting live conformance run for " + selected.id);
 
-  eventSource = new EventSource("/api/run-stream?target=" + encodeURIComponent(selected.id));
+  eventSource = new EventSource(
+    "/api/run-stream?profile=" + encodeURIComponent(selectedProfile) + "&target=" + encodeURIComponent(selected.id),
+  );
   eventSource.addEventListener("status", (ev) => {
     if (gen !== runGeneration) return;
     try {
@@ -208,6 +271,7 @@ function renderPayload(data, opts = {}) {
   }
   if (ui?.error) showError("Report could not be adapted for UI: " + ui.error + ". Not labeled PASS.");
   lastReport = report; lastSource = opts.source || data.source || "unknown";
+  lastReportPath = data.written_path || data.replay_path || null;
   lastRepro = report.reproduction?.clean_clone || report.reproduction?.one_liner || "";
   const overallVal = report.summary?.overall || "UNVERIFIED";
   textOnly(els.overall, overallVal);
@@ -260,7 +324,7 @@ function renderPayload(data, opts = {}) {
   else if (data.replay_command) textOnly(els.reproPre, data.replay_command);
   else textOnly(els.reproPre, lastRepro || "No reproduction command in report.");
   if (!lastRepro && data.replay_command) lastRepro = data.replay_command;
-  els.copyBtn.disabled = !lastRepro; els.downloadBtn.disabled = !report;
+  els.copyBtn.disabled = !lastRepro; els.downloadBtn.disabled = !report; els.replayBtn.disabled = !lastReportPath;
 }
 
 function renderIssue(issue) {
@@ -362,6 +426,29 @@ els.downloadBtn.addEventListener("click", async () => {
     a.download = (runId || "raven-conformance-report") + ".json"; a.click(); URL.revokeObjectURL(a.href);
     announce("Report download started (client blob)");
   } catch (err) { showError("Download failed: " + err); }
+});
+
+els.replayBtn.addEventListener("click", async () => {
+  if (!lastReportPath || runInFlight) return;
+  clearError(); els.replayBtn.disabled = true; textOnly(els.replayStatus, "Replaying bound report…");
+  try {
+    const response = await fetch("/api/replay", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ report_path: lastReportPath }),
+    });
+    const replay = await response.json();
+    if (!response.ok || !replay.ok) throw new Error(replay.error || replay.reason || "replay_mismatch");
+    textOnly(
+      els.replayStatus,
+      `Replay matched · bundle ${replay.bundle_match === true ? "yes" : "no"} · semantics ${replay.semantic_match === true ? "yes" : "no"}`,
+    );
+    announce("Deterministic replay matched the saved report.");
+  } catch (err) {
+    textOnly(els.replayStatus, "Replay failed."); showError("Replay failed: " + err);
+  } finally {
+    els.replayBtn.disabled = !lastReportPath;
+  }
 });
 
 els.runBtn.addEventListener("click", runConformanceLive);

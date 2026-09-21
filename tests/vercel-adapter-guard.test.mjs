@@ -155,7 +155,8 @@ test("adapter relocates, serves report, digest matches second adapter run", asyn
   const reportsDir = path.join(runtime, "reports");
   assert.ok(fs.existsSync(reportsDir), "relocated reports/ missing");
   const files = fs.readdirSync(reportsDir).filter((f) => f.endsWith(".json"));
-  assert.ok(files.length >= 1, "no report files in relocated root");
+  assert.equal(files.length, 1, `relocated runtime must start empty; observed ${files.join(",")}`);
+  assert.match(files[0], /^run_[a-f0-9]+\.json$/);
   const runId = files[0].replace(/\.json$/, "");
   const got = await fetch(`${base}/api/report/${runId}`);
   assert.equal(got.status, 200);

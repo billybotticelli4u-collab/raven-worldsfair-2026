@@ -1,0 +1,37 @@
+name: solana-profile-example
+
+on:
+  pull_request:
+    paths:
+      - "apps/raven-conformance/**"
+      - ".github/workflows/solana-profile-example.yml"
+  workflow_dispatch:
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/raven-conformance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Full app suite
+        run: npm test
+      - name: Existing envelope profile stays green
+        run: npm run conform -- --profile raven-envelope --target CONFORMANT_REFERENCE --run-id ci-envelope
+      - name: Solana reference is 12/12
+        run: npm run conform -- --profile solana --target SOL_CONFORMANT_REFERENCE --run-id ci-solana-reference
+      - name: Solana broken target differs on exactly V03 and V16
+        run: |
+          set +e
+          npm run conform -- --profile solana --target SOL_BROKEN_SUBTLE --run-id ci-solana-subtle
+          result=$?
+          set -e
+          test "$result" -eq 1
+          node -e 'const r=require("./reports/ci-solana-subtle.json");const ids=r.results.filter(x=>x.status==="BEHAVIORAL_DIVERGENCE").map(x=>x.vector_id);if(JSON.stringify(ids)!==JSON.stringify(["V03_valid_v1","V16_valid_v1_two_instructions"]))process.exit(1)'
+      - name: Deterministic replay
+        run: npm run replay -- --report reports/ci-solana-reference.json

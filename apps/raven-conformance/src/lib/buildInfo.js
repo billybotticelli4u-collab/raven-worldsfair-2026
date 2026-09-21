@@ -17,15 +17,15 @@ export const PREEXISTING = [
 
 export const FAIR_BUILT = [
   "Conformance product loop (target → claimed profile → corpus → execution → evidence report → reproduction)",
-  "Profile abstraction: raven-canonical-envelope/1",
+  "Selectable profiles: raven-canonical-envelope/1 and raven-solana-txversion-experimental/0",
   "Challenge 1 bounded runner: sandbox-exec (Darwin Seatbelt) when verified; Node --permission (realpath allow-fs-read) on Linux when verified — not an OS/kernel sandbox; Node permissions do NOT restrict network (measure separately); fail-closed / curated_demo disclosure otherwise",
   "Expanded result taxonomy (no silent PASS for crash/timeout/flood/invalid)",
   "Hostile Raven-owned boundary probes + replay CLI",
   "UI contract interface for UI lane (local publish)",
   "Deterministic report digest vs volatile metadata",
-  "Judge UI (select target → Run Conformance → evidence → copy reproduction)",
-  "Three Raven-owned demo targets: CONFORMANT_REFERENCE, BROKEN_OBVIOUS, BROKEN_SUBTLE",
-  "Self-contained Raven-owned demo corpus (not private corpora)",
+  "Judge UI (select profile + target → Run Conformance → evidence → report download + replay)",
+  "Six Raven-owned demo targets across the envelope and experimental Solana profile families",
+  "Self-contained Raven-owned demo corpora, Solana coverage inventory, adapter example, and CI example",
   "Fair disclosure About / README PRE-EXISTING vs FAIR-built",
 ];
 

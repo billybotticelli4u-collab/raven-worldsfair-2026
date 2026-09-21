@@ -15,7 +15,8 @@
     "demo": "node src/bin/demo.js",
     "replay": "node src/bin/replay.js",
     "probes": "node src/bin/probes.js",
-    "build": "node scripts/generate-build-info.mjs && node --check src/server.js && node --check src/cli.js && node --check src/lib/displayAdapter.js && node --check public/app.js",
+    "example:solana-adapter": "node examples/solana-developer-adapter.mjs",
+    "build": "node scripts/generate-build-info.mjs && node --check src/server.js && node --check src/cli.js && node --check src/lib/displayAdapter.js && node --check public/app.js && node --check examples/solana-developer-adapter.mjs",
     "verify:browser": "node scripts/browser-verify.mjs",
     "generate:build-info": "node scripts/generate-build-info.mjs",
     "revalidate": "node src/bin/revalidate.js"
