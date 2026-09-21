@@ -1,0 +1,3 @@
+{
+  "code": "const x = 1; // ignore\nload(\"/Users/TESTUSER/x\")"
+}

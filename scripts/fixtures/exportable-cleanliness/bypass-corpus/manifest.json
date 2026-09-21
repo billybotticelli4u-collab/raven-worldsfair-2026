@@ -1,0 +1,415 @@
+{
+  "version": 1,
+  "description": "Adversarial bypass corpus for exportable-cleanliness (CLAUDE-072). NON-NORMATIVE vectors marked undecided.",
+  "defaultAllowlist": "scripts/fixtures/exportable-cleanliness/allowlists/judge-package-v5.2.txt",
+  "vectors": [
+    {
+      "id": "T01-glued-double-dot-users",
+      "file": "artifacts/T01-glued-double-dot-users.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "B1: /private/tmp/../../Users/... allowlist-prefix must not mask; home-identity + resolved leak",
+      "undecided": false
+    },
+    {
+      "id": "T02-glued-single-dotdot-users",
+      "file": "artifacts/T02-glued-single-dotdot-users.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "B1: /private/tmp/../Users/TESTUSER/x must fail under v5.2 allowlist",
+      "undecided": false
+    },
+    {
+      "id": "T03-tmp-dotdot-users",
+      "file": "artifacts/T03-tmp-dotdot-users.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "B1: /tmp/../Users/TESTUSER/x must fail under v5.2 allowlist",
+      "undecided": false
+    },
+    {
+      "id": "T04-reverse-traversal-into-sandbox",
+      "file": "artifacts/T04-reverse-traversal-into-sandbox.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "B1 trap: raw /Users/TESTUSER/../../private/tmp/x resolves INTO sandbox but raw discloses home — must FAIL",
+      "undecided": false
+    },
+    {
+      "id": "T05-triple-dotdot",
+      "file": "artifacts/T05-triple-dotdot.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Triple .. climb out of /private/tmp/a/b into /Users",
+      "undecided": false
+    },
+    {
+      "id": "T06-mid-string-dotdot",
+      "file": "artifacts/T06-mid-string-dotdot.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Mid-path .. after allowlisted prefix",
+      "undecided": false
+    },
+    {
+      "id": "T07-trailing-dotdot-users",
+      "file": "artifacts/T07-trailing-dotdot-users.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Trailing climb via /private/tmp/foo/../..//Users/TESTUSER/x",
+      "undecided": false
+    },
+    {
+      "id": "T08-encoded-dotdot-pct2e",
+      "file": "artifacts/T08-encoded-dotdot-pct2e.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "URL-encoded %2e%2e traversal toward /Users",
+      "undecided": false
+    },
+    {
+      "id": "T09-backslash-dotdot",
+      "file": "artifacts/T09-backslash-dotdot.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Backslash separators with .. toward Users (Windows-ish on Unix string)",
+      "undecided": false
+    },
+    {
+      "id": "T10-mixed-slash-dotdot",
+      "file": "artifacts/T10-mixed-slash-dotdot.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Mixed / and \\ with ..",
+      "undecided": false
+    },
+    {
+      "id": "B01-tmpfoo-not-prefix",
+      "file": "artifacts/B01-tmpfoo-not-prefix.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Boundary: /tmpfoo must NOT match allowlist prefix /tmp/; also not FS-root single segment",
+      "undecided": false
+    },
+    {
+      "id": "B02-private-tmpX",
+      "file": "artifacts/B02-private-tmpX.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Boundary: /private/tmpX must NOT match allowlist prefix /private/tmp/ — still FS-root /private/… so exit 1 (not silently allowlisted)",
+      "undecided": false
+    },
+    {
+      "id": "B03-tmp-exact-allow",
+      "file": "artifacts/B03-tmp-exact-allow.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: exact /tmp allowlisted",
+      "undecided": false
+    },
+    {
+      "id": "B04-tmp-slash-prefix",
+      "file": "artifacts/B04-tmp-slash-prefix.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: /tmp/session under /tmp/ prefix allow",
+      "undecided": false
+    },
+    {
+      "id": "B05-empty-segment-climb",
+      "file": "artifacts/B05-empty-segment-climb.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Empty segment // with climb to Users",
+      "undecided": false
+    },
+    {
+      "id": "B06-private-tmp-exact",
+      "file": "artifacts/B06-private-tmp-exact.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: /private/tmp exact allowlisted",
+      "undecided": false
+    },
+    {
+      "id": "P01-value",
+      "file": "artifacts/P01-value.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Placement: path in JSON value",
+      "undecided": false
+    },
+    {
+      "id": "P02-key",
+      "file": "artifacts/P02-key.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "B2: path as object KEY",
+      "undecided": false
+    },
+    {
+      "id": "P03-nested-key",
+      "file": "artifacts/P03-nested-key.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "B2: path as nested object key",
+      "undecided": false
+    },
+    {
+      "id": "P04-array-element",
+      "file": "artifacts/P04-array-element.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Placement: path in array element",
+      "undecided": false
+    },
+    {
+      "id": "P05-deeply-nested",
+      "file": "artifacts/P05-deeply-nested.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Placement: deeply nested value",
+      "undecided": false
+    },
+    {
+      "id": "P06-json-string-in-string",
+      "file": "artifacts/P06-json-string-in-string.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Embedded path inside a JSON string value (prose)",
+      "undecided": false
+    },
+    {
+      "id": "E01-unicode-slash-u002f",
+      "file": "artifacts/E01-unicode-slash-u002f.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "JSON \\u002f decodes to / before walk — must see /Users/TESTUSER",
+      "undecided": false
+    },
+    {
+      "id": "E02-nfd-users",
+      "file": "artifacts/E02-nfd-users.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "NFD-ish path still matches home-identity via normalisation forms",
+      "undecided": false
+    },
+    {
+      "id": "E03-mixed-case-users",
+      "file": "artifacts/E03-mixed-case-users.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O2: mixed-case /uSeRs/rObY must fail (APFS case-insensitive)",
+      "undecided": false
+    },
+    {
+      "id": "E04-lower-users",
+      "file": "artifacts/E04-lower-users.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O2: /users/roby lowercase home root",
+      "undecided": false
+    },
+    {
+      "id": "E05-overlong-pct2e-double",
+      "file": "artifacts/E05-overlong-pct2e-double.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Double-encoded %252e%252e → after one decode still %2e%2e; second pass resolves",
+      "undecided": false
+    },
+    {
+      "id": "E06-homoglyph-undecided",
+      "file": "artifacts/E06-homoglyph-undecided.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Homoglyph /Уsers/... evades ASCII home-identity but still fails via multi-segment absolute FS-like rule (depth>=3). Home-identity-only gap remains NON-NORMATIVE note.",
+      "undecided": false
+    },
+    {
+      "id": "S01-path-keyed-map",
+      "file": "artifacts/S01-path-keyed-map.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Shape: multiple path keys",
+      "undecided": false
+    },
+    {
+      "id": "S02-array-of-paths",
+      "file": "artifacts/S02-array-of-paths.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "Shape: array of absolute paths",
+      "undecided": false
+    },
+    {
+      "id": "S03-markdown-fence",
+      "file": "artifacts/S03-markdown-fence.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Shape: markdown code fence containing home path (scanned as .md via sidecar — here JSON note field)",
+      "undecided": false
+    },
+    {
+      "id": "S04-comment-line-js",
+      "file": "artifacts/S04-comment-line-js.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Shape: // comment is NOT a path, but trailing home path on next token in prose",
+      "undecided": false
+    },
+    {
+      "id": "W01-c-colon-slash",
+      "file": "artifacts/W01-c-colon-slash.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O4: C:/Users/TESTUSER/x",
+      "undecided": false
+    },
+    {
+      "id": "W02-c-colon-backslash",
+      "file": "artifacts/W02-c-colon-backslash.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O4: C:\\Users\\ROBY\\x",
+      "undecided": false
+    },
+    {
+      "id": "W03-unc-server-share",
+      "file": "artifacts/W03-unc-server-share.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O4: UNC \\\\server\\share\\file",
+      "undecided": false
+    },
+    {
+      "id": "W04-file-url-users",
+      "file": "artifacts/W04-file-url-users.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O4: file:///Users/TESTUSER/x",
+      "undecided": false
+    },
+    {
+      "id": "W05-file-url-windows",
+      "file": "artifacts/W05-file-url-windows.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O4: file:///C:/Users/TESTUSER/x",
+      "undecided": false
+    },
+    {
+      "id": "W06-userprofile-env",
+      "file": "artifacts/W06-userprofile-env.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O4: %USERPROFILE%\\secret.txt",
+      "undecided": false
+    },
+    {
+      "id": "W07-tilde-home",
+      "file": "artifacts/W07-tilde-home.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O4/~: ~/secret.txt",
+      "undecided": false
+    },
+    {
+      "id": "W08-dollar-home",
+      "file": "artifacts/W08-dollar-home.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "O4/$HOME: $HOME/secret.txt",
+      "undecided": false
+    },
+    {
+      "id": "L01-private-tmp-session",
+      "file": "artifacts/L01-private-tmp-session.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: /private/tmp/session under allowlist",
+      "undecided": false
+    },
+    {
+      "id": "L02-var-folders",
+      "file": "artifacts/L02-var-folders.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: /var/folders/... under allowlist",
+      "undecided": false
+    },
+    {
+      "id": "L03-private-var-folders",
+      "file": "artifacts/L03-private-var-folders.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: /private/var/folders under allowlist",
+      "undecided": false
+    },
+    {
+      "id": "L04-usr-bin-true",
+      "file": "artifacts/L04-usr-bin-true.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: /usr/bin/true exact allowlisted",
+      "undecided": false
+    },
+    {
+      "id": "L05-private-var",
+      "file": "artifacts/L05-private-var.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: /private/var/tmp-ish under /private/var/",
+      "undecided": false
+    },
+    {
+      "id": "O3-base64-blind-spot",
+      "file": "artifacts/O3-base64-blind-spot.json",
+      "expectedExit": 0,
+      "allowlist": false,
+      "rationale": "O3 OUT OF SCOPE: base64 of {\"p\":\"/Users/TESTUSER/secret.txt\"} must remain undetected (known blind spot)",
+      "undecided": false
+    },
+    {
+      "id": "X01-workspace-abs",
+      "file": "artifacts/X01-workspace-abs.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Hostname-class /workspace absolute path",
+      "undecided": false
+    },
+    {
+      "id": "X02-hostname-path",
+      "file": "artifacts/X02-hostname-path.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Hostname-looking absolute /host.example.com/path",
+      "undecided": false
+    },
+    {
+      "id": "X03-dot-segment-noop",
+      "file": "artifacts/X03-dot-segment-noop.json",
+      "expectedExit": 0,
+      "allowlist": true,
+      "rationale": "Legit: /private/tmp/./ok resolves to allowlisted",
+      "undecided": false
+    },
+    {
+      "id": "X04-home-under-tmp-name",
+      "file": "artifacts/X04-home-under-tmp-name.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Username segment after /home/",
+      "undecided": false
+    },
+    {
+      "id": "X05-key-and-value-both",
+      "file": "artifacts/X05-key-and-value-both.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Both key and value leak",
+      "undecided": false
+    }
+  ]
+}
