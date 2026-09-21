@@ -7,8 +7,7 @@
  * /worldsfair/download/* href linked from worldsfair/index.html, and proves:
  *   1. the file exists on disk;
  *   2. it is NOT excluded by .vercelignore (so it enters the deployment input);
- *   3. it is listed in download/SHA256SUMS.txt (except the notes zip, which is
- *      hashed by the zip's own manifest) and its digest matches.
+ *   3. it is listed in download/SHA256SUMS.txt and its digest matches.
  * Negative control: a bare `README.md` at that path IS excluded (the F1 defect).
  * Exit 1 on any failure. Static: no network, no deploy.
  */
@@ -54,7 +53,6 @@ for (const name of hrefs) {
   row(existsSync(abs), `exists: ${rel}`);
   if (!existsSync(abs)) continue;
   row(!ignoredByVercelignore(rel), `not excluded by .vercelignore: ${rel}`);
-  if (name.endsWith("developer-notes.zip")) continue;
   const digest = createHash("sha256").update(readFileSync(abs)).digest("hex");
   row(sums[name] === digest, `SHA256SUMS.txt binds ${name}`, `${digest.slice(0, 12)}…`);
 }
