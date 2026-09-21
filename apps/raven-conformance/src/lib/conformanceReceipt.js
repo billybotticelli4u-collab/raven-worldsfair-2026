@@ -397,7 +397,23 @@ export async function verifyAnchor(receipt, anchor, { connection, rpcUrl } = {})
  * identity match AND semantic match (summary + every result row). Throws
  * ReceiptValidationError (code INVALID_REPORT) otherwise. Never signs.
  */
-export async function authenticateReportDerivation(reportPath, { timeoutMs } = {}) {
+export async function authenticateReportDerivation(reportPath, { timeoutMs, expectedDigest } = {}) {
+  // F1: the signature covers the deterministic digest, so the replay MUST reproduce
+  // that exact digest. Comparing only the semantic slice leaves every field outside it
+  // (transcripts, verified_controls) unauthenticated while the receipt still lends
+  // signer authority to them.
+  //
+  // The expectation is derived HERE from the report being admitted, not taken from a
+  // caller. A caller-supplied expectation is the same shape of defect as the original
+  // bug: it can be omitted, and an omitted check is a silent pass. `expectedDigest` is
+  // accepted only as an additional cross-check and must agree if supplied.
+  const admitted = loadReport(reportPath).digest;
+  if (typeof expectedDigest === 'string' && expectedDigest.toLowerCase() !== admitted) {
+    throw new ReceiptValidationError(
+      'derivation expectation conflict: caller digest does not match the admitted report',
+      ['derivation_expectation_conflict'],
+    );
+  }
   let replay;
   try {
     replay = await replayReport(reportPath, { write: false, timeoutMs });
@@ -414,9 +430,22 @@ export async function authenticateReportDerivation(reportPath, { timeoutMs } = {
       reasons.length ? reasons : ['derivation_replay_not_ok'],
     );
   }
+  const replayDigest = String(replay.replay_deterministic_sha256 || '').toLowerCase();
+  if (!HEX64.test(replayDigest)) {
+    throw new ReceiptValidationError(
+      'replay produced no deterministic digest',
+      ['derivation_replay_digest_missing'],
+    );
+  }
+  if (replayDigest !== admitted) {
+    throw new ReceiptValidationError(
+      `derivation digest mismatch: admitted ${admitted} but replay produced ${replayDigest}`,
+      ['derivation_digest_mismatch'],
+    );
+  }
   return {
     replayed: true,
-    replay_deterministic_sha256: replay.replay_deterministic_sha256,
+    replay_deterministic_sha256: replayDigest,
     isolation_replay: replay.isolation_replay ?? null,
   };
 }
@@ -424,7 +453,10 @@ export async function authenticateReportDerivation(reportPath, { timeoutMs } = {
 /** Full issuance gate: static validation, then authenticated derivation. */
 export async function admitReportForIssuance(reportPath, opts) {
   const validated = loadReport(reportPath);
-  const derivation = await authenticateReportDerivation(reportPath, opts);
+  const derivation = await authenticateReportDerivation(reportPath, {
+    ...opts,
+    expectedDigest: validated.digest,
+  });
   return { ...validated, derivation };
 }
 
@@ -435,7 +467,10 @@ export async function admitReportObjectForIssuance(report, opts) {
   const tmp = path.join(dir, 'report.json');
   try {
     fs.writeFileSync(tmp, JSON.stringify(report));
-    const derivation = await authenticateReportDerivation(tmp, opts);
+    const derivation = await authenticateReportDerivation(tmp, {
+      ...opts,
+      expectedDigest: validated.digest,
+    });
     return { ...validated, derivation };
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
