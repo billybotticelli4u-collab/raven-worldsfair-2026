@@ -14,7 +14,7 @@
 | Field | Value | Notes |
 | --- | --- | --- |
 | **Chosen product tip** | **Day-2** | Owner-authorized public successor to Day-1 |
-| Worktree | `/Users/TESTUSER/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` | Fair Day-2 worktree |
+| Worktree | `<home>/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` | Fair Day-2 worktree |
 | Branch | `billy/worldsfair-2026-day2-malformed-clock-repair-2026-09-14` | |
 | **HEAD** | `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` | malformed-clock fail-closed tip |
 | **TREE** | `3e442f93529bdb5da876b54d484294032535e84a` | |
@@ -380,7 +380,7 @@ npm start   # http://127.0.0.1:8787
 
 ## Executor attestation
 
-- Searched Day-2 branches/commits under `/Users/TESTUSER` + remotes (`billy/worldsfair*`, `codex/worldsfair*`).
+- Searched Day-2 branches/commits under `<home>` + remotes (`billy/worldsfair*`, `codex/worldsfair*`).
 - Inspected Fair `ravenVerify.js` imports and public verifier adequacy.
 - Verified `npm view raven-receipt-verifier` → 404; public GitHub repo exists.
 - Wrote V2 only; **no** `gh repo create`, **no** Vercel deploy, **no** npm publish, **no** public push.
