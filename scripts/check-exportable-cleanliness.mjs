@@ -293,7 +293,11 @@ function lexicalResolve(input) {
     }
   }
 
-  const isUnc = /^\\\\[^\\\/]/.test(s) || /^\/\/[^\/]/.test(s);
+  // UNC: \\server\share or //server/share — host must be hostname-like (no spaces).
+  // Do NOT treat JS comments "// foo" as UNC.
+  const isUnc =
+    /^\\\\[^\\\/\s]+[\\\/]/.test(s) ||
+    /^\/\/[^\/\s]+\//.test(s);
   const winDrive = s.match(/^([A-Za-z]:)[\\/]/);
   const isAbsUnix = s.startsWith("/");
 
@@ -391,7 +395,7 @@ function isAbsoluteFsPathLike(s) {
     return true;
   }
   // forward-slash UNC lookalike //server/share
-  if (/^\/\/[^\/]/.test(s) && !s.startsWith("// ")) return true;
+  if (/^\/\/[^\/\s]+\//.test(s)) return true;
 
   // URLs with schemes (https://, http://, data:, mailto:) — not FS paths.
   // file: URLs ARE treated as leaks (absolute path transport).
@@ -451,6 +455,10 @@ function isAbsoluteFsPathLike(s) {
  */
 function evaluateCandidate(value, fieldPath, hits, allow) {
   if (typeof value !== "string" || value.length < 1) return false;
+
+  // JS/CSS comments are not filesystem paths (also avoid UNC misparse of "// …").
+  const trimmedLead = value.trimStart();
+  if (trimmedLead.startsWith("//") || trimmedLead.startsWith("/*")) return false;
 
   // B1-(ii) raw identity — never allowlistable
   if (hasHomeIdentity(value)) {
