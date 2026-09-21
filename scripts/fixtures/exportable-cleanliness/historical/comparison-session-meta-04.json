@@ -1,6 +1,6 @@
 {
   "schema": "raven-conformance-comparison/fixture",
   "note": "comparison.json session-metadata absolute path leak class (4/4)",
-  "artifact": "/Users/TESTUSER/Downloads/RAVEN-BILLY-CODEX-RELAY/ACKS/some-ack.md",
+  "artifact": "/Users/TESTUSER/Downloads/PROJECT-RELAY-EXAMPLE/ACKS/some-ack.md",
   "relative_ok": "ACKS/some-ack.md"
 }

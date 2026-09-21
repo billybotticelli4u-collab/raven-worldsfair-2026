@@ -2,7 +2,7 @@
   "schema": "raven-conformance-comparison/fixture",
   "note": "comparison.json session-metadata absolute path leak class (2/4)",
   "meta": {
-    "proposed_report": "/Users/TESTUSER/Downloads/RAVEN-FAIR-WIN-PATH-BILLY-2026-09-19/INTEGRATION-LANE/sessions/s2/proposed_BROKEN_SUBTLE.json",
-    "comparison_written": "/Users/TESTUSER/Downloads/RAVEN-FAIR-WIN-PATH-BILLY-2026-09-19/INTEGRATION-LANE/sessions/s2/comparison.json"
+    "proposed_report": "/Users/TESTUSER/Downloads/PROJECT-WORKSPACE-EXAMPLE/INTEGRATION-LANE/sessions/s2/proposed_BROKEN_SUBTLE.json",
+    "comparison_written": "/Users/TESTUSER/Downloads/PROJECT-WORKSPACE-EXAMPLE/INTEGRATION-LANE/sessions/s2/comparison.json"
   }
 }

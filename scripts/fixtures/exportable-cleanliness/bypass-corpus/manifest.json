@@ -200,7 +200,7 @@
       "file": "artifacts/E03-mixed-case-users.json",
       "expectedExit": 1,
       "allowlist": false,
-      "rationale": "O2: mixed-case /uSeRs/rObY must fail (APFS case-insensitive)",
+      "rationale": "O2: mixed-case /uSeRs/tEsTuSeR must fail (APFS case-insensitive)",
       "undecided": false
     },
     {
@@ -208,7 +208,7 @@
       "file": "artifacts/E04-lower-users.json",
       "expectedExit": 1,
       "allowlist": false,
-      "rationale": "O2: /users/roby lowercase home root",
+      "rationale": "O2: /users/testuser lowercase home root",
       "undecided": false
     },
     {
@@ -272,7 +272,7 @@
       "file": "artifacts/W02-c-colon-backslash.json",
       "expectedExit": 1,
       "allowlist": false,
-      "rationale": "O4: C:\\Users\\ROBY\\x",
+      "rationale": "O4: C:\\Users\\TESTUSER\\x",
       "undecided": false
     },
     {
@@ -328,7 +328,7 @@
       "file": "artifacts/R1-tilde-named-user.json",
       "expectedExit": 1,
       "allowlist": false,
-      "rationale": "R1: ~roby/secret.txt must fail; same TILDE_RE as control W07 ~/secret.txt",
+      "rationale": "R1: ~testuser/secret.txt must fail; same TILDE_RE as control W07 ~/secret.txt",
       "undecided": false
     },
     {
@@ -372,8 +372,8 @@
       "undecided": false
     },
     {
-      "id": "R3-bare-users-roby",
-      "file": "artifacts/R3-bare-users-roby.json",
+      "id": "R3-bare-users-testuser",
+      "file": "artifacts/R3-bare-users-testuser.json",
       "expectedExit": 1,
       "allowlist": false,
       "rationale": "Owner Job2: bare /Users/TESTUSER (no trailing segment) must exit 1",

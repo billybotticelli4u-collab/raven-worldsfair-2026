@@ -2,8 +2,8 @@
   "schema": "raven-conformance-comparison/fixture",
   "note": "comparison.json session-metadata absolute path leak class (1/4)",
   "session": {
-    "dir": "/Users/TESTUSER/Downloads/RAVEN-FAIR-WIN-PATH-BILLY-2026-09-19/INTEGRATION-LANE/worktree-revalidate-2026-09-21/apps/raven-conformance/.revalidate-sessions/s1",
-    "baseline_report": "/Users/TESTUSER/Downloads/RAVEN-FAIR-WIN-PATH-BILLY-2026-09-19/INTEGRATION-LANE/worktree-revalidate-2026-09-21/apps/raven-conformance/.revalidate-sessions/s1/baseline_CONFORMANT_REFERENCE.json"
+    "dir": "/Users/TESTUSER/Downloads/PROJECT-WORKSPACE-EXAMPLE/INTEGRATION-LANE/worktree-example/apps/raven-conformance/.revalidate-sessions/s1",
+    "baseline_report": "/Users/TESTUSER/Downloads/PROJECT-WORKSPACE-EXAMPLE/INTEGRATION-LANE/worktree-example/apps/raven-conformance/.revalidate-sessions/s1/baseline_CONFORMANT_REFERENCE.json"
   },
   "verdict": "REGRESSED"
 }
