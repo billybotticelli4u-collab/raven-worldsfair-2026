@@ -11,7 +11,7 @@ History: additive commit on public `main` atop Day-1 `feaa1fb` (no rewrite).
 | Fair HEAD | `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` |
 | Fair TREE | `3e442f93529bdb5da876b54d484294032535e84a` |
 | Branch | `billy/worldsfair-2026-day2-malformed-clock-repair-2026-09-14` |
-| Worktree | `/Users/ROBY/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` |
+| Worktree | `<home>/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` |
 | Review | INTERNAL_ADVERSARIAL_NON_AUTHOR GO (Billy copy) — not EXTERNAL_INDEPENDENT |
 | Verifier pin | `1b04356a275742752fb7afd8dfcc4269d462a778` |
 | Submodule path | `vendor/raven-receipt-verifier` |
