@@ -456,9 +456,10 @@ function isAbsoluteFsPathLike(s) {
 function evaluateCandidate(value, fieldPath, hits, allow) {
   if (typeof value !== "string" || value.length < 1) return false;
 
-  // JS/CSS comments are not filesystem paths (also avoid UNC misparse of "// …").
+  // JS/CSS comments are not filesystem paths.
+  // Line comment: "//" then space/EOL. Do NOT skip UNC "//server/share/...".
   const trimmedLead = value.trimStart();
-  if (trimmedLead.startsWith("//") || trimmedLead.startsWith("/*")) return false;
+  if (/^\/\/(\s|$)/.test(trimmedLead) || trimmedLead.startsWith("/*")) return false;
 
   // B1-(ii) raw identity — never allowlistable
   if (hasHomeIdentity(value)) {
