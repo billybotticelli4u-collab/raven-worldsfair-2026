@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Adversarial bypass corpus for exportable-cleanliness (CLAUDE-072 + KIMI R1-R3). Controls W07/W08 retained for R1/R2 near-miss pairs; A08 near-miss for A07.",
+  "description": "Adversarial bypass corpus for exportable-cleanliness (CLAUDE-072 + KIMI R1/R2/R3 + A07/A08). Controls W07/W08 and A09 are near-miss pairs.",
   "defaultAllowlist": "scripts/fixtures/exportable-cleanliness/allowlists/judge-package-v5.2.txt",
   "vectors": [
     {
@@ -352,15 +352,31 @@
       "file": "artifacts/A07-key-glued-users-allowlist.json",
       "expectedExit": 1,
       "allowlist": true,
-      "rationale": "KIMI A07: B2 key-vector {\"/private/tmp/../../Users/TESTUSER/x\":\"clean\"} WITH allowlist \u2192 exit 1",
+      "rationale": "KIMI A07: B2 KEY glued /private/tmp/../../Users/TESTUSER/secret.txt WITH allowlist \u2192 exit 1 (home-identity not suppressed)",
       "undecided": false
     },
     {
-      "id": "A08-key-sandbox-allowlist",
-      "file": "artifacts/A08-key-sandbox-allowlist.json",
+      "id": "A08-key-reverse-users-allowlist",
+      "file": "artifacts/A08-key-reverse-users-allowlist.json",
+      "expectedExit": 1,
+      "allowlist": true,
+      "rationale": "KIMI A08: B2 KEY reverse /Users/TESTUSER/../../private/tmp/x WITH allowlist \u2192 exit 1",
+      "undecided": false
+    },
+    {
+      "id": "A09-key-legit-allowlist",
+      "file": "artifacts/A09-key-legit-allowlist.json",
       "expectedExit": 0,
       "allowlist": true,
-      "rationale": "KIMI A08: B2 key-vector {\"/private/tmp/x\":\"clean\"} WITH allowlist \u2192 exit 0 (paired near-miss to A07)",
+      "rationale": "Near-miss control for A07/A08: B2 KEY /private/tmp/ok WITH allowlist \u2192 exit 0",
+      "undecided": false
+    },
+    {
+      "id": "R3-bare-users-roby",
+      "file": "artifacts/R3-bare-users-roby.json",
+      "expectedExit": 1,
+      "allowlist": false,
+      "rationale": "Owner Job2: bare /Users/TESTUSER (no trailing segment) must exit 1",
       "undecided": false
     },
     {
