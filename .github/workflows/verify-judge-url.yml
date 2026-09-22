@@ -1,6 +1,10 @@
 # I-3 post-deploy / PR gate — Owner must mark this check Required on main.
-# Secrets: JUDGE_VERIFY_BASE_URL (required for pull_request/push), JUDGE_VERIFY_COOKIE (optional).
-# Never echo secrets.
+# Secrets:
+#   VERCEL_TOKEN + VERCEL_PROJECT_ID (+ optional VERCEL_TEAM_ID) — resolve exact preview for PR/push head commit
+#   JUDGE_VERIFY_COOKIE (optional)
+#   VERCEL_AUTOMATION_BYPASS_SECRET (Vercel Protection Bypass for Automation)
+#   JUDGE_VERIFY_BASE_URL (optional; if set on PR must match exact preview for head — never production)
+# Never echo secrets. Never treat skip as PASS. Never fall back to production.
 name: verify-judge-url
 
 on:
@@ -17,7 +21,7 @@ on:
         type: string
       expected_commit:
         description: "40-hex commit that must match fairBuildCommit"
-        required: false
+        required: true
         type: string
 
 concurrency:
@@ -37,62 +41,38 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Resolve target URL and expected commit
+      - name: Resolve exact preview URL and expected commit
         id: url
         env:
           EVENT_NAME: ${{ github.event_name }}
           DEPLOY_STATE: ${{ github.event.deployment_status.state }}
           DEPLOY_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          DEPLOY_SHA: ${{ github.event.deployment.sha || github.event.deployment_status.deployment.sha }}
           INPUT_URL: ${{ inputs.base_url }}
           INPUT_COMMIT: ${{ inputs.expected_commit }}
           SECRET_URL: ${{ secrets.JUDGE_VERIFY_BASE_URL }}
-          GITHUB_SHA_VALUE: ${{ github.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_SHA: ${{ github.event_name == 'push' && github.sha || '' }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
         run: |
           set -euo pipefail
-          URL=""
-          EXPECTED="${INPUT_COMMIT:-$GITHUB_SHA_VALUE}"
-          SKIP="false"
-          if [ "$EVENT_NAME" = "deployment_status" ]; then
-            if [ "$DEPLOY_STATE" != "success" ]; then
-              echo "::error::deployment_status=$DEPLOY_STATE did not execute verification; required checks must fail closed."
-              exit 1
-            else
-              URL="$DEPLOY_URL"
-            fi
-          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            URL="$INPUT_URL"
-          else
-            # pull_request / push: URL is mandatory for a required check
-            URL="${SECRET_URL:-}"
-          fi
-          if [ "$SKIP" != "true" ] && [ -z "$URL" ]; then
-            echo "::error::No base URL configured. Set secret JUDGE_VERIFY_BASE_URL (PR/push) or pass workflow_dispatch base_url / deployment_status URL."
-            exit 1
-          fi
-          if [ "$SKIP" = "true" ]; then
-            echo "::error::internal error: verification skip requested in required gate"
-            exit 1
-          fi
-          URL="${URL%/}"
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-          echo "base=$URL" >> "$GITHUB_OUTPUT"
-          echo "expected=$EXPECTED" >> "$GITHUB_OUTPUT"
-          python3 - "$URL" <<'PY'
-          import sys
-          from urllib.parse import urlparse
-          u = urlparse(sys.argv[1])
-          print("Target host (no secrets): " + u.scheme + "://" + (u.hostname or ""))
-          PY
+          node scripts/ci/resolve-judge-verify-target.mjs
 
       - name: Run verify-judge-url harness
         if: steps.url.outputs.skip != 'true'
         env:
           VERIFY_JUDGE_COOKIE: ${{ secrets.JUDGE_VERIFY_COOKIE }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          VERIFY_JUDGE_PROTECTION_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           BASE: ${{ steps.url.outputs.base }}
           EXPECTED_COMMIT: ${{ steps.url.outputs.expected }}
         run: |
           set -euo pipefail
-          # Constrain cookie use to the resolved base host only (harness already same-origin).
+          # Cookie and/or Vercel automation bypass unlock protected previews.
+          # Bypass is sent as x-vercel-protection-bypass only to the intended origin.
+          # Never echo secrets.
           node scripts/verify-judge-url.mjs "$BASE" | tee harness-out.txt
 
       - name: Upload harness log
