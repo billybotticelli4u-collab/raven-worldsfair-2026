@@ -2,22 +2,28 @@
 /**
  * Fail-closed resolver for verify-judge-url.
  *
- * Outputs (GitHub Actions): base, expected, skip=false
+ * Outputs (GitHub Actions): skip=false, base, expected, mode=preview|production, credentialed=true|false
  *
- * Before any credential-bearing verify target is emitted:
+ * Preview path (PR / workflow_dispatch / preview deployment_status):
  * - Deployment must belong to configured Vercel project/team
  * - Commit SHA must match exactly
- * - API metadata must establish preview / non-production (target !== production)
+ * - API metadata must establish preview (target null|"preview"; never production/staging)
  * - URL must be HTTPS, no userinfo/query/fragment
  * - Event URL (if any) must equal the resolved deployment URL
+ * - credentialed=true (Deployment Protection bypass allowed for that bound origin only)
  *
- * Never falls back to production. Never skip-as-pass.
+ * Production path (push / production deployment_status):
+ * - Separate resolveProductionForCommit — NOT a fallback inside the preview resolver
+ * - READY + target==="production" only; project ownership; newest match; safe HTTPS
+ * - credentialed=false (public application check; no cookie/bypass)
+ *
+ * Never skip-as-pass. Unrelated / stale / failed / foreign URLs refuse.
  *
  * Env:
  *   EVENT_NAME, DEPLOY_STATE, DEPLOY_URL, DEPLOY_SHA,
  *   INPUT_URL, INPUT_COMMIT, PR_HEAD_SHA, PUSH_SHA, SECRET_URL,
  *   VERCEL_TOKEN, VERCEL_PROJECT_ID, VERCEL_TEAM_ID (optional),
- *   VERCEL_API_BASE (test override), FETCH_IMPL unused — tests inject via VERCEL_API_BASE + mock server
+ *   VERCEL_API_BASE (test override)
  */
 import { appendFileSync } from "node:fs";
 
@@ -78,6 +84,15 @@ function isPreviewTarget(deployment) {
   return false; // production, staging, other strings, or unexpected types
 }
 
+function isProductionTarget(deployment) {
+  if (!Object.prototype.hasOwnProperty.call(deployment, "target")) return false;
+  return deployment.target === "production";
+}
+
+function deploymentState(d) {
+  return String(d.readyState || d.state || "").toUpperCase();
+}
+
 function deploymentCommit(d) {
   const meta = d.meta || {};
   return String(meta.githubCommitSha || "").toLowerCase();
@@ -87,6 +102,16 @@ function deploymentHttpsUrl(d) {
   if (!d.url) return "";
   // d.url is hostname without scheme
   return `https://${String(d.url).replace(/^https?:\/\//, "")}`;
+}
+
+function urlMatchesDeployment(wantUrl, deployment) {
+  const raw = deploymentHttpsUrl(deployment);
+  if (!raw) return false;
+  const depUrl = normalizeOriginUrl(raw);
+  if (wantUrl === depUrl) return true;
+  const hostOnly = new URL(wantUrl).host;
+  const depHost = String(deployment.url || "").replace(/^https?:\/\//, "");
+  return hostOnly === depHost;
 }
 
 async function vercelFetch(pathAndQuery) {
@@ -99,10 +124,8 @@ async function vercelFetch(pathAndQuery) {
   return res;
 }
 
-/**
- * Resolve Ready preview deployment for exact commit in configured project.
- */
-async function resolvePreviewForCommit(commit) {
+/** List Vercel deployments for exact commit in configured project (shared lookup). */
+async function listDeploymentsForCommit(commit) {
   const projectId = process.env.VERCEL_PROJECT_ID || "";
   const teamId = process.env.VERCEL_TEAM_ID || "";
   if (!projectId) fail("VERCEL_PROJECT_ID required");
@@ -118,44 +141,15 @@ async function resolvePreviewForCommit(commit) {
   const res = await vercelFetch(`/v6/deployments?${qs}`);
   if (!res.ok) fail(`Vercel deployments lookup failed: HTTP ${res.status}`);
   const data = await res.json();
-  const list = Array.isArray(data.deployments) ? data.deployments : [];
-
-  const matched = list.filter((d) => {
-    const state = String(d.readyState || d.state || "").toUpperCase();
-    const shaOk = deploymentCommit(d) === commit.toLowerCase();
-    const ready = state === "READY";
-    const preview = isPreviewTarget(d);
-    return shaOk && ready && preview;
-  });
-
-  if (matched.length === 0) {
-    // Distinguish production-only hit for clearer errors
-    const prodHit = list.some(
-      (d) =>
-        deploymentCommit(d) === commit.toLowerCase() &&
-        String(d.readyState || d.state || "").toUpperCase() === "READY" &&
-        (d.target === "production" || d.target === "staging"),
-    );
-    if (prodHit) {
-      fail(
-        `Only production/staging deployment(s) found for commit ${commit}; refusing (preview required, no production fallback).`,
-      );
-    }
-    fail(
-      `No Ready preview deployment found for commit ${commit} in project; fail-closed (no production fallback, no skip-as-pass).`,
-    );
-  }
-
-  matched.sort((a, b) => (b.createdAt || b.created || 0) - (a.createdAt || a.created || 0));
-  const d = matched[0];
-  assertProjectOwnership(d);
-  const url = deploymentHttpsUrl(d);
-  if (!url) fail(`Preview deployment for ${commit} has no URL`);
-  assertSafeVerifyUrl(url, "resolved preview");
-  return { url: normalizeOriginUrl(url), deployment: d, uid: d.uid || d.id || "" };
+  return Array.isArray(data.deployments) ? data.deployments : [];
 }
 
-/** Project ownership for every path that emits a credential-bearing base. */
+function pickNewest(matched) {
+  matched.sort((a, b) => (b.createdAt || b.created || 0) - (a.createdAt || a.created || 0));
+  return matched[0];
+}
+
+/** Project ownership for every path that emits a verify base. */
 function assertProjectOwnership(d) {
   const want = process.env.VERCEL_PROJECT_ID || "";
   if (!want) fail("VERCEL_PROJECT_ID required");
@@ -168,13 +162,112 @@ function assertProjectOwnership(d) {
 }
 
 /**
+ * Resolve Ready preview deployment for exact commit in configured project.
+ * Fail-closed: refuses production/staging; no production fallback.
+ */
+async function resolvePreviewForCommit(commit) {
+  const list = await listDeploymentsForCommit(commit);
+
+  const matched = list.filter((d) => {
+    const shaOk = deploymentCommit(d) === commit.toLowerCase();
+    const ready = deploymentState(d) === "READY";
+    const preview = isPreviewTarget(d);
+    return shaOk && ready && preview;
+  });
+
+  if (matched.length === 0) {
+    // Distinguish production-only hit for clearer errors
+    const prodHit = list.some(
+      (d) =>
+        deploymentCommit(d) === commit.toLowerCase() &&
+        deploymentState(d) === "READY" &&
+        (d.target === "production" || d.target === "staging"),
+    );
+    if (prodHit) {
+      fail(
+        `Only production/staging deployment(s) found for commit ${commit}; refusing (preview required, no production fallback).`,
+      );
+    }
+    fail(
+      `No Ready preview deployment found for commit ${commit} in project; fail-closed (no production fallback, no skip-as-pass).`,
+    );
+  }
+
+  const d = pickNewest(matched);
+  assertProjectOwnership(d);
+  const url = deploymentHttpsUrl(d);
+  if (!url) fail(`Preview deployment for ${commit} has no URL`);
+  assertSafeVerifyUrl(url, "resolved preview");
+  return { url: normalizeOriginUrl(url), deployment: d, uid: d.uid || d.id || "" };
+}
+
+/**
+ * Resolve Ready production deployment for exact commit in configured project.
+ * Separate from preview resolver — never used as preview fallback.
+ * READY + target==="production" only; project ownership; newest match; safe HTTPS.
+ */
+async function resolveProductionForCommit(commit) {
+  const list = await listDeploymentsForCommit(commit);
+
+  const matched = list.filter((d) => {
+    const shaOk = deploymentCommit(d) === commit.toLowerCase();
+    const ready = deploymentState(d) === "READY";
+    const production = isProductionTarget(d);
+    return shaOk && ready && production;
+  });
+
+  if (matched.length === 0) {
+    const previewOnly = list.some(
+      (d) =>
+        deploymentCommit(d) === commit.toLowerCase() &&
+        deploymentState(d) === "READY" &&
+        isPreviewTarget(d),
+    );
+    if (previewOnly) {
+      fail(
+        `Only preview deployment(s) found for commit ${commit}; push/production path requires Ready production (no preview fallback).`,
+      );
+    }
+    const stagingHit = list.some(
+      (d) =>
+        deploymentCommit(d) === commit.toLowerCase() &&
+        deploymentState(d) === "READY" &&
+        d.target === "staging",
+    );
+    if (stagingHit) {
+      fail(`Staging deployment found for commit ${commit}; refusing (production target required).`);
+    }
+    const errorHit = list.some(
+      (d) =>
+        deploymentCommit(d) === commit.toLowerCase() &&
+        isProductionTarget(d) &&
+        deploymentState(d) !== "READY",
+    );
+    if (errorHit) {
+      fail(
+        `Production deployment for commit ${commit} is not READY; refusing (failed/stale deployment must not PASS).`,
+      );
+    }
+    fail(
+      `No Ready production deployment found for commit ${commit} in project; fail-closed (no skip-as-pass).`,
+    );
+  }
+
+  const d = pickNewest(matched);
+  assertProjectOwnership(d);
+  const url = deploymentHttpsUrl(d);
+  if (!url) fail(`Production deployment for ${commit} has no URL`);
+  assertSafeVerifyUrl(url, "resolved production");
+  return { url: normalizeOriginUrl(url), deployment: d, uid: d.uid || d.id || "" };
+}
+
+/**
  * Verify an event-provided URL is the project's Ready preview for commit.
  */
 async function bindEventUrlToPreview(eventUrl, commit) {
   const want = normalizeOriginUrl(eventUrl);
-  const { url, deployment, uid } = await resolvePreviewForCommit(commit);
+  const { url, deployment } = await resolvePreviewForCommit(commit);
   if (want !== url) {
-    // Also accept if event URL host matches deployment.url exactly
     const hostOnly = new URL(want).host;
     const depHost = String(deployment.url || "").replace(/^https?:\/\//, "");
     if (hostOnly !== depHost) {
@@ -183,8 +276,64 @@ async function bindEventUrlToPreview(eventUrl, commit) {
       );
     }
   }
-  // Project ownership already enforced inside resolvePreviewForCommit (all four events).
   return url;
+}
+
+/**
+ * Classify deployment_status URL against Ready production vs preview for commit.
+ * Foreign / staging / non-READY / wrong project / wrong SHA → refuse.
+ */
+async function classifyDeploymentStatusUrl(eventUrl, commit) {
+  const want = normalizeOriginUrl(eventUrl);
+  const list = await listDeploymentsForCommit(commit);
+  const sha = commit.toLowerCase();
+
+  const sameCommit = list.filter((d) => deploymentCommit(d) === sha);
+
+  // Prefer exact Ready production match
+  const prodReady = sameCommit.filter(
+    (d) => deploymentState(d) === "READY" && isProductionTarget(d) && urlMatchesDeployment(want, d),
+  );
+  if (prodReady.length > 0) {
+    const d = pickNewest(prodReady);
+    assertProjectOwnership(d);
+    const url = normalizeOriginUrl(deploymentHttpsUrl(d));
+    return { url, mode: "production", credentialed: false, deployment: d };
+  }
+
+  // Ready preview match
+  const previewReady = sameCommit.filter(
+    (d) => deploymentState(d) === "READY" && isPreviewTarget(d) && urlMatchesDeployment(want, d),
+  );
+  if (previewReady.length > 0) {
+    const d = pickNewest(previewReady);
+    assertProjectOwnership(d);
+    const url = normalizeOriginUrl(deploymentHttpsUrl(d));
+    return { url, mode: "preview", credentialed: true, deployment: d };
+  }
+
+  // Explicit mismatch diagnostics (still refuse)
+  const urlAny = sameCommit.filter((d) => urlMatchesDeployment(want, d));
+  if (urlAny.length > 0) {
+    const d = urlAny[0];
+    assertProjectOwnership(d); // foreign project still refused if ownership fails first
+    if (d.target === "staging") {
+      fail(`Event URL matches staging deployment for ${commit}; refusing (preview or production Ready required).`);
+    }
+    const st = deploymentState(d);
+    if (st !== "READY") {
+      fail(
+        `Event URL matches deployment in state ${st} for ${commit}; refusing (READY required; failed deployment must not PASS).`,
+      );
+    }
+    fail(`Event URL matched a non-preview/non-production deployment for ${commit}; refusing.`);
+  }
+
+  // URL might match a deployment with wrong SHA in the list (API meta filter should prevent),
+  // or a completely foreign URL.
+  fail(
+    `Event URL ${want} does not match Ready production or preview for commit ${commit}; refusing foreign/unbound origin.`,
+  );
 }
 
 const event = process.env.EVENT_NAME || "";
@@ -199,6 +348,8 @@ const secretUrl = (process.env.SECRET_URL || "").replace(/\/$/, "");
 
 let base = "";
 let expected = "";
+let mode = "";
+let credentialed = true;
 
 if (event === "workflow_dispatch") {
   if (!inputUrl) fail("workflow_dispatch requires base_url");
@@ -206,6 +357,8 @@ if (event === "workflow_dispatch") {
   // Typed URL alone is not enough — bind to project preview for that commit.
   expected = inputCommit;
   base = await bindEventUrlToPreview(inputUrl, expected);
+  mode = "preview";
+  credentialed = true;
 } else if (event === "deployment_status") {
   if (deployState !== "success") {
     fail(`deployment_status=${deployState} did not execute verification; required checks must fail closed.`);
@@ -215,7 +368,10 @@ if (event === "workflow_dispatch") {
     fail("deployment_status missing deployment commit SHA; refusing github.sha fallback that could confuse merge and head.");
   }
   expected = deploySha;
-  base = await bindEventUrlToPreview(deployUrl, expected);
+  const classified = await classifyDeploymentStatusUrl(deployUrl, expected);
+  base = classified.url;
+  mode = classified.mode;
+  credentialed = classified.credentialed;
 } else if (event === "pull_request") {
   if (!isHex40(prHead)) fail("pull_request missing head.sha");
   expected = prHead;
@@ -229,28 +385,33 @@ if (event === "workflow_dispatch") {
     }
   }
   base = resolved.url;
+  mode = "preview";
+  credentialed = true;
 } else if (event === "push") {
   if (!isHex40(pushSha)) fail("push missing github.sha");
   expected = pushSha;
+  // Push requires Ready production for this commit (separate production path).
+  const resolved = await resolveProductionForCommit(expected);
   if (secretUrl) {
-    // Must still equal resolved preview — never silent prod
-    const resolved = await resolvePreviewForCommit(expected);
     const secretNorm = normalizeOriginUrl(secretUrl);
     if (secretNorm !== resolved.url) {
-      fail(`JUDGE_VERIFY_BASE_URL does not match exact preview for ${expected}; refusing.`);
+      fail(`JUDGE_VERIFY_BASE_URL does not match exact production for ${expected}; refusing.`);
     }
-    base = resolved.url;
-  } else {
-    base = (await resolvePreviewForCommit(expected)).url;
   }
+  base = resolved.url;
+  mode = "production";
+  credentialed = false;
 } else {
   fail(`unsupported event_name=${event}`);
 }
 
 if (!base) fail("internal: empty base");
 if (!isHex40(expected)) fail("internal: bad expected commit");
+if (mode !== "preview" && mode !== "production") fail("internal: bad mode");
 assertSafeVerifyUrl(base, "final base");
 out("skip", "false");
 out("base", base);
 out("expected", expected);
-console.log(`Target host (no secrets): ${new URL(base).origin}`);
+out("mode", mode);
+out("credentialed", credentialed ? "true" : "false");
+console.log(`Target host (no secrets): ${new URL(base).origin} mode=${mode} credentialed=${credentialed}`);
