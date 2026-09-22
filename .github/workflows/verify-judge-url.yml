@@ -1,10 +1,13 @@
 # I-3 post-deploy / PR gate — Owner must mark this check Required on main.
-# Secrets:
-#   VERCEL_TOKEN + VERCEL_PROJECT_ID (+ optional VERCEL_TEAM_ID) — resolve exact preview for PR/push head commit
-#   JUDGE_VERIFY_COOKIE (optional)
-#   VERCEL_AUTOMATION_BYPASS_SECRET (Vercel Protection Bypass for Automation)
+# Secrets (reuse existing names; no new credentials):
+#   VERCEL_TOKEN + VERCEL_PROJECT_ID (+ optional VERCEL_TEAM_ID) — resolve exact deployment identity
+#   JUDGE_VERIFY_COOKIE (optional; preview / Deployment Protection only)
+#   VERCEL_AUTOMATION_BYPASS_SECRET (Vercel Protection Bypass for Automation; preview only)
 #   JUDGE_VERIFY_BASE_URL (optional; if set on PR must match exact preview for head — never production)
-# Never echo secrets. Never treat skip as PASS. Never fall back to production.
+# Never echo secrets. Never treat skip as PASS.
+# Preview path: PR / workflow_dispatch / preview deployment_status — credentialed bind; no production fallback.
+# Production path: push / production deployment_status — Ready production only; public uncredentialed check.
+# Fixture / local resolver tests ≠ hosted workflow PASS. Do not claim hosted PASS from local runs.
 name: verify-judge-url
 
 on:
@@ -41,7 +44,7 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Resolve exact preview URL and expected commit
+      - name: Resolve verify target (preview or production)
         id: url
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -60,8 +63,8 @@ jobs:
           set -euo pipefail
           node scripts/ci/resolve-judge-verify-target.mjs
 
-      - name: Run verify-judge-url harness
-        if: steps.url.outputs.skip != 'true'
+      - name: Run verify-judge-url harness (preview, credentialed)
+        if: steps.url.outputs.skip != 'true' && steps.url.outputs.credentialed == 'true'
         env:
           VERIFY_JUDGE_COOKIE: ${{ secrets.JUDGE_VERIFY_COOKIE }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -72,7 +75,23 @@ jobs:
           set -euo pipefail
           # Cookie and/or Vercel automation bypass unlock protected previews.
           # Bypass is sent as x-vercel-protection-bypass only to the intended origin.
-          # Never echo secrets.
+          # Never echo secrets. Preserve Deployment Protection + preview refusal rules.
+          echo "mode=${{ steps.url.outputs.mode }} credentialed=true (preview path)"
+          node scripts/verify-judge-url.mjs "$BASE" | tee harness-out.txt
+
+      - name: Run verify-judge-url harness (production, uncredentialed)
+        if: steps.url.outputs.skip != 'true' && steps.url.outputs.credentialed != 'true'
+        env:
+          # Public application check: empty cookie/bypass — do not send credentials to production.
+          VERIFY_JUDGE_COOKIE: ""
+          VERCEL_AUTOMATION_BYPASS_SECRET: ""
+          VERIFY_JUDGE_PROTECTION_BYPASS: ""
+          BASE: ${{ steps.url.outputs.base }}
+          EXPECTED_COMMIT: ${{ steps.url.outputs.expected }}
+        run: |
+          set -euo pipefail
+          echo "mode=${{ steps.url.outputs.mode }} credentialed=false (production path; public uncredentialed)"
+          # Fixture/local resolver results ≠ hosted workflow PASS.
           node scripts/verify-judge-url.mjs "$BASE" | tee harness-out.txt
 
       - name: Upload harness log
