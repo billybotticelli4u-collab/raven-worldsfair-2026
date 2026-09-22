@@ -14,7 +14,9 @@
  *
  * Production path (push / production deployment_status):
  * - Separate resolveProductionForCommit — NOT a fallback inside the preview resolver
- * - READY + target==="production" only; project ownership; newest match; safe HTTPS
+ * - READY + target==="production" only; project ownership; newest match
+ * - Bind public production address via GET /v2/deployments/{uid}/aliases
+ *   (deploymentId must match uid; refuse unique deployment.url as uncredentialed base)
  * - credentialed=false (public application check; no cookie/bypass)
  *
  * Never skip-as-pass. Unrelated / stale / failed / foreign URLs refuse.
@@ -161,6 +163,105 @@ function assertProjectOwnership(d) {
   }
 }
 
+function uniqueDeploymentHost(d) {
+  return String(d.url || "")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "")
+    .toLowerCase();
+}
+
+/**
+ * Fetch aliases for a deployment uid (trusted Vercel API metadata).
+ * Honors VERCEL_TEAM_ID when set.
+ */
+async function fetchDeploymentAliases(uid) {
+  if (!uid) fail("Deployment uid required to fetch aliases");
+  const teamId = process.env.VERCEL_TEAM_ID || "";
+  const qs = new URLSearchParams();
+  if (teamId) qs.set("teamId", teamId);
+  const q = qs.toString() ? `?${qs}` : "";
+  const res = await vercelFetch(`/v2/deployments/${encodeURIComponent(uid)}/aliases${q}`);
+  if (!res.ok) fail(`Vercel deployment aliases lookup failed: HTTP ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data.aliases) ? data.aliases : [];
+}
+
+/**
+ * Bind public production address for a Ready production deployment.
+ * Refuses deployment.url (unique host) as the uncredentialed verify base.
+ * Requires alias entries whose deploymentId matches this deployment uid.
+ * Prefers shortest / stable project alias among public hosts ≠ unique host.
+ */
+async function bindPublicProductionAlias(deployment) {
+  const uid = String(deployment.uid || deployment.id || "");
+  if (!uid) {
+    fail("Production deployment missing uid; cannot bind public alias.");
+  }
+  const uniqueHost = uniqueDeploymentHost(deployment);
+  if (!uniqueHost) {
+    fail("Production deployment has no unique URL host; refusing.");
+  }
+
+  const aliases = await fetchDeploymentAliases(uid);
+  if (aliases.length === 0) {
+    fail(
+      `No aliases for production deployment ${uid}; refusing unique deployment.url as uncredentialed verify base.`,
+    );
+  }
+
+  const bound = [];
+  let sawWrongDeploymentId = false;
+  for (const a of aliases) {
+    const depId =
+      a.deploymentId != null && a.deploymentId !== ""
+        ? String(a.deploymentId)
+        : a.deployment && a.deployment.id != null && a.deployment.id !== ""
+          ? String(a.deployment.id)
+          : "";
+    if (!depId) continue; // require explicit deploymentId binding
+    if (depId !== uid) {
+      sawWrongDeploymentId = true;
+      continue;
+    }
+    bound.push(a);
+  }
+
+  if (bound.length === 0) {
+    if (sawWrongDeploymentId) {
+      fail(
+        `Alias rebound: deploymentId does not match production deployment ${uid}; refusing.`,
+      );
+    }
+    fail(
+      `No aliases with matching deploymentId for production deployment ${uid}; refusing (API alias↔deployment binding required).`,
+    );
+  }
+
+  const publicHosts = [];
+  for (const a of bound) {
+    const host = String(a.alias || "")
+      .replace(/^https?:\/\//, "")
+      .replace(/\/$/, "")
+      .toLowerCase();
+    if (!host) continue;
+    if (host === uniqueHost) continue; // never use unique deployment host
+    publicHosts.push(host);
+  }
+
+  if (publicHosts.length === 0) {
+    fail(
+      `Only unique deployment host found among aliases for ${uid}; refusing deployment.url as uncredentialed verify base.`,
+    );
+  }
+
+  // Prefer shortest / stable project alias
+  publicHosts.sort((a, b) => a.length - b.length || a.localeCompare(b));
+  const publicAlias = publicHosts[0];
+  const url = `https://${publicAlias}`;
+  assertSafeVerifyUrl(url, "bound public production alias");
+  return normalizeOriginUrl(url);
+}
+
 /**
  * Resolve Ready preview deployment for exact commit in configured project.
  * Fail-closed: refuses production/staging; no production fallback.
@@ -204,7 +305,8 @@ async function resolvePreviewForCommit(commit) {
 /**
  * Resolve Ready production deployment for exact commit in configured project.
  * Separate from preview resolver — never used as preview fallback.
- * READY + target==="production" only; project ownership; newest match; safe HTTPS.
+ * READY + target==="production" only; project ownership; newest match;
+ * then bind public alias via /v2/deployments/{uid}/aliases (refuse unique host).
  */
 async function resolveProductionForCommit(commit) {
   const list = await listDeploymentsForCommit(commit);
@@ -255,10 +357,9 @@ async function resolveProductionForCommit(commit) {
 
   const d = pickNewest(matched);
   assertProjectOwnership(d);
-  const url = deploymentHttpsUrl(d);
-  if (!url) fail(`Production deployment for ${commit} has no URL`);
-  assertSafeVerifyUrl(url, "resolved production");
-  return { url: normalizeOriginUrl(url), deployment: d, uid: d.uid || d.id || "" };
+  // C1: bind public production alias — never emit unique deployment.url as uncredentialed base
+  const url = await bindPublicProductionAlias(d);
+  return { url, deployment: d, uid: d.uid || d.id || "" };
 }
 
 /**
@@ -297,7 +398,8 @@ async function classifyDeploymentStatusUrl(eventUrl, commit) {
   if (prodReady.length > 0) {
     const d = pickNewest(prodReady);
     assertProjectOwnership(d);
-    const url = normalizeOriginUrl(deploymentHttpsUrl(d));
+    // Event may carry unique deployment URL; emit bound public alias as base
+    const url = await bindPublicProductionAlias(d);
     return { url, mode: "production", credentialed: false, deployment: d };
   }
 

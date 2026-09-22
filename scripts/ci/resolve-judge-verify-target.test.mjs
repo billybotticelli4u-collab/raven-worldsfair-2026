@@ -59,11 +59,28 @@ function mkDeploy({
   };
 }
 
-function apiWith(deployments) {
+function apiWith(deployments, aliasMap = {}) {
   return listen((req, res) => {
+    const u = new URL(req.url, "http://127.0.0.1");
+    const m = u.pathname.match(/^\/v2\/deployments\/([^/]+)\/aliases$/);
+    if (m) {
+      const id = decodeURIComponent(m[1]);
+      const aliases = Object.prototype.hasOwnProperty.call(aliasMap, id)
+        ? aliasMap[id]
+        : [];
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ aliases: Array.isArray(aliases) ? aliases : [] }));
+      return;
+    }
+    // Default list endpoint unchanged
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ deployments }));
   });
+}
+
+/** Public alias ≠ unique deployment host, bound to uid via deploymentId. */
+function publicAliasEntry(uid, publicHost, extra = {}) {
+  return { alias: publicHost, deploymentId: uid, uid: `alias_${uid}`, ...extra };
 }
 
 const baseEnv = {
@@ -296,9 +313,12 @@ test("C2: staging target refused on pull_request (preview path)", async () => {
 // --- Routing: push requires production ---
 
 test("routing: push resolves Ready production → mode=production credentialed=false", async () => {
-  const api = await apiWith([
-    mkDeploy({ target: "production", url: "prod-main.vercel.app", uid: "dpl_prod" }),
-  ]);
+  const unique = "prod-main-unique-dpl.vercel.app";
+  const publicHost = "raven-worldsfair-2026.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_prod" })],
+    { dpl_prod: [publicAliasEntry("dpl_prod", publicHost)] },
+  );
   const r = await run({
     EVENT_NAME: "push",
     PUSH_SHA: SHA,
@@ -307,7 +327,8 @@ test("routing: push resolves Ready production → mode=production credentialed=f
   });
   await api.close();
   assert.equal(r.code, 0);
-  assert.match(r.out, /base=https:\/\/prod-main\.vercel\.app/);
+  assert.match(r.out, /base=https:\/\/raven-worldsfair-2026\.vercel\.app/);
+  assert.doesNotMatch(r.out, /base=https:\/\/prod-main-unique-dpl\.vercel\.app/);
   assert.match(r.out, new RegExp(`expected=${SHA}`));
   assert.match(r.out, /mode=production/);
   assert.match(r.out, /credentialed=false/);
@@ -359,20 +380,24 @@ test("routing: workflow_dispatch stays preview-bound with credentialed=true", as
 // --- deployment_status classification ---
 
 test("deployment_status production URL → mode=production credentialed=false", async () => {
-  const api = await apiWith([
-    mkDeploy({ target: "production", url: "app-prod.vercel.app", uid: "dpl_p" }),
-  ]);
+  const unique = "app-prod.vercel.app";
+  const publicHost = "raven-app-prod.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_p" })],
+    { dpl_p: [publicAliasEntry("dpl_p", publicHost)] },
+  );
   const r = await run({
     EVENT_NAME: "deployment_status",
     DEPLOY_STATE: "success",
-    DEPLOY_URL: "https://app-prod.vercel.app",
+    DEPLOY_URL: `https://${unique}`,
     DEPLOY_SHA: SHA,
     ...baseEnv,
     VERCEL_API_BASE: api.base,
   });
   await api.close();
   assert.equal(r.code, 0);
-  assert.match(r.out, /base=https:\/\/app-prod\.vercel\.app/);
+  assert.match(r.out, /base=https:\/\/raven-app-prod\.vercel\.app/);
+  assert.doesNotMatch(r.out, /base=https:\/\/app-prod\.vercel\.app/);
   assert.match(r.out, /mode=production/);
   assert.match(r.out, /credentialed=false/);
 });
@@ -524,17 +549,20 @@ test("mismatch: foreign production URL on deployment_status refused", async () =
 test("production path picks newest Ready production among matches", async () => {
   const older = mkDeploy({
     target: "production",
-    url: "old-prod.vercel.app",
+    url: "old-prod-unique.vercel.app",
     uid: "dpl_old",
     createdAt: 1000,
   });
   const newer = mkDeploy({
     target: "production",
-    url: "new-prod.vercel.app",
+    url: "new-prod-unique.vercel.app",
     uid: "dpl_new",
     createdAt: 9000,
   });
-  const api = await apiWith([older, newer]);
+  const api = await apiWith([older, newer], {
+    dpl_old: [publicAliasEntry("dpl_old", "old-public.vercel.app")],
+    dpl_new: [publicAliasEntry("dpl_new", "new-public.vercel.app")],
+  });
   const r = await run({
     EVENT_NAME: "push",
     PUSH_SHA: SHA,
@@ -543,10 +571,173 @@ test("production path picks newest Ready production among matches", async () => 
   });
   await api.close();
   assert.equal(r.code, 0);
-  assert.match(r.out, /base=https:\/\/new-prod\.vercel\.app/);
+  assert.match(r.out, /base=https:\/\/new-public\.vercel\.app/);
+  assert.doesNotMatch(r.out, /base=https:\/\/new-prod-unique\.vercel\.app/);
   assert.match(r.out, /mode=production/);
   assert.match(r.out, /credentialed=false/);
 });
+
+
+// --- C1: public production alias binding (uncredentialed base) ---
+
+test("C1: positive public-alias bind on push (prefer shortest ≠ unique)", async () => {
+  const unique = "raven-worldsfair-2026-abc123xyz.vercel.app";
+  const longAlias = "raven-worldsfair-2026-git-main-team.vercel.app";
+  const shortAlias = "raven-worldsfair-2026.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_c1" })],
+    {
+      dpl_c1: [
+        publicAliasEntry("dpl_c1", unique), // unique also listed — must not be chosen
+        publicAliasEntry("dpl_c1", longAlias),
+        publicAliasEntry("dpl_c1", shortAlias),
+      ],
+    },
+  );
+  const r = await run({
+    EVENT_NAME: "push",
+    PUSH_SHA: SHA,
+    ...baseEnv,
+    VERCEL_API_BASE: api.base,
+  });
+  await api.close();
+  assert.equal(r.code, 0);
+  assert.match(r.out, /base=https:\/\/raven-worldsfair-2026\.vercel\.app/);
+  assert.doesNotMatch(r.out, new RegExp(`base=https://${unique.replace(/\\./g, "\\\\.")}`));
+  assert.match(r.out, /mode=production/);
+  assert.match(r.out, /credentialed=false/);
+});
+
+test("C1: empty aliases → refuse (no unique-host fallback)", async () => {
+  const unique = "only-unique.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_empty" })],
+    { dpl_empty: [] },
+  );
+  const r = await run({
+    EVENT_NAME: "push",
+    PUSH_SHA: SHA,
+    ...baseEnv,
+    VERCEL_API_BASE: api.base,
+  });
+  await api.close();
+  assert.notEqual(r.code, 0);
+  assert.match(r.err + r.out, /alias|unique|refusing/i);
+});
+
+test("C1: only unique host among aliases → refuse", async () => {
+  const unique = "only-unique-host.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_uniq" })],
+    { dpl_uniq: [publicAliasEntry("dpl_uniq", unique)] },
+  );
+  const r = await run({
+    EVENT_NAME: "push",
+    PUSH_SHA: SHA,
+    ...baseEnv,
+    VERCEL_API_BASE: api.base,
+  });
+  await api.close();
+  assert.notEqual(r.code, 0);
+  assert.match(r.err + r.out, /unique|refusing|deployment\\.url/i);
+});
+
+test("C1: rebound alias (wrong deploymentId) → refuse", async () => {
+  const unique = "rebound-unique.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_rebound" })],
+    {
+      dpl_rebound: [
+        {
+          alias: "raven-worldsfair-2026.vercel.app",
+          deploymentId: "dpl_other",
+          uid: "alias_wrong",
+        },
+      ],
+    },
+  );
+  const r = await run({
+    EVENT_NAME: "push",
+    PUSH_SHA: SHA,
+    ...baseEnv,
+    VERCEL_API_BASE: api.base,
+  });
+  await api.close();
+  assert.notEqual(r.code, 0);
+  assert.match(r.err + r.out, /rebound|deploymentId|refusing/i);
+});
+
+test("C1: deployment_status unique URL → resolves to public alias base", async () => {
+  const unique = "dpl-unique-status.vercel.app";
+  const publicHost = "raven-worldsfair-2026.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_status" })],
+    { dpl_status: [publicAliasEntry("dpl_status", publicHost)] },
+  );
+  const r = await run({
+    EVENT_NAME: "deployment_status",
+    DEPLOY_STATE: "success",
+    DEPLOY_URL: `https://${unique}`,
+    DEPLOY_SHA: SHA,
+    ...baseEnv,
+    VERCEL_API_BASE: api.base,
+  });
+  await api.close();
+  assert.equal(r.code, 0);
+  assert.match(r.out, /base=https:\/\/raven-worldsfair-2026\.vercel\.app/);
+  assert.doesNotMatch(r.out, /base=https:\/\/dpl-unique-status\.vercel\.app/);
+  assert.match(r.out, /mode=production/);
+  assert.match(r.out, /credentialed=false/);
+});
+
+test("C1: pull_request still refuses production (preview path unchanged)", async () => {
+  const unique = "prod-unique-for-pr.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_pr_prod" })],
+    {
+      dpl_pr_prod: [publicAliasEntry("dpl_pr_prod", "raven-worldsfair-2026.vercel.app")],
+    },
+  );
+  const r = await run({
+    EVENT_NAME: "pull_request",
+    PR_HEAD_SHA: SHA,
+    ...baseEnv,
+    VERCEL_API_BASE: api.base,
+  });
+  await api.close();
+  assert.notEqual(r.code, 0);
+  assert.match(r.err + r.out, /production/i);
+});
+
+test("C1: push SECRET_URL must match public bound base (not unique host)", async () => {
+  const unique = "secret-unique.vercel.app";
+  const publicHost = "raven-worldsfair-2026.vercel.app";
+  const api = await apiWith(
+    [mkDeploy({ target: "production", url: unique, uid: "dpl_sec" })],
+    { dpl_sec: [publicAliasEntry("dpl_sec", publicHost)] },
+  );
+  const bad = await run({
+    EVENT_NAME: "push",
+    PUSH_SHA: SHA,
+    SECRET_URL: `https://${unique}`,
+    ...baseEnv,
+    VERCEL_API_BASE: api.base,
+  });
+  assert.notEqual(bad.code, 0);
+  assert.match(bad.err + bad.out, /JUDGE_VERIFY_BASE_URL|does not match|refusing/i);
+
+  const good = await run({
+    EVENT_NAME: "push",
+    PUSH_SHA: SHA,
+    SECRET_URL: `https://${publicHost}`,
+    ...baseEnv,
+    VERCEL_API_BASE: api.base,
+  });
+  await api.close();
+  assert.equal(good.code, 0);
+  assert.match(good.out, /base=https:\/\/raven-worldsfair-2026\.vercel\.app/);
+});
+
 
 test("fixture-only: no live Vercel — mock HTTP only (this suite)", async () => {
   // Guard: every passing case above used VERCEL_API_BASE mock server.
