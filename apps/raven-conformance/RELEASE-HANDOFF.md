@@ -37,3 +37,17 @@ Set C2_DELIVERY_BUNDLE and C2_DELIVERY_IDENTITY to the absolute paths beside the
 ## Boundary
 
 Local candidate only. Independent exact-head review and Owner acceptance are separate. No public URL, deployment, external outreach or release approval is implied. Profile, corpus, targets, isolation, HTTP hardening and replay behavior are unchanged. INTEGER_KEY_ORDER remains unresolved; Foundry and Corpus0 are separate.
+
+## Exportable cleanliness gate (CLAUDE-068)
+
+Before sealing a delivery package or handing off evidence from this app tree, run the Fair-path cleanliness check. Not part of `npm test` / product build / CI / Fair tip promote.
+
+```sh
+# From repo root (INTEGRATION-LANE worktree):
+node scripts/artifact-sealing.mjs /path/to/sealed-package-dir
+node scripts/evidence-handoff.mjs /path/to/evidence-or-handoff-dir
+# Direct check:
+node scripts/check-exportable-cleanliness.mjs [--allowlist FILE] <dir-or-file> [...]
+```
+
+Fails non-zero on absolute filesystem path strings (including `/private/tmp` and `/var/folders`, not only `/Users/`). Optional `--allowlist FILE`: exact offending string or prefix ending in `/`.

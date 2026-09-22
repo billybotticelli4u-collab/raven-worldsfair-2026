@@ -44,6 +44,9 @@ export function readJsonObject(req) {
 }
 
 export function validateRunOptions(body) {
+  if (body.profile !== undefined && (typeof body.profile !== 'string' || body.profile.length < 1 || body.profile.length > 128)) {
+    throw new HttpError(400, 'invalid_profile');
+  }
   if (body.run_id !== undefined && (typeof body.run_id !== 'string' || !/^run_[A-Za-z0-9]{1,64}$/.test(body.run_id))) {
     throw new HttpError(400, 'invalid_run_id');
   }

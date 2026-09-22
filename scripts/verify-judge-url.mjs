@@ -6,6 +6,8 @@
  *
  * Env:
  *   VERIFY_JUDGE_COOKIE  optional Cookie for SSO-walled previews (same-origin only)
+ *   VERIFY_JUDGE_PROTECTION_BYPASS  optional Vercel automation bypass (header)
+ *   VERCEL_AUTOMATION_BYPASS_SECRET  same as above (Vercel-standard name)
  *   EXPECTED_COMMIT      required for CI/owner gate PASS — 40-hex must match fairBuildCommit
  *                        (LOCAL-UNBOUND only on loopback + identity UNKNOWN/null + null commit;
  *                         non-loopback with EXPECTED_COMMIT unset → FAIL)
@@ -17,6 +19,7 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { classifyIdentityChecks, isLoopbackHost, hostOf, classifyOversizeResponse } from "./lib/judge-url-identity.mjs";
+import { fetchSameOriginCredentialed, buildCredentialHeaders } from "./lib/same-origin-credentialed-fetch.mjs";
 
 const REPO = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const base = (process.argv[2] || "").replace(/\/$/, "");
@@ -26,9 +29,17 @@ if (!base) {
 }
 
 const cookie = process.env.VERIFY_JUDGE_COOKIE || "";
+const bypass = process.env.VERIFY_JUDGE_PROTECTION_BYPASS || process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "";
 const expectedCommit = (process.env.EXPECTED_COMMIT || "").trim().toLowerCase();
 const timeoutMs = Number(process.env.FETCH_TIMEOUT_MS || 15000);
-const headers = cookie ? { cookie } : {};
+const intendedOrigin = new URL(base + "/");
+const credentialHeaders = buildCredentialHeaders({ cookie, bypass });
+const headers = {
+  // Non-credential headers only — bypass/cookie attached per-request after origin check.
+  // Suppress Vercel Live feedback.js HTML injection so public-file
+  // fingerprints match built bytes (does not disable Deployment Protection).
+  "x-vercel-skip-toolbar": "1",
+};
 
 const ALLOWED_IDENTITY = new Set(["UNVERIFIED_ASSERTION"]);
 const DIVERGE = new Set(["FAIL", "DIVERGE", "DIVERGENCE", "BEHAVIORAL_DIVERGENCE"]);
@@ -61,7 +72,14 @@ function withTimeout(promise, label) {
 
 async function req(route, init = {}) {
   const r = await withTimeout(
-    fetch(base + route, { ...init, headers: { ...headers, ...(init.headers || {}) } }),
+    fetchSameOriginCredentialed(base + route, {
+      intendedOrigin,
+      credentialHeaders,
+      headers: { ...headers, ...(init.headers || {}) },
+      method: init.method,
+      body: init.body,
+      signal: init.signal,
+    }),
     route,
   );
   const text = await r.text();
@@ -74,6 +92,10 @@ function rawPost(route, hdrs, body) {
   return withTimeout(
     new Promise((resolve, reject) => {
       const u = new URL(base + route);
+      if (u.origin !== intendedOrigin.origin) {
+        reject(new Error(`refusing credentialed request: url origin ${u.origin} != intended ${intendedOrigin.origin}`));
+        return;
+      }
       const lib = u.protocol === "https:" ? https : http;
       const request = lib.request(
         {
@@ -82,7 +104,7 @@ function rawPost(route, hdrs, body) {
           port: u.port || (u.protocol === "https:" ? 443 : 80),
           path: u.pathname + u.search,
           method: "POST",
-          headers: { ...headers, ...hdrs },
+          headers: { ...headers, ...credentialHeaders, ...hdrs },
           timeout: timeoutMs,
         },
         (res) => {
@@ -193,7 +215,7 @@ try {
     const script = path.join(REPO, "scripts", "verify-public-build.mjs");
     const out = await new Promise((resolve) => {
       const child = spawn(process.execPath, [script, base], {
-        env: { ...process.env, VERIFY_JUDGE_COOKIE: cookie },
+        env: { ...process.env, VERIFY_JUDGE_COOKIE: cookie, VERIFY_JUDGE_PROTECTION_BYPASS: bypass, VERCEL_AUTOMATION_BYPASS_SECRET: bypass },
       });
       let stdout = "", stderr = "";
       child.stdout.on("data", (d) => (stdout += d));

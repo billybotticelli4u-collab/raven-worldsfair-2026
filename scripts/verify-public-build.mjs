@@ -1,9 +1,25 @@
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
+import { fetchSameOriginCredentialed, buildCredentialHeaders } from './lib/same-origin-credentialed-fetch.mjs';
+
 const origin = new URL(process.argv[2]);
 assert.ok(['http:', 'https:'].includes(origin.protocol));
+const intendedOrigin = new URL(origin.origin + '/');
+const cookie = process.env.VERIFY_JUDGE_COOKIE || "";
+const bypass = process.env.VERIFY_JUDGE_PROTECTION_BYPASS || process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "";
+const credentialHeaders = buildCredentialHeaders({ cookie, bypass });
+const headers = {
+  // Non-credential headers only — bypass/cookie attached after same-origin check.
+  // Suppress Vercel Live feedback.js HTML injection so public-file
+  // fingerprints match built bytes (does not disable Deployment Protection).
+  "x-vercel-skip-toolbar": "1",
+};
 const get = async route => {
- const response = await fetch(new URL(route, origin));
+ const response = await fetchSameOriginCredentialed(new URL(route, origin), {
+   intendedOrigin,
+   credentialHeaders,
+   headers,
+ });
  assert.equal(response.status, 200, `HTTP failure: ${route}`);
  return Buffer.from(await response.arrayBuffer());
 };

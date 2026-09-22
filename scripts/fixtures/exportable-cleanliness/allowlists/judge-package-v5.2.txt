@@ -1,0 +1,14 @@
+# Legitimate absolute-path strings inside sealed judge package v5.2
+# (isolation policy discloses sandbox roots; not host-local leaks).
+# Prefix entries end with /.
+/private/tmp
+/private/tmp/
+/private/var/folders
+/private/var/folders/
+/private/var
+/private/var/
+/usr/bin/true
+/var/folders
+/var/folders/
+/tmp
+/tmp/

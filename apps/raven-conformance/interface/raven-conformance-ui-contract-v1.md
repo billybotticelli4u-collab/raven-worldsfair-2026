@@ -30,7 +30,8 @@ UI **must not** offer arbitrary public code upload. Only allowlisted manifest ta
 
 ```json
 {
-  "target": "CONFORMANT_REFERENCE",
+  "profile": "raven-solana-txversion-experimental/0",
+  "target": "SOL_CONFORMANT_REFERENCE",
   "timeout_ms": 3000,
   "run_id": "run_myexample"
 }
@@ -38,6 +39,7 @@ UI **must not** offer arbitrary public code upload. Only allowlisted manifest ta
 
 | Field | Type | Default |
 |-------|------|---------|
+| `profile` | allowlisted profile name or alias | `raven-canonical-envelope/1` |
 | `target` | string | required for run |
 | `timeout_ms` | integer, 100–10000 inclusive | runner default (3000) |
 | `run_id` | `run_` plus 1–64 ASCII letters/digits; must not already exist | server-generated `run_<hex>` |
@@ -49,6 +51,11 @@ bodies 408, and invalid objects/options 400. These are transport refusals, not
 conformance verdicts. Target/CLI semantics and profile bytes are unchanged.
 This narrows formerly unchecked HTTP inputs; clients supplying arbitrary run IDs,
 timeouts over 10000, or external replay paths must migrate.
+
+`GET /api/profiles` lists the allowlisted registry. `GET /api/targets?profile=<selector>`,
+`GET /api/meta?profile=<selector>`, the SSE
+route, and `POST /api/run` all bind target selection to that profile; unknown
+profile names fail closed.
 
 SSE runs, POST runs, probes and replays share one execution lock. Concurrent
 execution requests return 409 (SSE retains its existing named error event).
@@ -123,6 +130,7 @@ MVP HTTP path returns the full report in one response (no SSE required). UI may 
 | Code | HTTP / CLI | Meaning |
 |------|------------|---------|
 | `unknown_target` | 400 / exit 2 | Target id not in manifest |
+| `unknown_profile` / `invalid_profile` | 400 | Profile is not allowlisted or the selector shape is invalid |
 | `missing_target_entry` | 500 | Entry file missing |
 | `invalid_json` | 400 | Bad request body |
 | `invalid_request` | 400 | JSON is not an object |
@@ -174,9 +182,10 @@ Replay: verify profile/corpus/target digests match report binding, re-exec in cl
 
 | Surface | Today | Challenge 1 |
 |---------|-------|-------------|
-| `GET /api/targets` | all targets | Filter or flag `probe: true` so UI default list stays demos |
-| `POST /api/run` | `{ target }` → report | Same; additive report fields OK |
-| `public/app.js` | `PASS` vs else; `summary.pass` / `divergence` | Keep working; show `isolation.mode` if present; treat `BEHAVIORAL_DIVERGENCE` like prior DIVERGENCE |
+| `GET /api/profiles` | allowlisted profile registry | Name, aliases, label, experimental flag |
+| `GET /api/targets` | envelope demos by default | `?profile=` selects another allowlisted non-probe family |
+| `POST /api/run` | `{ target }` preserves envelope default | `{ profile, target }` binds another family; additive report fields OK |
+| `public/app.js` | profile + target selection | Show `isolation.mode`; treat `BEHAVIORAL_DIVERGENCE` like prior DIVERGENCE |
 | Badges | `pass` / `div` | Map non-PASS → `div` (or finer classes later) |
 
 See `integration/UI_CONSUME_CONTRACT.md` for the minimal patch guidance.

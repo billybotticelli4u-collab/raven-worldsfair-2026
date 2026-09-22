@@ -1,0 +1,10 @@
+{
+  "schema": "raven-conformance-report/fixture",
+  "note": "CLAUDE-066-era style leak fixture: absolute target.entry (prefer real historic report if Mac-synced)",
+  "target": {
+    "id": "CONFORMANT_REFERENCE",
+    "entry": "/Users/TESTUSER/Downloads/PROJECT-WORKSPACE-EXAMPLE/INTEGRATION-LANE/worktree-example/apps/raven-conformance/targets/CONFORMANT_REFERENCE.mjs"
+  },
+  "summary": { "pass": 12, "total": 12 },
+  "result": "CONFORMANT"
+}

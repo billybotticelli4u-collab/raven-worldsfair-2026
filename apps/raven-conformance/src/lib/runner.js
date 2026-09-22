@@ -24,22 +24,70 @@ import {
   restrictedEnv,
 } from "./isolation.js";
 
-const PROFILE_FILE = "raven-canonical-envelope-1.json";
-const CORPUS_FILE = "raven-canonical-envelope-demo-corpus-1.json";
+const DEFAULT_PROFILE = "raven-canonical-envelope/1";
+const PROFILE_CONFIGS = [
+  {
+    name: DEFAULT_PROFILE,
+    aliases: ["default", "raven-envelope"],
+    label: "Canonical envelope",
+    experimental: false,
+    profileFile: "raven-canonical-envelope-1.json",
+    corpusFile: "raven-canonical-envelope-demo-corpus-1.json",
+    targetsFile: "manifests.json",
+  },
+  {
+    name: "raven-solana-txversion-experimental/0",
+    aliases: ["solana", "solana-txversion"],
+    label: "Solana transaction versions",
+    experimental: true,
+    profileFile: "raven-solana-txversion-experimental-0.json",
+    corpusFile: "raven-solana-txversion-demo-corpus-1.2.json",
+    targetsFile: "solana-manifests.json",
+  },
+];
 export { getDeliveryIdentity } from "./reproduction.js";
 import { cleanCloneRecipe } from "./reproduction.js";
 
 function refuse(code) { const error = new Error(code); error.code = code; throw error; }
 
+function vectorDescription(vector) {
+  return vector.description || vector.rationale || vector.requirement || vector.id;
+}
+
+function conformanceRunId(requested) {
+  const runId = requested || `run_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(runId)) refuse("INVALID_RUN_ID");
+  return runId;
+}
+
 export { restrictedEnv, DEFAULT_TIMEOUT_MS };
 
-export function loadProfile() {
-  const p = path.join(PROFILES_DIR, PROFILE_FILE);
+function getProfileConfig(selector = DEFAULT_PROFILE) {
+  const config = PROFILE_CONFIGS.find(
+    (candidate) => candidate.name === selector || candidate.aliases.includes(selector),
+  );
+  if (!config) refuse(`UNKNOWN_PROFILE:${selector}`);
+  return config;
+}
+
+export function listProfiles() {
+  return PROFILE_CONFIGS.map(({ name, aliases, label, experimental }) => ({
+    name,
+    aliases: [...aliases],
+    label,
+    experimental,
+  }));
+}
+
+export function loadProfile(selector = DEFAULT_PROFILE) {
+  const config = getProfileConfig(selector);
+  const p = path.join(PROFILES_DIR, config.profileFile);
   return { path: p, digest: fileSha256(p), data: JSON.parse(readFileSync(p, "utf8")) };
 }
 
-export function loadCorpus() {
-  const p = path.join(CORPUS_DIR, CORPUS_FILE);
+export function loadCorpus(selector = DEFAULT_PROFILE) {
+  const config = getProfileConfig(selector);
+  const p = path.join(CORPUS_DIR, config.corpusFile);
   const raw = readFileSync(p, "utf8");
   const data = JSON.parse(raw);
   const forDigest = {
@@ -47,6 +95,7 @@ export function loadCorpus() {
     version: data.version,
     profile: data.profile,
     description: data.description,
+    ...(data.lineage ? { lineage: data.lineage } : {}),
     vectors: data.vectors,
   };
   const computed = sha256Hex(JSON.stringify(forDigest, null, 2) + "\n");
@@ -54,21 +103,22 @@ export function loadCorpus() {
   return { path: p, digest: computed, declaredDigest: data.content_digest_sha256 || null, data };
 }
 
-export function loadTargets() {
-  const m = JSON.parse(readFileSync(path.join(TARGETS_DIR, "manifests.json"), "utf8"));
+export function loadTargets(selector = DEFAULT_PROFILE) {
+  const config = getProfileConfig(selector);
+  const m = JSON.parse(readFileSync(path.join(TARGETS_DIR, config.targetsFile), "utf8"));
   return m.targets;
 }
 
-export function loadDemoTargets() {
-  return loadTargets().filter((t) => !t.probe);
+export function loadDemoTargets(selector = DEFAULT_PROFILE) {
+  return loadTargets(selector).filter((t) => !t.probe);
 }
 
 export function loadProbeTargets() {
   return loadTargets().filter((t) => t.probe === true);
 }
 
-export function getTarget(targetId) {
-  const t = loadTargets().find((x) => x.id === targetId);
+export function getTarget(targetId, selector = DEFAULT_PROFILE) {
+  const t = loadTargets(selector).find((x) => x.id === targetId);
   if (!t) throw new Error(`unknown_target:${targetId}`);
   return t;
 }
@@ -77,7 +127,7 @@ export function getTarget(targetId) {
  * Classify a single vector execution into the Challenge 1 taxonomy.
  * Never maps crash/timeout/flood/invalid to PASS.
  */
-export function classifyResult(exec, expectedDecision, { probe = false, probeExpectation = null } = {}) {
+export function classifyResult(exec, expectation, { probe = false, probeExpectation = null } = {}) {
   if (exec.spawn_error) {
     return { status: "RUNNER_FAILURE", evidence_note: exec.spawn_error };
   }
@@ -106,11 +156,18 @@ export function classifyResult(exec, expectedDecision, { probe = false, probeExp
     // Probe-specific classification left to runProbe; fall through for decision probes
   }
 
+  const expected = typeof expectation === "string" ? { decision: expectation } : expectation;
   const observedDecision = exec.observed?.decision ?? null;
   if (observedDecision === null) {
     return { status: "INVALID_OUTPUT", evidence_note: "missing_decision" };
   }
-  if (observedDecision === expectedDecision) {
+  if (Object.hasOwn(expected, "version") && !Object.hasOwn(exec.observed || {}, "version")) {
+    return { status: "INVALID_OUTPUT", evidence_note: "missing_version" };
+  }
+  const comparisonFields = Object.hasOwn(expected, "version")
+    ? ["decision", "version"]
+    : ["decision"];
+  if (comparisonFields.every((field) => (exec.observed?.[field] ?? null) === expected[field])) {
     return { status: "PASS", evidence_note: null };
   }
   return { status: "BEHAVIORAL_DIVERGENCE", evidence_note: null };
@@ -147,26 +204,33 @@ function tallyCounts(results) {
 export function deterministicReportBody(report) {
   // A digest cannot include its own stored value. Same projection before and after sealing.
   const { deterministic_report_sha256: _selfDigest, ...identityBinding } = report.binding || {};
-  const results = (report.results || []).map((r) => ({
-    vector_id: r.vector_id,
-    description: r.description,
-    expected: r.expected,
-    observed: {
+  const results = (report.results || []).map((r) => {
+    const observed = {
       decision: r.observed?.decision ?? null,
       reason: r.observed?.reason ?? null,
       parseError: r.observed?.parseError ?? null,
       timedOut: r.observed?.timedOut ?? false,
-    },
-    status: r.status,
-    // evidence without durationMs
-    evidence: {
-      exitCode: r.evidence?.exitCode ?? null,
-      flooded: r.evidence?.flooded ?? false,
-      timedOut: r.evidence?.timedOut ?? false,
-      stdout_sha256: r.evidence?.stdout ? sha256Hex(r.evidence.stdout) : null,
-      stderr_sha256: r.evidence?.stderr ? sha256Hex(r.evidence.stderr) : null,
-    },
-  }));
+    };
+    if (Object.hasOwn(r.expected || {}, "version")) {
+      observed.version = r.observed?.version ?? null;
+      observed.version_present = r.observed?.version_present === true;
+    }
+    return {
+      vector_id: r.vector_id,
+      description: r.description,
+      expected: r.expected,
+      observed,
+      status: r.status,
+      // evidence without durationMs
+      evidence: {
+        exitCode: r.evidence?.exitCode ?? null,
+        flooded: r.evidence?.flooded ?? false,
+        timedOut: r.evidence?.timedOut ?? false,
+        stdout_sha256: r.evidence?.stdout ? sha256Hex(r.evidence.stdout) : null,
+        stderr_sha256: r.evidence?.stderr ? sha256Hex(r.evidence.stderr) : null,
+      },
+    };
+  });
   return {
     schema: report.schema,
     product: report.product,
@@ -261,9 +325,9 @@ export async function runVector(entryAbs, inputObj, opts = {}) {
  * Execute full conformance run for a demo target id.
  */
 export async function runConformance(targetId, opts = {}) {
-  const profile = loadProfile();
-  const corpus = loadCorpus();
-  const target = getTarget(targetId);
+  const profile = loadProfile(opts.profile || DEFAULT_PROFILE);
+  const corpus = loadCorpus(profile.data.name);
+  const target = getTarget(targetId, profile.data.name);
   if (target.claimed_conformance_profile !== profile.data.name ||
       target.claimed_conformance_profile_version !== profile.data.version || corpus.data.profile !== profile.data.name)
     refuse("PROFILE_MISMATCH");
@@ -274,7 +338,7 @@ export async function runConformance(targetId, opts = {}) {
   if (!existsSync(entryAbs)) throw new Error(`missing_target_entry:${entryAbs}`);
 
   const targetDigest = fileSha256(entryAbs);
-  const runId = opts.runId || `run_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
+  const runId = conformanceRunId(opts.runId);
   const startedAt = new Date().toISOString();
   const workDir = createRunWorkdir(runId);
   const isolation = resolveIsolation(workDir);
@@ -288,9 +352,9 @@ export async function runConformance(targetId, opts = {}) {
         incomplete = true;
         results.push({
           vector_id: vector.id,
-          description: vector.description,
-          expected: { decision: vector.expected.decision },
-          observed: { decision: null, reason: null },
+          description: vectorDescription(vector),
+          expected: { ...vector.expected },
+          observed: { decision: null, version: null, reason: null },
           status: "INCOMPLETE",
           evidence: { stdout: "", stderr: "run_aborted", exitCode: null, durationMs: 0 },
         });
@@ -299,9 +363,9 @@ export async function runConformance(targetId, opts = {}) {
       if (vector.skip === true) {
         results.push({
           vector_id: vector.id,
-          description: vector.description,
-          expected: { decision: vector.expected?.decision ?? null },
-          observed: { decision: null, reason: "skipped" },
+          description: vectorDescription(vector),
+          expected: { ...vector.expected },
+          observed: { decision: null, version: null, reason: "skipped" },
           status: "SKIPPED_VECTOR",
           evidence: { stdout: "", stderr: "", exitCode: null, durationMs: 0, skipped: true },
         });
@@ -322,24 +386,37 @@ export async function runConformance(targetId, opts = {}) {
         runnerFailure = String(err);
         results.push({
           vector_id: vector.id,
-          description: vector.description,
-          expected: { decision: vector.expected.decision },
-          observed: { decision: null, reason: null, parseError: "runner_exception" },
+          description: vectorDescription(vector),
+          expected: { ...vector.expected },
+          observed: { decision: null, version: null, reason: null, parseError: "runner_exception" },
           status: "RUNNER_FAILURE",
           evidence: { stdout: "", stderr: String(err), exitCode: null, durationMs: 0 },
         });
         break;
       }
 
-      const { status, evidence_note } = classifyResult(exec, vector.expected.decision);
+      const { status, evidence_note } = classifyResult(exec, vector.expected);
+      const expectsVersion = Object.hasOwn(vector.expected, "version");
+      const observedHasVersion = Object.hasOwn(exec.observed || {}, "version");
       const row = {
         vector_id: vector.id,
-        description: vector.description,
-        expected: { decision: vector.expected.decision },
+        description: vectorDescription(vector),
+        expected: { ...vector.expected },
         observed: exec.observed
-          ? { decision: exec.observed.decision, reason: exec.observed.reason ?? null }
+          ? {
+              decision: exec.observed.decision,
+              version: observedHasVersion ? exec.observed.version : null,
+              ...(expectsVersion ? { version_present: observedHasVersion } : {}),
+              reason: exec.observed.reason ?? null,
+              ...(
+                expectsVersion && !observedHasVersion
+                  ? { parseError: "missing_version" }
+                  : {}
+              ),
+            }
           : {
               decision: null,
+              version: null,
               reason: null,
               parseError: exec.parseError,
               timedOut: exec.timedOut,
@@ -520,8 +597,9 @@ export async function runConformance(targetId, opts = {}) {
             : null,
     },
     results,
-    divergence_definition:
-      "BEHAVIORAL_DIVERGENCE = observed decision ≠ specified corpus expectation only. Not automatically exploitable, unsafe, or malicious. No generic security score. Crashes/timeouts/invalid/flood are separate statuses and never PASS.",
+    divergence_definition: corpus.data.vectors.some((vector) => Object.hasOwn(vector.expected, "version"))
+      ? "BEHAVIORAL_DIVERGENCE = observed decision or version ≠ specified corpus expectation only. Not automatically exploitable, unsafe, or malicious. No generic security score. Crashes/timeouts/invalid/flood are separate statuses and never PASS."
+      : "BEHAVIORAL_DIVERGENCE = observed decision ≠ specified corpus expectation only. Not automatically exploitable, unsafe, or malicious. No generic security score. Crashes/timeouts/invalid/flood are separate statuses and never PASS.",
     limitations: [
       isolation.mode === "sandbox_exec" && isolation.verified
         ? "Isolation mode sandbox_exec: Seatbelt profile applied; still not a general multi-tenant production sandbox."
@@ -538,8 +616,8 @@ export async function runConformance(targetId, opts = {}) {
       "Author-lane Fair Build Stage product review surface only. No arbitrary public code upload.",
     ],
     reproduction: {
-      clean_clone: cleanCloneRecipe(targetId),
-      one_liner: `cd apps/raven-conformance && npm run conform -- --target ${targetId}`,
+      clean_clone: cleanCloneRecipe(targetId, profile.data.name),
+      one_liner: `cd apps/raven-conformance && npm run conform -- --profile ${profile.data.name} --target ${targetId}`,
       replay: `cd apps/raven-conformance && npm run replay -- --report reports/<run_id>.json`,
       demo: "cd apps/raven-conformance && npm run demo",
     },
@@ -586,7 +664,7 @@ export async function runProbe(targetId, opts = {}) {
   const parentCanary = "PARENT_CANARY_" + randomUUID().slice(0, 8);
   process.env.RAVEN_CONFORMANCE_CANARY = parentCanary;
 
-  const corpusPath = path.join(CORPUS_DIR, CORPUS_FILE);
+  const corpusPath = path.join(CORPUS_DIR, getProfileConfig(DEFAULT_PROFILE).corpusFile);
   const reportsPath = REPORTS_DIR;
   const writeMarker = `hostile_write_probe_${runId}`;
   const input = {
@@ -831,7 +909,9 @@ export function humanView(report) {
   lines.push("");
   for (const r of report.results) {
     const obs = r.observed.decision ?? `null(${r.observed.parseError || "n/a"})`;
-    lines.push(`[${r.status}] ${r.vector_id}  expected=${r.expected.decision}  observed=${obs}`);
+    const expectedVersion = Object.hasOwn(r.expected, "version") ? `/${r.expected.version}` : "";
+    const observedVersion = Object.hasOwn(r.expected, "version") ? `/${r.observed.version ?? "-"}` : "";
+    lines.push(`[${r.status}] ${r.vector_id}  expected=${r.expected.decision}${expectedVersion}  observed=${obs}${observedVersion}`);
     if (r.status !== "PASS") {
       lines.push(`         reason=${r.observed.reason ?? "n/a"}  — ${r.description}`);
     }

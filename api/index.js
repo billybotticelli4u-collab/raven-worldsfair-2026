@@ -18,7 +18,7 @@ import { assertRuntimeRootWritable, resolveRuntimeRoot } from "./runtime-root-gu
 
 const SOURCE_ROOT = path.resolve(fileURLToPath(new URL("../apps/raven-conformance/", import.meta.url)));
 const REPO_ROOT = path.resolve(SOURCE_ROOT, "..", "..");
-const SKIP_TOP_LEVEL = new Set(["evidence", "test", "node_modules"]);
+const SKIP_TOP_LEVEL = new Set(["evidence", "test", "node_modules", "reports"]);
 
 const RUNTIME_ROOT = resolveRuntimeRoot({
   env: process.env,
