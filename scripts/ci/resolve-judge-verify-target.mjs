@@ -15,8 +15,12 @@
  * Production path (push / production deployment_status):
  * - Separate resolveProductionForCommit — NOT a fallback inside the preview resolver
  * - READY + target==="production" only; project ownership; newest match
- * - Bind public production address via GET /v2/deployments/{uid}/aliases
- *   (deploymentId must match uid; refuse unique deployment.url as uncredentialed base)
+ * - Discover aliases via GET /v2/deployments/{uid}/aliases (real list shape:
+ *   alias/created/redirect/uid — no invented list-entry deploymentId)
+ * - For each public candidate (host ≠ unique deployment.url; skip redirect aliases):
+ *   GET /v4/aliases/{idOrAlias} and require detail.deploymentId == uid and
+ *   detail.projectId == VERCEL_PROJECT_ID
+ * - Emit https://{publicAlias} only; refuse unique deployment.url as uncredentialed base
  * - credentialed=false (public application check; no cookie/bypass)
  *
  * Never skip-as-pass. Unrelated / stale / failed / foreign URLs refuse.
@@ -171,8 +175,9 @@ function uniqueDeploymentHost(d) {
 }
 
 /**
- * Fetch aliases for a deployment uid (trusted Vercel API metadata).
- * Honors VERCEL_TEAM_ID when set.
+ * Fetch aliases for a deployment uid (list shape only).
+ * Live GET /v2/deployments/{uid}/aliases returns {alias, created, redirect, uid}
+ * — no deploymentId on list entries. Honors VERCEL_TEAM_ID when set.
  */
 async function fetchDeploymentAliases(uid) {
   if (!uid) fail("Deployment uid required to fetch aliases");
@@ -187,10 +192,41 @@ async function fetchDeploymentAliases(uid) {
 }
 
 /**
+ * Fetch alias DETAIL via GET /v4/aliases/{idOrAlias}.
+ * Detail carries deploymentId + projectId used for binding verification.
+ * Honors VERCEL_TEAM_ID when set. Returns null on 404; fails on other errors.
+ */
+async function fetchAliasDetail(idOrAlias) {
+  if (!idOrAlias) fail("Alias idOrAlias required for detail lookup");
+  const teamId = process.env.VERCEL_TEAM_ID || "";
+  const qs = new URLSearchParams();
+  if (teamId) qs.set("teamId", teamId);
+  const q = qs.toString() ? `?${qs}` : "";
+  const res = await vercelFetch(`/v4/aliases/${encodeURIComponent(idOrAlias)}${q}`);
+  if (res.status === 404) return null;
+  if (!res.ok) fail(`Vercel alias detail lookup failed: HTTP ${res.status}`);
+  return await res.json();
+}
+
+function aliasListHost(entry) {
+  return String(entry.alias || "")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "")
+    .toLowerCase();
+}
+
+function aliasIsRedirect(entry) {
+  // Live list/detail may set redirect to a target host when the alias redirects.
+  return entry.redirect != null && String(entry.redirect).trim() !== "";
+}
+
+/**
  * Bind public production address for a Ready production deployment.
- * Refuses deployment.url (unique host) as the uncredentialed verify base.
- * Requires alias entries whose deploymentId matches this deployment uid.
- * Prefers shortest / stable project alias among public hosts ≠ unique host.
+ * Discovers candidates from deployment-scoped list (real shape; no invented
+ * list-entry deploymentId). Verifies each candidate via GET /v4/aliases/{idOrAlias}
+ * requiring detail.deploymentId == uid and detail.projectId == VERCEL_PROJECT_ID.
+ * Refuses unique deployment.url as the uncredentialed verify base.
+ * Prefers shortest / stable project alias among verified public hosts.
  */
 async function bindPublicProductionAlias(deployment) {
   const uid = String(deployment.uid || deployment.id || "");
@@ -201,6 +237,8 @@ async function bindPublicProductionAlias(deployment) {
   if (!uniqueHost) {
     fail("Production deployment has no unique URL host; refusing.");
   }
+  const wantProject = process.env.VERCEL_PROJECT_ID || "";
+  if (!wantProject) fail("VERCEL_PROJECT_ID required");
 
   const aliases = await fetchDeploymentAliases(uid);
   if (aliases.length === 0) {
@@ -209,54 +247,116 @@ async function bindPublicProductionAlias(deployment) {
     );
   }
 
-  const bound = [];
-  let sawWrongDeploymentId = false;
+  // Candidates from list shape only: {alias, created, redirect, uid}
+  // Do not invent or require deploymentId on list entries.
+  const candidates = [];
+  let sawRedirectOnly = false;
   for (const a of aliases) {
-    const depId =
-      a.deploymentId != null && a.deploymentId !== ""
-        ? String(a.deploymentId)
-        : a.deployment && a.deployment.id != null && a.deployment.id !== ""
-          ? String(a.deployment.id)
-          : "";
-    if (!depId) continue; // require explicit deploymentId binding
-    if (depId !== uid) {
-      sawWrongDeploymentId = true;
-      continue;
+    if (aliasIsRedirect(a)) {
+      sawRedirectOnly = true;
+      continue; // refuse redirecting aliases as verify base
     }
-    bound.push(a);
+    const host = aliasListHost(a);
+    if (!host) continue;
+    if (host === uniqueHost) continue; // never use unique deployment host
+    const idOrAlias = a.uid || a.alias || host;
+    candidates.push({ host, idOrAlias, listEntry: a });
   }
 
-  if (bound.length === 0) {
-    if (sawWrongDeploymentId) {
+  if (candidates.length === 0) {
+    // Distinguish: only unique host vs only redirects vs empty usable
+    const nonRedirectHosts = [];
+    for (const a of aliases) {
+      if (aliasIsRedirect(a)) continue;
+      const host = aliasListHost(a);
+      if (host) nonRedirectHosts.push(host);
+    }
+    if (nonRedirectHosts.length > 0 && nonRedirectHosts.every((h) => h === uniqueHost)) {
       fail(
-        `Alias rebound: deploymentId does not match production deployment ${uid}; refusing.`,
+        `Only unique deployment host found among aliases for ${uid}; refusing deployment.url as uncredentialed verify base.`,
+      );
+    }
+    if (sawRedirectOnly) {
+      fail(
+        `Only redirecting aliases for production deployment ${uid}; refusing redirect aliases as uncredentialed verify base.`,
       );
     }
     fail(
-      `No aliases with matching deploymentId for production deployment ${uid}; refusing (API alias↔deployment binding required).`,
+      `No public (non-unique, non-redirect) aliases for production deployment ${uid}; refusing.`,
     );
   }
 
-  const publicHosts = [];
-  for (const a of bound) {
-    const host = String(a.alias || "")
-      .replace(/^https?:\/\//, "")
-      .replace(/\/$/, "")
-      .toLowerCase();
-    if (!host) continue;
-    if (host === uniqueHost) continue; // never use unique deployment host
-    publicHosts.push(host);
+  // Prefer shortest / stable among candidates, then verify via detail
+  candidates.sort((a, b) => a.host.length - b.host.length || a.host.localeCompare(b.host));
+
+  const verified = [];
+  let sawMissingDetail = false;
+  let sawMissingFields = false;
+  let sawWrongDeploymentId = false;
+  let sawWrongProjectId = false;
+
+  for (const c of candidates) {
+    const detail = await fetchAliasDetail(c.idOrAlias);
+    if (detail == null) {
+      sawMissingDetail = true;
+      continue;
+    }
+    // Also refuse if detail itself is a redirect
+    if (aliasIsRedirect(detail)) {
+      sawRedirectOnly = true;
+      continue;
+    }
+    const detailDepId =
+      detail.deploymentId != null && detail.deploymentId !== ""
+        ? String(detail.deploymentId)
+        : detail.deployment && detail.deployment.id != null && detail.deployment.id !== ""
+          ? String(detail.deployment.id)
+          : "";
+    const detailProjectId =
+      detail.projectId != null && detail.projectId !== "" ? String(detail.projectId) : "";
+
+    if (!detailDepId || !detailProjectId) {
+      sawMissingFields = true;
+      continue;
+    }
+    if (detailDepId !== uid) {
+      sawWrongDeploymentId = true;
+      continue;
+    }
+    if (detailProjectId !== String(wantProject)) {
+      sawWrongProjectId = true;
+      continue;
+    }
+    verified.push(c.host);
   }
 
-  if (publicHosts.length === 0) {
+  if (verified.length === 0) {
+    if (sawWrongDeploymentId) {
+      fail(
+        `Alias rebound: detail deploymentId does not match production deployment ${uid}; refusing.`,
+      );
+    }
+    if (sawWrongProjectId) {
+      fail(
+        `Alias detail projectId mismatch (foreign project); refusing.`,
+      );
+    }
+    if (sawMissingFields) {
+      fail(
+        `Alias detail missing deploymentId or projectId for production deployment ${uid}; refusing.`,
+      );
+    }
+    if (sawMissingDetail) {
+      fail(
+        `Alias detail missing (404) for candidates of production deployment ${uid}; refusing.`,
+      );
+    }
     fail(
-      `Only unique deployment host found among aliases for ${uid}; refusing deployment.url as uncredentialed verify base.`,
+      `No verified public alias (detail deploymentId+projectId) for production deployment ${uid}; refusing.`,
     );
   }
 
-  // Prefer shortest / stable project alias
-  publicHosts.sort((a, b) => a.length - b.length || a.localeCompare(b));
-  const publicAlias = publicHosts[0];
+  const publicAlias = verified[0]; // already sorted by candidate preference
   const url = `https://${publicAlias}`;
   assertSafeVerifyUrl(url, "bound public production alias");
   return normalizeOriginUrl(url);
@@ -306,7 +406,7 @@ async function resolvePreviewForCommit(commit) {
  * Resolve Ready production deployment for exact commit in configured project.
  * Separate from preview resolver — never used as preview fallback.
  * READY + target==="production" only; project ownership; newest match;
- * then bind public alias via /v2/deployments/{uid}/aliases (refuse unique host).
+ * then bind public alias via list + /v4/aliases/{idOrAlias} detail (refuse unique host).
  */
 async function resolveProductionForCommit(commit) {
   const list = await listDeploymentsForCommit(commit);
