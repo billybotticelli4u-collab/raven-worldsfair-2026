@@ -9,7 +9,7 @@
 | Branch | `billy/worldsfair-2026-day2-malformed-clock-repair-2026-09-14` |
 | HEAD | `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` |
 | TREE | `3e442f93529bdb5da876b54d484294032535e84a` |
-| Worktree | `/Users/ROBY/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` |
+| Worktree | `<home>/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` |
 | Review | **INTERNAL_ADVERSARIAL_NON_AUTHOR** GO (Billy copy) — **not** EXTERNAL_INDEPENDENT |
 | Public strategy | Strategy A (submodule pin unchanged `1b04356a275742752fb7afd8dfcc4269d462a778`) |
 | Public parent | Day-1 public `feaa1fb452b8e1307979dea7fd1c561fad82aa00` (preserve history; no rewrite) |
@@ -33,7 +33,7 @@ Historical Day-1 draft body retained below for provenance.
 
 | Field | Value |
 | --- | --- |
-| Worktree | `/Users/ROBY/launchguard-billy-worldsfair-2026-day1` |
+| Worktree | `<home>/launchguard-billy-worldsfair-2026-day1` |
 | Branch | `billy/worldsfair-2026-day1-agent-trust-2026-09-14` |
 | HEAD | `1ba45d5a787172da648b9da4241f119bcc49e814` |
 | TREE | `9205ca7901c0acd12663e628bd9936c1a8eb8c76` |
@@ -186,7 +186,7 @@ npm start   # http://127.0.0.1:8787
 | `packages/verify-js/src/keyManifest.ts`, `proposed.ts`, `receiptEvmV1.ts`, `verifyReceiptEvmV1.ts` | Not on Day-1 import graph; proposed/non-frozen surface — omit from minimal Fair subset |
 | `packages/verify-js/fixtures/receipt-evm-v1/**` and non-BONK receipt-v1 vector farms | Not required for offline Day-1 demo |
 | `packages/verify-js/test/**` (unless Owner wants extra judge confidence) | Minimize; tests generate ephemeral keypairs only — still optional |
-| Full private review NOTES tree under `/Users/ROBY/raven-rnd-gauntlet-push/*-NOTES` | Local review artifacts; disclose status, do not bulk-publish |
+| Full private review NOTES tree under `<home>/raven-rnd-gauntlet-push/*-NOTES` | Local review artifacts; disclose status, do not bulk-publish |
 | Any `gh repo create` / Vercel deploy / npm publish artifacts created without Owner confirm | Process exclusion |
 
 ---

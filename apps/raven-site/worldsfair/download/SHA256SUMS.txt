@@ -1,2 +1,3 @@
 71ae943f9085200c55b75f02d16d18455a6f36b7c917ef24fbad4895d1805a51  DOWNLOAD-NOTES.md
+35168a947febd81d8b64fcad81af579f96cdfd13c907ab05d18e349e815fc44c  raven-conformance-fair-developer-notes.zip
 34453300504b703b4c62de6ff5a885e80f8892c0217d66e1fb031716df3efe1e  raven-conformance-judge-package-2026-09-20-34453300.zip
