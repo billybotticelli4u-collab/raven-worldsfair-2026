@@ -9,7 +9,7 @@
 - `claude-066-leaked-revalidate-report.json` — absolute `target.entry` leak
 - `historical/` — seal 600758b5 class, CLAUDE-066, four comparison.json session-metadata leaks (all must FAIL)
 - `bypass-corpus/` — ≥40 adversarial vectors + `manifest.json` (run via `scripts/run-exportable-cleanliness-bypass-corpus.mjs`)
-- `symlink-demo/` — O1: symlinks → checker exit **3** (refuse; never silent skip)
+- `symlink-demo/` — safe relative symlink fixture, checker exit **3**. The escaping absolute-link control is created only in an owned temporary directory by `tests/exportable-symlink.test.mjs`, so source archives contain no external-pointing link.
 
 ## Exit codes
 
