@@ -1,0 +1,69 @@
+{
+  "schema": "raven-replay-adapter-registry/1",
+  "note": "Local explicit registry. Cases may name an id listed here; they cannot install packages or supply entrypoints. Operator setup installs pinned dependencies once. dependency_packages lists declared roots; runner expands the full transitive closure + local adapter-directory helpers into dependency_binding_sha256.",
+  "adapters": [
+    {
+      "id": "solana-kit-tx-decode",
+      "label": "Pinned @solana/kit offline wire/message decode",
+      "entrypoint": "solana-kit-tx-decode/adapter.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": ["@solana/kit"]
+    },
+    {
+      "id": "example-parser-v1",
+      "label": "Synthetic example parser baseline",
+      "entrypoint": "example-parser/v1.mjs",
+      "output_contract": "raven-example-parser/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "example-parser-v2",
+      "label": "Synthetic example parser candidate (controlled label change)",
+      "entrypoint": "example-parser/v2.mjs",
+      "output_contract": "raven-example-parser/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "example-sentinel-echo",
+      "label": "Control: echoes synthetic sentinel in decoded (C3 report leak probe)",
+      "entrypoint": "example-parser/sentinel-echo.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "control-crash",
+      "label": "Control: non-zero exit",
+      "entrypoint": "example-parser/crash.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "control-hang",
+      "label": "Control: timeout (cooperating event-loop hang)",
+      "entrypoint": "example-parser/hang.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "control-hang-ignore-term",
+      "label": "Control: ignore SIGTERM hard-deadline (C6)",
+      "entrypoint": "example-parser/hang-ignore-term.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "control-excess",
+      "label": "Control: excess stdout",
+      "entrypoint": "example-parser/excess.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "control-bad-protocol",
+      "label": "Control: invalid protocol stdout",
+      "entrypoint": "example-parser/bad-protocol.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": []
+    }
+  ]
+}

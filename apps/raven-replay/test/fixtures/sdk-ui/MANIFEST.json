@@ -1,0 +1,9 @@
+{
+  "label": "FIXTURES — generated from the accepted SDK engine for UI tests; NOT end-to-end evidence of the integrated server",
+  "generator": "test/fixtures/sdk-ui/generate-fixtures.mjs",
+  "sdk_package_root_basename": "raven-replay-parser-sdk",
+  "sdk_case_schema": "raven-replay-adapter-case/1",
+  "node": "v22.18.0",
+  "generated_utc": "2026-09-24T08:04:52.794Z",
+  "adapter_list_shape": "mirrors the r3 backend loadSdkAdapters(): {id, label, schema}"
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "raven-replay-adapter-case-report/1",
+  "exit_code": 3,
+  "counts": {
+    "MATCH": 0,
+    "REGRESSION": 0,
+    "INVALID_CASE": 0,
+    "RUN_ERROR": 1
+  },
+  "results": [
+    {
+      "name": "kit-binding-drift-control",
+      "status": "RUN_ERROR",
+      "exit_code": 3,
+      "case_content_sha256": "596b27a75d190606b5cfc342531967683852159ce0676e4884f6ed771e5198cb",
+      "reference": "NOT_PROVIDED",
+      "execution": "NOT_RUN",
+      "expected_result": null,
+      "actual_result": null,
+      "differences": [],
+      "error": "Adapter source bytes differ from case binding"
+    }
+  ],
+  "limits": {
+    "meaning": "Batch comparison of saved expected adapter executions.",
+    "precedence": "exit_code is max of per-case exits (MATCH=0 < REGRESSION=1 < INVALID_CASE=2 < RUN_ERROR=3).",
+    "report_omits_raw_input": true,
+    "report_omits_reconstructible_wire": true,
+    "detailed_export": false,
+    "delivery": "Separate CLI module; accepted UI not integrated here."
+  }
+}

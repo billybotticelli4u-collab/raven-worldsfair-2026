@@ -1,0 +1,32 @@
+{
+  "schema": "raven-replay-adapter-case-report/1",
+  "exit_code": 2,
+  "counts": {
+    "MATCH": 0,
+    "REGRESSION": 0,
+    "INVALID_CASE": 1,
+    "RUN_ERROR": 0
+  },
+  "results": [
+    {
+      "name": "kit-legacy-accept",
+      "status": "INVALID_CASE",
+      "exit_code": 2,
+      "case_content_sha256": "de905832c6e1bc6449eb2695ba03c58e55ba914e2dcf231e1f9052f6f86759e9",
+      "reference": "MISMATCH",
+      "execution": "NOT_RUN",
+      "expected_result": null,
+      "actual_result": null,
+      "differences": [],
+      "error": "Case differs from the supplied reference"
+    }
+  ],
+  "limits": {
+    "meaning": "Batch comparison of saved expected adapter executions.",
+    "precedence": "exit_code is max of per-case exits (MATCH=0 < REGRESSION=1 < INVALID_CASE=2 < RUN_ERROR=3).",
+    "report_omits_raw_input": true,
+    "report_omits_reconstructible_wire": true,
+    "detailed_export": false,
+    "delivery": "Separate CLI module; accepted UI not integrated here."
+  }
+}

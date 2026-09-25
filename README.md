@@ -1,3 +1,7 @@
+> **Local submission candidate — not published.** This checkout adds Raven Replay under `apps/raven-replay/`. Public main at the base commit does not contain it. The existing deployed demos and Replay are distinct.
+>
+> **Start here for saved regression cases:** [Replay judge walkthrough](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md). Replay runs locally on Node v22.18.0. It is not hosted by the existing Vercel routes. Reports are unsigned; MATCH is not a safety verdict.
+
 # Raven × Crypto World's Fair 2026 — Agent Trust demo
 
 Judge demo: Agent A refuses blind trust, requires Raven-verified Solana

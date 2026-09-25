@@ -1,0 +1,26 @@
+{
+  "schema": "raven-replay-case/1",
+  "name": "changed-expectation-control",
+  "bindings": {
+    "runtime": "v22.18.0",
+    "tool": "solana-byte-structure-experimental/0",
+    "tool_sha256": "b1d03b29b298c922a64078a7f55b9344c0908b92ca411b4e5371786b92cac9d5",
+    "policy_sha256": "8240235f42ebd2063149306b0752d9bbe709fa2dc1305a316af3ae4568ec4d47"
+  },
+  "input_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA=",
+  "input_sha256": "2385a602397d22dbdca60401f69aecc26829c9c5ddb4b398cc41881bcc88194d",
+  "expected_execution": {
+    "complete": true,
+    "exit_code": 0,
+    "signal": null,
+    "error_code": null,
+    "stdin_sha256": "935c4d7e4e74884bf9d73350da2b8869e16081e6592c3a270a2f56ef8d62d4ab",
+    "stdout_base64": "eyJkZWNpc2lvbiI6IkFDQ0VQVCIsInZlcnNpb24iOiJsZWdhY3kiLCJyZWFzb24iOiJzeW50aGV0aWMgY2hhbmdlZCBleHBlY3RhdGlvbiJ9Cg==",
+    "stderr_base64": "",
+    "parsed": {
+      "decision": "ACCEPT",
+      "version": "legacy",
+      "reason": "synthetic changed expectation"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "source_head": "a5c78f8a225c70f28661be600ea26af68c0cb0eb",
+  "path": "apps/raven-conformance/targets/solana/SOL_CONFORMANT_REFERENCE.mjs",
+  "sha256": "b1d03b29b298c922a64078a7f55b9344c0908b92ca411b4e5371786b92cac9d5",
+  "changes": "NONE",
+  "example": "Raven-owned offline synthetic-key legacy fixture; not a live chain observation"
+}

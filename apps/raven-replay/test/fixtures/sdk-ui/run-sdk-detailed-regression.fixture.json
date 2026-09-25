@@ -1,0 +1,168 @@
+{
+  "schema": "raven-replay-adapter-case-report/1-detailed",
+  "exit_code": 1,
+  "counts": {
+    "MATCH": 0,
+    "REGRESSION": 1,
+    "INVALID_CASE": 0,
+    "RUN_ERROR": 0
+  },
+  "results": [
+    {
+      "name": "kit-changed-expectation-control",
+      "status": "REGRESSION",
+      "exit_code": 1,
+      "case_content_sha256": "fb5ac5a83d32411213655536aab062922db58adc8aefe9c22133d8b5899cd669",
+      "reference": "NOT_PROVIDED",
+      "execution": "COMPLETE",
+      "expected_result": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy_wire_decode",
+        "decoded": {
+          "message": {
+            "header": {
+              "numReadonlyNonSignerAccounts": 1,
+              "numReadonlySignerAccounts": 0,
+              "numSignerAccounts": 7
+            },
+            "instructions": [
+              {
+                "accountIndices": [
+                  0,
+                  1
+                ],
+                "data": {
+                  "$type": "bytes",
+                  "data": "AgAAAICWmAAAAAAA",
+                  "encoding": "base64"
+                },
+                "programAddressIndex": 2
+              }
+            ],
+            "lifetimeToken": "5TeWSsjg2gbxCyWVniXeCmwM7UtHTCK7svzJr5xYJzHf",
+            "staticAccounts": [
+              "F25s3DdjXdCxYBhh2z8FBusVEMT4b9bGNFVKJi3wFoF4",
+              "Bow1CGKGDB9mNxeWdw85E2aCthQ1oZX4oFEe7fYT17ew",
+              "11111111111111111111111111111111"
+            ],
+            "version": "legacy"
+          },
+          "sdk": {
+            "api": [
+              "getTransactionDecoder",
+              "getCompiledTransactionMessageDecoder"
+            ],
+            "helper": "solana-kit-tx-decode-helpers/1",
+            "not_included": [
+              "signature_verification",
+              "transaction_safety",
+              "rpc",
+              "confirmation",
+              "instruction_semantic_interpretation"
+            ],
+            "package": "@solana/kit",
+            "scope": "offline_wire_and_compiled_message_decode"
+          },
+          "wire": {
+            "messageBytes": {
+              "$type": "bytes",
+              "data": "AQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAA",
+              "encoding": "base64"
+            },
+            "signatures": {
+              "F25s3DdjXdCxYBhh2z8FBusVEMT4b9bGNFVKJi3wFoF4": {
+                "$type": "bytes",
+                "data": "kaJ9Jh5UE6ftn/0jNJPmuV0UC6K15jea3C8afcAqCTgGTMyI/lXdcmL4LxEbNS4N/HRe/yrUyh62Co0u/Kg3Bg==",
+                "encoding": "base64"
+              }
+            }
+          }
+        }
+      },
+      "actual_result": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy_wire_decode",
+        "decoded": {
+          "message": {
+            "header": {
+              "numReadonlyNonSignerAccounts": 1,
+              "numReadonlySignerAccounts": 0,
+              "numSignerAccounts": 1
+            },
+            "instructions": [
+              {
+                "accountIndices": [
+                  0,
+                  1
+                ],
+                "data": {
+                  "$type": "bytes",
+                  "data": "AgAAAICWmAAAAAAA",
+                  "encoding": "base64"
+                },
+                "programAddressIndex": 2
+              }
+            ],
+            "lifetimeToken": "5TeWSsjg2gbxCyWVniXeCmwM7UtHTCK7svzJr5xYJzHf",
+            "staticAccounts": [
+              "F25s3DdjXdCxYBhh2z8FBusVEMT4b9bGNFVKJi3wFoF4",
+              "Bow1CGKGDB9mNxeWdw85E2aCthQ1oZX4oFEe7fYT17ew",
+              "11111111111111111111111111111111"
+            ],
+            "version": "legacy"
+          },
+          "sdk": {
+            "api": [
+              "getTransactionDecoder",
+              "getCompiledTransactionMessageDecoder"
+            ],
+            "helper": "solana-kit-tx-decode-helpers/1",
+            "not_included": [
+              "signature_verification",
+              "transaction_safety",
+              "rpc",
+              "confirmation",
+              "instruction_semantic_interpretation"
+            ],
+            "package": "@solana/kit",
+            "scope": "offline_wire_and_compiled_message_decode"
+          },
+          "wire": {
+            "messageBytes": {
+              "$type": "bytes",
+              "data": "AQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAA",
+              "encoding": "base64"
+            },
+            "signatures": {
+              "F25s3DdjXdCxYBhh2z8FBusVEMT4b9bGNFVKJi3wFoF4": {
+                "$type": "bytes",
+                "data": "kaJ9Jh5UE6ftn/0jNJPmuV0UC6K15jea3C8afcAqCTgGTMyI/lXdcmL4LxEbNS4N/HRe/yrUyh62Co0u/Kg3Bg==",
+                "encoding": "base64"
+              }
+            }
+          }
+        }
+      },
+      "differences": [
+        {
+          "field": "execution.parsed.decoded.message.header.numSignerAccounts",
+          "expected_value_sha256": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+          "actual_value_sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+        }
+      ],
+      "error": null,
+      "detailed_export": true,
+      "detailed_export_label": "FULL_PARSED_PAYLOAD_OPT_IN — may contain reconstructible wire/message/signature bytes; not the default report"
+    }
+  ],
+  "limits": {
+    "meaning": "Batch comparison of saved expected adapter executions.",
+    "precedence": "exit_code is max of per-case exits (MATCH=0 < REGRESSION=1 < INVALID_CASE=2 < RUN_ERROR=3).",
+    "report_omits_raw_input": true,
+    "report_omits_reconstructible_wire": false,
+    "detailed_export": "OPT-IN detailed export; may contain reconstructible decoded wire/message/signature bytes",
+    "delivery": "Separate CLI module; accepted UI not integrated here."
+  }
+}

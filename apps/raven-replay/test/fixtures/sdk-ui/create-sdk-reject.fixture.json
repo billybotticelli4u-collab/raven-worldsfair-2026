@@ -1,0 +1,41 @@
+{
+  "case": {
+    "schema": "raven-replay-adapter-case/1",
+    "name": "kit-truncated-reject",
+    "adapter_id": "solana-kit-tx-decode",
+    "bindings": {
+      "runtime": "v22.18.0",
+      "tool": "raven-replay-parser-sdk/0.1.0-milestone1",
+      "adapter_id": "solana-kit-tx-decode",
+      "adapter_source_sha256": "e4beeaec44366fc263cd9e1695295be5f77c18b29770e09d7a5f03bd1cabe851",
+      "dependency_binding_sha256": "f370018eac8284fef6f8b47fd514c9589216305aa27ad902eee13616c3320600",
+      "policy_sha256": "868a5ee8110e6d7dbb2fbef3a5af439459190669fe1145ea5ab564ac8d150896",
+      "comparison_policy_sha256": "f087de6723dcc9ad39f6002ab3aa56cad55a0de918fdeb585721f9e17a96b8db"
+    },
+    "input_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3Q==",
+    "input_sha256": "1c33cb78c8cad19968a59bca164fd0d9ab2f9ee9a53eed298b39b5e0b5910eeb",
+    "comparison_policy": {
+      "id": "raven-replay-comparison/1",
+      "normalize": "normalize.mjs/1",
+      "exclude_fields": [],
+      "compare": "deep_strict_equal_on_normalized_parsed"
+    },
+    "expected_execution": {
+      "complete": true,
+      "exit_code": 0,
+      "signal": null,
+      "error_code": null,
+      "stdin_sha256": "02836bbf0f912e85d078f462e6435448ebdf15d62d830c813bb05c84cf5c5300",
+      "stdout_base64": "eyJkZWNpc2lvbiI6IlJFSkVDVCIsInZlcnNpb24iOm51bGwsInJlYXNvbiI6InNka19kZWNvZGVfcmVmdXNlZDpjb2RlPTgwNzgwMDE6U09MQU5BX0VSUk9SX19DT0RFQ1NfX0lOVkFMSURfQllURV9MRU5HVEgiLCJkZWNvZGVkIjpudWxsfQo=",
+      "stderr_base64": "",
+      "protocol_ok": true,
+      "parsed": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "sdk_decode_refused:code=8078001:SOLANA_ERROR__CODECS__INVALID_BYTE_LENGTH",
+        "decoded": null
+      }
+    }
+  },
+  "case_content_sha256": "d04a8f44a03b0a7ca85f09511ef8da5b2f09d626c300d39bf02ff221bbe5510f"
+}

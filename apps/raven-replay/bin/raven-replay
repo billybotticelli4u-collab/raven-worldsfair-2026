@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+# Raven Replay portable launcher (Mac/Linux). Starts only the approved local server.
+# Does not install runtimes, edit shell profiles, elevate privileges, or kill other processes.
+set -euo pipefail
+
+REQUIRED_NODE_VERSION="v22.18.0"
+DEFAULT_PORT="8794"
+APPROVED_SERVER_REL="src/cases-server.mjs"
+
+usage() {
+  cat <<'USAGE'
+Usage: raven-replay [--node PATH] [--port PORT] [--help]
+
+Starts the approved Raven Replay local saved-case loopback server (src/cases-server.mjs).
+
+Options:
+  --node PATH   Use this Node executable only for this launch (does not change global install).
+                Also accepted as env RAVEN_REPLAY_NODE.
+  --port PORT   Listen on 127.0.0.1:PORT (default 8794). Also env RAVEN_REPLAY_PORT.
+  --help        Show this help.
+
+Requires exactly Node.js 22.18.0. See docs/LAUNCH.md and the Node setup guide.
+USAGE
+}
+
+die() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
+
+# Resolve package root even when this script is invoked via a path with spaces.
+SOURCE="${BASH_SOURCE[0]:-$0}"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  case "$SOURCE" in
+    /*) ;;
+    *) SOURCE="$DIR/$SOURCE" ;;
+  esac
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
+SERVER="$ROOT/$APPROVED_SERVER_REL"
+GUIDE_HINT="$ROOT/docs/LAUNCH.md"
+
+NODE_BIN="${RAVEN_REPLAY_NODE:-}"
+PORT="${RAVEN_REPLAY_PORT:-$DEFAULT_PORT}"
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --node)
+      [ "$#" -ge 2 ] || die "raven-replay: --node requires a path"
+      NODE_BIN="$2"
+      shift 2
+      ;;
+    --port)
+      [ "$#" -ge 2 ] || die "raven-replay: --port requires a number"
+      PORT="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      die "raven-replay: unknown option: $1 (try --help)"
+      ;;
+    *)
+      die "raven-replay: unexpected argument: $1 (this launcher starts only the approved local server)"
+      ;;
+  esac
+done
+
+[ -f "$SERVER" ] || die "raven-replay: approved server missing: $SERVER"
+
+if [ -z "$NODE_BIN" ]; then
+  if command -v node >/dev/null 2>&1; then
+    NODE_BIN="$(command -v node)"
+  else
+    cat >&2 <<MSG
+raven-replay: Node.js was not found on PATH.
+
+This product requires exactly Node.js ${REQUIRED_NODE_VERSION}.
+It does not download or install a runtime for you.
+
+How to obtain the correct runtime:
+  - Read: ${GUIDE_HINT}
+  - Bundled exact-runtime guide: ${ROOT}/SETUP-NODE-22.18.0.md
+
+Then re-run with PATH set for this shell only, or:
+  raven-replay --node /path/to/node-v22.18.0/.../bin/node
+MSG
+    exit 1
+  fi
+fi
+
+if [ ! -x "$NODE_BIN" ] && [ ! -f "$NODE_BIN" ]; then
+  cat >&2 <<MSG
+raven-replay: Node executable not found: ${NODE_BIN}
+
+Provide an existing Node ${REQUIRED_NODE_VERSION} binary with --node or RAVEN_REPLAY_NODE.
+See ${GUIDE_HINT}
+MSG
+  exit 1
+fi
+
+# Version check via the chosen binary only (does not alter global install).
+ACTUAL_VERSION="$("$NODE_BIN" -p "process.version" 2>/dev/null || true)"
+if [ "$ACTUAL_VERSION" != "$REQUIRED_NODE_VERSION" ]; then
+  cat >&2 <<MSG
+raven-replay: wrong or unreadable Node runtime.
+
+  required: ${REQUIRED_NODE_VERSION}
+  actual:   ${ACTUAL_VERSION:-<unreadable>}
+  binary:   ${NODE_BIN}
+
+Close-enough LTS versions are refused on purpose.
+Obtain exactly ${REQUIRED_NODE_VERSION}, then point this launcher at it without changing
+your global default — for example:
+
+  raven-replay --node /path/to/node-${REQUIRED_NODE_VERSION#v}-.../bin/node
+
+Setup steps: ${GUIDE_HINT}
+Also: ${ROOT}/SETUP-NODE-22.18.0.md
+MSG
+  exit 1
+fi
+
+case "$PORT" in
+  ''|*[!0-9]*)
+    die "raven-replay: port must be a positive integer (got: $PORT)"
+    ;;
+esac
+if [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; then
+  die "raven-replay: port out of range: $PORT"
+fi
+
+# Occupied-port check without killing another process.
+set +e
+RAVEN_REPLAY_PORT_PROBE="$PORT" "$NODE_BIN" <<'JS'
+const net = require('node:net');
+const port = Number(process.env.RAVEN_REPLAY_PORT_PROBE);
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  console.error('raven-replay: invalid port probe value');
+  process.exit(1);
+}
+const s = net.createServer();
+s.once('error', (err) => {
+  if (err && err.code === 'EADDRINUSE') process.exit(2);
+  console.error('raven-replay: could not probe port:', err && err.message ? err.message : err);
+  process.exit(1);
+});
+s.listen(port, '127.0.0.1', () => {
+  s.close(() => process.exit(0));
+});
+JS
+PROBE_RC=$?
+set -e
+if [ "$PROBE_RC" -eq 2 ]; then
+  cat >&2 <<MSG
+raven-replay: port ${PORT} is already in use on 127.0.0.1.
+
+Another process is listening there. This launcher will not kill it.
+
+Pick a free port for this session only, for example:
+
+  raven-replay --port 8795
+  RAVEN_REPLAY_PORT=8795 raven-replay
+
+Then open the URL the launcher prints (it shows the actual port).
+MSG
+  exit 1
+elif [ "$PROBE_RC" -ne 0 ]; then
+  die "raven-replay: port probe failed (exit $PROBE_RC)"
+fi
+
+export RAVEN_REPLAY_PORT="$PORT"
+
+printf 'raven-replay: using %s (%s)\n' "$NODE_BIN" "$ACTUAL_VERSION"
+printf 'raven-replay: starting approved server %s\n' "$APPROVED_SERVER_REL"
+printf 'raven-replay: saved cases at /cases; original capture/replay at /\n'
+
+# Transfer this PID to Node via exec so Ctrl-C, SIGTERM, terminal close (SIGHUP) and
+# SIGQUIT reach the server that owns worker/adapter cleanup. No parent force-kill and
+# no runtime switch restoring one (negative controls live only in throwaway test copies).
+exec "$NODE_BIN" "$SERVER"

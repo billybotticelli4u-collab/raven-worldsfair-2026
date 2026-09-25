@@ -1,0 +1,14 @@
+{
+  "schema": "raven-replay-submission-source-record/1",
+  "public_base": "10326982e445bdb7b56776039cd3d9028f776747",
+  "imported_path": "apps/raven-replay",
+  "source_head": "4d14531a69eaa4df69af8f8fa07e9a21bc10360c",
+  "source_tree": "88c58b8aa1400f4b0371a5e1fa502385c833a991",
+  "source_archive_sha256": "686eb37711c0ad34e520cd46b92c1385b729f44a1924d566a6080c2a8e9fbf6f",
+  "files": 113,
+  "runtime_review_head": "e647ef2e521c3f4e46b8a5f5dc3854f42af7b630",
+  "vendored_sdk_head": "dbcee545f0ee22549d13faf622e86b5e52e73e65",
+  "source_bytes_modified": false,
+  "publication": "NOT_AUTHORIZED_NOT_PERFORMED",
+  "delivery_review": "PENDING"
+}

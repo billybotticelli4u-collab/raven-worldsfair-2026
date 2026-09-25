@@ -1,0 +1,50 @@
+{
+  "schema": "raven-replay-adapter-list/1",
+  "adapters": [
+    {
+      "id": "solana-kit-tx-decode",
+      "label": "Pinned @solana/kit offline wire/message decode",
+      "schema": "raven-replay-adapter-case/1"
+    },
+    {
+      "id": "example-parser-v1",
+      "label": "Synthetic example parser baseline",
+      "schema": "raven-replay-adapter-case/1"
+    },
+    {
+      "id": "example-parser-v2",
+      "label": "Synthetic example parser candidate (controlled label change)",
+      "schema": "raven-replay-adapter-case/1"
+    },
+    {
+      "id": "example-sentinel-echo",
+      "label": "Control: echoes synthetic sentinel in decoded (C3 report leak probe)",
+      "schema": "raven-replay-adapter-case/1"
+    },
+    {
+      "id": "control-crash",
+      "label": "Control: non-zero exit",
+      "schema": "raven-replay-adapter-case/1"
+    },
+    {
+      "id": "control-hang",
+      "label": "Control: timeout (cooperating event-loop hang)",
+      "schema": "raven-replay-adapter-case/1"
+    },
+    {
+      "id": "control-hang-ignore-term",
+      "label": "Control: ignore SIGTERM hard-deadline (C6)",
+      "schema": "raven-replay-adapter-case/1"
+    },
+    {
+      "id": "control-excess",
+      "label": "Control: excess stdout",
+      "schema": "raven-replay-adapter-case/1"
+    },
+    {
+      "id": "control-bad-protocol",
+      "label": "Control: invalid protocol stdout",
+      "schema": "raven-replay-adapter-case/1"
+    }
+  ]
+}

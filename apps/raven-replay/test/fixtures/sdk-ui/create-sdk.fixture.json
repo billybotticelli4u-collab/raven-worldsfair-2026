@@ -1,0 +1,109 @@
+{
+  "case": {
+    "schema": "raven-replay-adapter-case/1",
+    "name": "kit-legacy-accept",
+    "adapter_id": "solana-kit-tx-decode",
+    "bindings": {
+      "runtime": "v22.18.0",
+      "tool": "raven-replay-parser-sdk/0.1.0-milestone1",
+      "adapter_id": "solana-kit-tx-decode",
+      "adapter_source_sha256": "e4beeaec44366fc263cd9e1695295be5f77c18b29770e09d7a5f03bd1cabe851",
+      "dependency_binding_sha256": "f370018eac8284fef6f8b47fd514c9589216305aa27ad902eee13616c3320600",
+      "policy_sha256": "868a5ee8110e6d7dbb2fbef3a5af439459190669fe1145ea5ab564ac8d150896",
+      "comparison_policy_sha256": "f087de6723dcc9ad39f6002ab3aa56cad55a0de918fdeb585721f9e17a96b8db"
+    },
+    "input_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA=",
+    "input_sha256": "2385a602397d22dbdca60401f69aecc26829c9c5ddb4b398cc41881bcc88194d",
+    "comparison_policy": {
+      "id": "raven-replay-comparison/1",
+      "normalize": "normalize.mjs/1",
+      "exclude_fields": [],
+      "compare": "deep_strict_equal_on_normalized_parsed"
+    },
+    "expected_execution": {
+      "complete": true,
+      "exit_code": 0,
+      "signal": null,
+      "error_code": null,
+      "stdin_sha256": "c575927a744c94ed68e88e8bcb9ffeae15fd2814f89599f80aaa8e2ca371eb73",
+      "stdout_base64": "eyJkZWNpc2lvbiI6IkFDQ0VQVCIsInZlcnNpb24iOiJsZWdhY3kiLCJyZWFzb24iOiJvazpsZWdhY3lfd2lyZV9kZWNvZGUiLCJkZWNvZGVkIjp7IndpcmUiOnsibWVzc2FnZUJ5dGVzIjp7IiR0eXBlIjoiYnl0ZXMiLCJlbmNvZGluZyI6ImJhc2U2NCIsImRhdGEiOiJBUUFCQTlCS3NqSjBLN1NyT2hOb3ZVWVY1T2JRSWtxM0dnRnJyNFVnb3pMSmQ0YzNvSnFsOUhwbldZQXYrVlg0M0MwcUZLWEpuU08rbC9oa0VuLzVPRFJWcFBBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBRUpDUWtKQ1FrSkNRa0pDUWtKQ1FrSkNRa0pDUWtKQ1FrSkNRa0pDUWtKQ0FRSUNBQUVNQWdBQUFJQ1dtQUFBQUFBQSJ9LCJzaWduYXR1cmVzIjp7IkYyNXMzRGRqWGRDeFlCaGgyejhGQnVzVkVNVDRiOWJHTkZWS0ppM3dGb0Y0Ijp7IiR0eXBlIjoiYnl0ZXMiLCJlbmNvZGluZyI6ImJhc2U2NCIsImRhdGEiOiJrYUo5Smg1VUU2ZnRuLzBqTkpQbXVWMFVDNksxNWplYTNDOGFmY0FxQ1RnR1RNeUkvbFhkY21MNEx4RWJOUzROL0hSZS95clV5aDYyQ28wdS9LZzNCZz09In19fSwibWVzc2FnZSI6eyJ2ZXJzaW9uIjoibGVnYWN5IiwiaGVhZGVyIjp7Im51bVNpZ25lckFjY291bnRzIjoxLCJudW1SZWFkb25seVNpZ25lckFjY291bnRzIjowLCJudW1SZWFkb25seU5vblNpZ25lckFjY291bnRzIjoxfSwic3RhdGljQWNjb3VudHMiOlsiRjI1czNEZGpYZEN4WUJoaDJ6OEZCdXNWRU1UNGI5YkdORlZLSmkzd0ZvRjQiLCJCb3cxQ0dLR0RCOW1OeGVXZHc4NUUyYUN0aFExb1pYNG9GRWU3ZllUMTdldyIsIjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIl0sImxpZmV0aW1lVG9rZW4iOiI1VGVXU3NqZzJnYnhDeVdWbmlYZUNtd003VXRIVENLN3N2ekpyNXhZSnpIZiIsImluc3RydWN0aW9ucyI6W3sicHJvZ3JhbUFkZHJlc3NJbmRleCI6MiwiYWNjb3VudEluZGljZXMiOlswLDFdLCJkYXRhIjp7IiR0eXBlIjoiYnl0ZXMiLCJlbmNvZGluZyI6ImJhc2U2NCIsImRhdGEiOiJBZ0FBQUlDV21BQUFBQUFBIn19XX0sInNkayI6eyJwYWNrYWdlIjoiQHNvbGFuYS9raXQiLCJhcGkiOlsiZ2V0VHJhbnNhY3Rpb25EZWNvZGVyIiwiZ2V0Q29tcGlsZWRUcmFuc2FjdGlvbk1lc3NhZ2VEZWNvZGVyIl0sInNjb3BlIjoib2ZmbGluZV93aXJlX2FuZF9jb21waWxlZF9tZXNzYWdlX2RlY29kZSIsImhlbHBlciI6InNvbGFuYS1raXQtdHgtZGVjb2RlLWhlbHBlcnMvMSIsIm5vdF9pbmNsdWRlZCI6WyJzaWduYXR1cmVfdmVyaWZpY2F0aW9uIiwidHJhbnNhY3Rpb25fc2FmZXR5IiwicnBjIiwiY29uZmlybWF0aW9uIiwiaW5zdHJ1Y3Rpb25fc2VtYW50aWNfaW50ZXJwcmV0YXRpb24iXX19fQo=",
+      "stderr_base64": "",
+      "protocol_ok": true,
+      "parsed": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy_wire_decode",
+        "decoded": {
+          "message": {
+            "header": {
+              "numReadonlyNonSignerAccounts": 1,
+              "numReadonlySignerAccounts": 0,
+              "numSignerAccounts": 1
+            },
+            "instructions": [
+              {
+                "accountIndices": [
+                  0,
+                  1
+                ],
+                "data": {
+                  "$type": "bytes",
+                  "data": "AgAAAICWmAAAAAAA",
+                  "encoding": "base64"
+                },
+                "programAddressIndex": 2
+              }
+            ],
+            "lifetimeToken": "5TeWSsjg2gbxCyWVniXeCmwM7UtHTCK7svzJr5xYJzHf",
+            "staticAccounts": [
+              "F25s3DdjXdCxYBhh2z8FBusVEMT4b9bGNFVKJi3wFoF4",
+              "Bow1CGKGDB9mNxeWdw85E2aCthQ1oZX4oFEe7fYT17ew",
+              "11111111111111111111111111111111"
+            ],
+            "version": "legacy"
+          },
+          "sdk": {
+            "api": [
+              "getTransactionDecoder",
+              "getCompiledTransactionMessageDecoder"
+            ],
+            "helper": "solana-kit-tx-decode-helpers/1",
+            "not_included": [
+              "signature_verification",
+              "transaction_safety",
+              "rpc",
+              "confirmation",
+              "instruction_semantic_interpretation"
+            ],
+            "package": "@solana/kit",
+            "scope": "offline_wire_and_compiled_message_decode"
+          },
+          "wire": {
+            "messageBytes": {
+              "$type": "bytes",
+              "data": "AQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAA",
+              "encoding": "base64"
+            },
+            "signatures": {
+              "F25s3DdjXdCxYBhh2z8FBusVEMT4b9bGNFVKJi3wFoF4": {
+                "$type": "bytes",
+                "data": "kaJ9Jh5UE6ftn/0jNJPmuV0UC6K15jea3C8afcAqCTgGTMyI/lXdcmL4LxEbNS4N/HRe/yrUyh62Co0u/Kg3Bg==",
+                "encoding": "base64"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "case_content_sha256": "de905832c6e1bc6449eb2695ba03c58e55ba914e2dcf231e1f9052f6f86759e9",
+  "limits": {
+    "meaning": "Comparison with a saved expected adapter execution; not transaction safety or historical execution proof.",
+    "cases_are_data": "A case identifies a registered adapter_id only; it cannot supply code, commands, paths, packages, URLs, shell args or env.",
+    "digests": "Consistency of measured bytes — not publisher authentication.",
+    "subprocess": "Bounded subprocess is not a security sandbox.",
+    "dependencies": "This successor introduces npm dependencies; accepted legacy Replay package had none.",
+    "raw_input": "Exported cases contain raw input_base64 and are labelled as such.",
+    "delivery": "Separate CLI module; accepted capture/saved-case UI is not integrated in this package."
+  }
+}

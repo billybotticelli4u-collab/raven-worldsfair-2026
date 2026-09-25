@@ -1,0 +1,70 @@
+{
+  "schema": "raven-replay-adapter-case-report/1",
+  "exit_code": 0,
+  "counts": {
+    "MATCH": 1,
+    "REGRESSION": 0,
+    "INVALID_CASE": 0,
+    "RUN_ERROR": 0
+  },
+  "results": [
+    {
+      "name": "kit-legacy-accept",
+      "status": "MATCH",
+      "exit_code": 0,
+      "case_content_sha256": "de905832c6e1bc6449eb2695ba03c58e55ba914e2dcf231e1f9052f6f86759e9",
+      "reference": "MATCH",
+      "execution": "COMPLETE",
+      "expected_result": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason_code": "ok:legacy_wire_decode",
+        "reason_sha256": "0def566c1152f84d2e1c8bb59cbfaee39f5bb28e855a42ac330baac45c5b2bfb",
+        "decoded": {
+          "field_names": [
+            "message",
+            "sdk",
+            "wire"
+          ],
+          "field_digests": {
+            "message": "b98c8de9dac17fa1c6afa8b6e017104c05ee24d08ea625f99d0ec6503fd6c747",
+            "sdk": "c40894535e5333633666d57310fd8eb2de7287c74144fbb5458cc8267eca3a3e",
+            "wire": "a53510d7a330ac8ee3f2d6f7fd341401e6444d7719c08b307f4c16a972da503d"
+          },
+          "decoded_sha256": "fd1043a2c74eba0ad66374c55daad446bf326a247bd59744ed814e6fe2369d34",
+          "field_name_policy": "raven-replay-default-report-pin-map/1"
+        }
+      },
+      "actual_result": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason_code": "ok:legacy_wire_decode",
+        "reason_sha256": "0def566c1152f84d2e1c8bb59cbfaee39f5bb28e855a42ac330baac45c5b2bfb",
+        "decoded": {
+          "field_names": [
+            "message",
+            "sdk",
+            "wire"
+          ],
+          "field_digests": {
+            "message": "b98c8de9dac17fa1c6afa8b6e017104c05ee24d08ea625f99d0ec6503fd6c747",
+            "sdk": "c40894535e5333633666d57310fd8eb2de7287c74144fbb5458cc8267eca3a3e",
+            "wire": "a53510d7a330ac8ee3f2d6f7fd341401e6444d7719c08b307f4c16a972da503d"
+          },
+          "decoded_sha256": "fd1043a2c74eba0ad66374c55daad446bf326a247bd59744ed814e6fe2369d34",
+          "field_name_policy": "raven-replay-default-report-pin-map/1"
+        }
+      },
+      "differences": [],
+      "error": null
+    }
+  ],
+  "limits": {
+    "meaning": "Batch comparison of saved expected adapter executions.",
+    "precedence": "exit_code is max of per-case exits (MATCH=0 < REGRESSION=1 < INVALID_CASE=2 < RUN_ERROR=3).",
+    "report_omits_raw_input": true,
+    "report_omits_reconstructible_wire": true,
+    "detailed_export": false,
+    "delivery": "Separate CLI module; accepted UI not integrated here."
+  }
+}

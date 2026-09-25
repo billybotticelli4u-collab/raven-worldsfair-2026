@@ -1,0 +1,62 @@
+/* Saved-case page additions. Builds on the original /style.css tokens; the original file is unchanged. */
+:root{--match:#006b59;--regression:#8a5300;--invalid:#5b3f8f;--error:#9a271c;--soft:#e6ebe5}
+header nav{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+header nav a{color:var(--accent)}
+header nav [aria-current]{font-weight:650}
+.safety{border-left:6px solid var(--regression);background:#f3ead9;padding:14px 18px;font-weight:600;max-width:72ch}
+.help{font-size:14px;color:var(--muted);margin:6px 0}
+.status:empty{display:none}
+.status{margin:16px 0;padding:14px 18px;border:1px solid var(--line);border-left-width:6px;background:white;max-width:72ch;overflow-wrap:anywhere}
+.status strong{display:block}
+.status.working{border-left-color:var(--muted)}
+.status.ok{border-left-color:var(--match)}
+.status.error{border-left-color:var(--error);color:var(--error)}
+.status.attention{border-left-color:var(--regression)}
+code,.digest{font:13px/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
+.case-list{list-style:none;padding:0;margin:16px 0;display:grid;gap:16px}
+.case{background:white;border:1px solid var(--line);border-radius:3px;padding:16px 20px}
+.case-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.case-head label{margin:0;display:flex;gap:10px;align-items:center;font-size:19px}
+.case-head input{width:20px;height:20px;accent-color:var(--accent)}
+.chip{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
+.case dl,.result dl{margin:12px 0}
+.case dl>div,.result dl>div{grid-template-columns:230px 1fr;padding:8px 0}
+.case .actions,.result .actions{margin:12px 0 0}
+.case .actions button{padding:8px 14px}
+.report-summary{font-size:19px;font-weight:650}
+.counts{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px 12px}
+.counts li{border:1px solid var(--line);background:white;padding:4px 12px;border-radius:3px;font-variant-numeric:tabular-nums}
+.result{background:white;border:1px solid var(--line);border-left:8px solid var(--muted);padding:16px 20px;margin:16px 0}
+.result h3{margin:0 0 4px;font-size:21px;overflow-wrap:anywhere}
+.result.tone-MATCH{border-left-color:var(--match)}
+.result.tone-REGRESSION{border-left-color:var(--regression)}
+.result.tone-INVALID_CASE{border-left-color:var(--invalid)}
+.result.tone-RUN_ERROR{border-left-color:var(--error)}
+.badge{display:inline-block;font-weight:700;padding:2px 10px;border-radius:3px;color:white;background:var(--muted);margin-right:8px}
+.tone-MATCH .badge{background:var(--match)}
+.tone-REGRESSION .badge{background:var(--regression)}
+.tone-INVALID_CASE .badge{background:var(--invalid)}
+.tone-RUN_ERROR .badge{background:var(--error)}
+.result .error-text{color:var(--error);font-weight:600}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table.parser{border-collapse:collapse;width:100%;font-size:15px}
+table.parser caption{text-align:left;font-weight:650;padding:0 0 8px}
+table.parser th,table.parser td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+table.parser thead th{background:var(--soft)}
+table.parser tr.changed td,table.parser tr.changed th{background:#f6e7cf}
+table.parser tr.changed th::after{content:" · changed";font-weight:400;color:var(--regression)}
+.result h4{margin:14px 0 6px;font-size:16px}
+.changed-fields{margin:0;padding-left:20px}
+.changed-fields li{margin:4px 0}
+/* SDK adapter cases: tool choice, case kind, detailed opt-in */
+#case-tool{display:block;max-width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:3px;background:white}
+.case-head .chip.kind-chip{margin-left:auto}
+.case.kind-sdk{border-left:4px solid var(--invalid)}
+.case.kind-sdk .kind-chip{border-color:var(--invalid);color:var(--invalid)}
+.detailed-optin{margin:14px 0;padding:12px 16px;border:1px dashed var(--line);max-width:72ch}
+.check-label{display:flex;gap:10px;align-items:center;margin:0;font-weight:600}
+.check-label input{width:18px;height:18px;accent-color:var(--error)}
+.detailed-warning{border-left:6px solid var(--error);background:#f7e3e0;color:var(--error);padding:10px 14px;font-weight:600;max-width:72ch}
+.result .detailed-text{color:var(--error);font-weight:600}
+.detailed-payload pre{font:12px/1.45 ui-monospace,monospace;background:var(--soft);padding:10px;overflow:auto;max-height:24em}
+@media(max-width:650px){.case dl>div,.result dl>div{grid-template-columns:1fr}.case-head label{font-size:17px}}

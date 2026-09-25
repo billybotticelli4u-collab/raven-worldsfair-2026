@@ -1,0 +1,26 @@
+{
+  "schema": "raven-replay-case/1",
+  "name": "truncated-reject",
+  "bindings": {
+    "runtime": "v22.18.0",
+    "tool": "solana-byte-structure-experimental/0",
+    "tool_sha256": "b1d03b29b298c922a64078a7f55b9344c0908b92ca411b4e5371786b92cac9d5",
+    "policy_sha256": "8240235f42ebd2063149306b0752d9bbe709fa2dc1305a316af3ae4568ec4d47"
+  },
+  "input_base64": "AA==",
+  "input_sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+  "expected_execution": {
+    "complete": true,
+    "exit_code": 0,
+    "signal": null,
+    "error_code": null,
+    "stdin_sha256": "ce1abec8bc3393da8bbfa7ee8a6bcf436c358096ca48690a35375b105db5f6df",
+    "stdout_base64": "eyJkZWNpc2lvbiI6IlJFSkVDVCIsInZlcnNpb24iOm51bGwsInJlYXNvbiI6InRydW5jYXRlZDptZXNzYWdlX3ByZWZpeCJ9Cg==",
+    "stderr_base64": "",
+    "parsed": {
+      "decision": "REJECT",
+      "version": null,
+      "reason": "truncated:message_prefix"
+    }
+  }
+}
