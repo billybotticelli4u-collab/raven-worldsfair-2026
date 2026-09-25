@@ -95,8 +95,8 @@ test('profile discovery exposes envelope and Solana metadata with separate targe
   const meta = await request('/api/meta?profile=solana');
   assert.equal(meta.status, 200);
   assert.equal(meta.body.profile.name, 'raven-solana-txversion-experimental/0');
-  assert.equal(meta.body.corpus.id, 'raven-solana-txversion-demo-corpus/1.2');
-  assert.equal(meta.body.corpus.vector_count, 12);
+  assert.equal(meta.body.corpus.id, 'raven-solana-txversion-demo-corpus/1.3');
+  assert.equal(meta.body.corpus.vector_count, 27);
   assert.equal(meta.body.claim, 'The target matched this named experimental corpus.');
 });
 test('unknown profile selection fails closed before target execution', async () => {
@@ -206,8 +206,8 @@ test('Solana HTTP reference, broken target, report download and replay preserve 
   assert.equal(reference.status, 200);
   assert.equal(reference.body.report.claimed_profile.name, 'raven-solana-txversion-experimental/0');
   assert.equal(reference.body.report.summary.overall, 'CONFORMANT');
-  assert.equal(reference.body.report.summary.pass, 12);
-  assert.equal(reference.body.report.results.length, 12);
+  assert.equal(reference.body.report.summary.pass, 27);
+  assert.equal(reference.body.report.results.length, 27);
 
   const download = await request('/api/report/run_httpsolana');
   assert.equal(download.status, 200);
@@ -226,12 +226,12 @@ test('Solana HTTP reference, broken target, report download and replay preserve 
     json: { profile: 'solana', target: 'SOL_BROKEN_SUBTLE' },
   });
   assert.equal(subtle.status, 200);
-  assert.equal(subtle.body.report.summary.pass, 10);
+  assert.equal(subtle.body.report.summary.pass, 24);
   assert.deepEqual(
     subtle.body.report.results
       .filter(row => row.status === 'BEHAVIORAL_DIVERGENCE')
       .map(row => row.vector_id),
-    ['V03_valid_v1', 'V16_valid_v1_two_instructions'],
+    ['V03_valid_v1', 'V10_noncanonical_shortvec_sigcount', 'V16_valid_v1_two_instructions'],
   );
 });
 test('failed replay releases the execution lock', async () => {

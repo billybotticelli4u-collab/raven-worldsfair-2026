@@ -8,7 +8,7 @@ Raven Conformance turns those behavioral claims into a reproducible comparison. 
 
 ## The Week-2 demonstration
 
-The second profile is `raven-solana-txversion-experimental/0`. Its 12-vector corpus covers:
+The second profile is `raven-solana-txversion-experimental/0`. Its 27-vector corpus covers:
 
 - one accepted fixture for each format: legacy, v0, and v1;
 - the two-instruction v1 grouped layout and its interleaved negative pair;
@@ -28,13 +28,13 @@ npm run conform -- --profile solana --target SOL_BROKEN_SUBTLE --run-id solana-b
 npm run replay -- --report reports/solana-reference.json
 ```
 
-The reference target exits `0` with 12/12 PASS. The deliberately stale target exits `1` and differs on exactly two rows, `V03` and `V16`, because it does not understand the v1 layout. Replay rechecks the profile, corpus, target, and report bindings before repeating the run.
+The reference target exits `0` with 27/27 PASS. The deliberately stale target exits `1` and differs on three rows, `V03`, `V10` and `V16`, because it misreads the v1 layout and admits the noncanonical shortvec witness. Replay rechecks the profile, corpus, target, and report bindings before repeating the run.
 
 ## What the result means
 
-`CONFORMANT` means that the target matched this named 12-vector corpus at its pinned digest. `DIVERGENT` identifies the exact rows where observed decision or version differed from the corpus expectation. Reports separate behavioral mismatches from crashes, timeouts, invalid output, output floods, and runner failures.
+`CONFORMANT` means that the target matched this named 27-vector corpus at its pinned digest. `DIVERGENT` identifies the exact rows where observed decision or version differed from the corpus expectation. Reports separate behavioral mismatches from crashes, timeouts, invalid output, output floods, and runner failures.
 
-The fixtures are synthetic or generated offline. This profile does not check signatures, account state, blockhash freshness, simulation, execution, wallet rendering, Blink behavior, or what happened on-chain. The 12-vector Fair slice also omits several per-arm detections retained by its 26-vector source corpus. Strict-base64 reason discrimination, legacy/v0 header-inconsistency call sites, and `writable_unsigned_overflow` are not covered. Family-level mutant results do not prove site-by-site coverage; `DEVELOPER.md` lists the limits.
+The fixtures are synthetic or generated offline. This profile does not check signatures, account state, blockhash freshness, simulation, execution, wallet rendering, Blink behavior, or what happened on-chain. All 26 source coverage rows plus the exact-key control are present. Strict-base64 reason discrimination, legacy/v0 header-inconsistency call sites, and `writable_unsigned_overflow` are not covered. Family-level mutant results do not prove site-by-site coverage; `DEVELOPER.md` lists the limits.
 
 ## Why this is Solana-native
 

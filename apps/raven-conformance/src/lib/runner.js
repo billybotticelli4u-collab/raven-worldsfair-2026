@@ -41,7 +41,7 @@ const PROFILE_CONFIGS = [
     label: "Solana transaction versions",
     experimental: true,
     profileFile: "raven-solana-txversion-experimental-0.json",
-    corpusFile: "raven-solana-txversion-demo-corpus-1.2.json",
+    corpusFile: "raven-solana-txversion-demo-corpus-1.3.json",
     targetsFile: "solana-manifests.json",
   },
 ];

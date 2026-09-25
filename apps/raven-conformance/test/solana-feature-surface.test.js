@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
@@ -36,8 +37,8 @@ describe("usable Solana feature surface", () => {
     const local = new Set(inventory.raven_local_additions.map(row => row.id));
 
     assert.equal(inventory.source_vector_count, 26);
-    assert.equal(included.size, 11);
-    assert.equal(omitted.size, 15);
+    assert.equal(included.size, 26);
+    assert.equal(omitted.size, 0);
     assert.equal(local.size, 1);
     assert.deepEqual([...local], ["V15_unexpected_input_key"]);
     const inventoriedSourceIds = [...included, ...omitted];
@@ -52,7 +53,19 @@ describe("usable Solana feature surface", () => {
     );
   });
 
-  it("runs the developer adapter against all 12 integrated vectors", () => {
+  it("retains every original source input and expectation under the pinned source hash", () => {
+    const bytes = readFileSync(path.join(APP, "corpus/source/raven-solana-txversion-demo-corpus-1.json"));
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), "edf533bd64bac1eb00de78833614edd94e190bef437c7f73b80b100e7ea5540e");
+    const source = JSON.parse(bytes);
+    const rows = new Map(loadCorpus(PROFILE).data.vectors.map(row => [row.id, row]));
+    for (const original of source.vectors) {
+      assert.ok(rows.has(original.id), `Lost source coverage: ${original.id}`);
+      assert.deepEqual(rows.get(original.id).input, original.input, original.id);
+      assert.deepEqual(rows.get(original.id).expected, original.expected, original.id);
+    }
+  });
+
+  it("runs the developer adapter against all 27 integrated vectors", () => {
     const corpus = loadCorpus(PROFILE).data;
     const adapter = path.join(APP, "examples/solana-developer-adapter.mjs");
     for (const vector of corpus.vectors) {
@@ -80,12 +93,9 @@ describe("usable Solana feature surface", () => {
   it("documents a bootstrap compatible with the current delivery identity", () => {
     const developer = readFileSync(path.join(APP, "DEVELOPER.md"), "utf8");
 
-    assert.match(developer, /raven-solana-profile-r4-bootstrap-fix\.patch/);
-    assert.match(developer, /id\.base_commit!==head/);
-    assert.match(developer, /id\.base_tree!==tree/);
-    assert.match(developer, /id\.artifacts\?\.base_bundle\?\.path!=="raven-solana-profile-base-fa205f85\.bundle"/);
-    assert.match(developer, /id\.artifacts\?\.full_patch\?\.path!=="raven-solana-profile-r4-bootstrap-fix\.patch"/);
-    assert.doesNotMatch(developer, /raven-solana-profile-v1\.patch/);
-    assert.doesNotMatch(developer, /id\.head!==head|id\.tree!==tree|id\.branch|id\.bundle/);
+    assert.match(developer, /raven-solana-coverage-repair\.bundle/);
+    assert.match(developer, /id\.head!==head/);
+    assert.match(developer, /id\.tree!==tree/);
+    assert.doesNotMatch(developer, /git apply/);
   });
 });

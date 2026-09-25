@@ -4,29 +4,15 @@ These commands run entirely against committed fixtures. They do not query a Sola
 
 ## Bootstrap from the review package
 
-From the extracted package folder containing `DELIVERY-IDENTITY.json`, the bundle, and the patch:
+From the extracted delivery folder, verify SHA256SUMS.txt and clone the complete bundle. The external identity binds the finished commit (no patch application).
 
 ```bash
 set -e
 shasum -a 256 -c SHA256SUMS.txt
-git clone ./raven-solana-profile-base-fa205f85.bundle raven-worldsfair-2026
+git clone --branch codex/solana-coverage-repair-20260925 ./raven-solana-coverage-repair.bundle raven-worldsfair-2026
 cd raven-worldsfair-2026
-git checkout fa205f8580ac29a72188698a27974a8e63975a1c
-git rev-parse HEAD
-git rev-parse 'HEAD^{tree}'
-node -e 'const fs=require("node:fs"),cp=require("node:child_process"),id=JSON.parse(fs.readFileSync("../DELIVERY-IDENTITY.json","utf8"));const head=cp.execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),tree=cp.execFileSync("git",["rev-parse","HEAD^{tree}"],{encoding:"utf8"}).trim();if(id.schema!=="raven-solana-feature-delivery/1"||id.base_commit!==head||id.base_tree!==tree||id.artifacts?.base_bundle?.path!=="raven-solana-profile-base-fa205f85.bundle"||id.artifacts?.full_patch?.path!=="raven-solana-profile-r4-bootstrap-fix.patch")throw Error("DELIVERY_IDENTITY_MISMATCH");'
-git apply --check ../raven-solana-profile-r4-bootstrap-fix.patch
-git apply ../raven-solana-profile-r4-bootstrap-fix.patch
+node -e 'const fs=require("node:fs"),cp=require("node:child_process"),id=JSON.parse(fs.readFileSync("../DELIVERY-IDENTITY.json","utf8"));const head=cp.execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),tree=cp.execFileSync("git",["rev-parse","HEAD^{tree}"],{encoding:"utf8"}).trim();if(id.head!==head||id.tree!==tree||id.branch!=="codex/solana-coverage-repair-20260925"||id.bundle!=="raven-solana-coverage-repair.bundle")throw Error("DELIVERY_IDENTITY_MISMATCH");'
 ```
-
-Expected base identity before applying the patch:
-
-```text
-HEAD fa205f8580ac29a72188698a27974a8e63975a1c
-TREE ad0cad8bd8a450777881fd05c9501d5c2fba714a
-```
-
-The checkout is pinned to the base commit. The Solana integration is the separately hashed patch; both are required.
 
 ## Requirements
 
@@ -87,7 +73,7 @@ test "$?" -eq 1
 set -e
 ```
 
-Expected result: the command exits `1` because the target is `DIVERGENT`, with exactly two behavioral divergence rows: `V03_valid_v1` and `V16_valid_v1_two_instructions`. Behavioral divergence is only an expected-versus-observed mismatch for this named corpus; it does not state exploitability or an on-chain result.
+Expected result: the command exits `1` because the target is `DIVERGENT`, with three behavioral divergence rows: `V03_valid_v1`, `V10_noncanonical_shortvec_sigcount` and `V16_valid_v1_two_instructions`. Behavioral divergence is only an expected-versus-observed mismatch for this named corpus; it does not state exploitability or an on-chain result.
 
 ## Replay the bound reference report
 
@@ -102,11 +88,11 @@ Expected exit code: `0`, with `ok`, `bundle_match`, and `semantic_match` all `tr
 The example implements the runner's one-JSON-object-in / one-JSON-object-out process boundary and delegates to the bundled reference target. Replace `IMPLEMENTATION_ENTRY` in the example with a developer-owned compatible entry point.
 
 ```bash
-jq -c '.vectors[0].input' corpus/raven-solana-txversion-demo-corpus-1.2.json \
+jq -c '.vectors[0].input' corpus/raven-solana-txversion-demo-corpus-1.3.json \
   | npm run example:solana-adapter
 ```
 
-Expected output has `"decision":"ACCEPT"` and `"version":"legacy"`. The full app suite executes the adapter against all 12 vectors.
+Expected output has `"decision":"ACCEPT"` and `"version":"legacy"`. The full app suite executes the adapter against all 27 vectors.
 
 ## CI example
 
@@ -114,7 +100,7 @@ Expected output has `"decision":"ACCEPT"` and `"version":"legacy"`. The full app
 
 ## Coverage inventory
 
-`SOLANA_COVERAGE_INVENTORY.json` lists all 26 source vectors as exactly one of `included_from_source` or `omitted_from_source`, and separately identifies `V15_unexpected_input_key` as Raven-local. The inventory is test-checked against both the source corpus and the integrated 12-vector corpus.
+`SOLANA_COVERAGE_INVENTORY.json` lists all 26 source vectors as exactly one of `included_from_source` or `omitted_from_source`, and separately identifies `V15_unexpected_input_key` as Raven-local. The inventory is test-checked against both the source corpus and the integrated 27-vector corpus.
 
 ## Run the shared fail-closed probes
 
@@ -124,26 +110,8 @@ npm run probes
 
 The probe report distinguishes behavioral divergence from crash, timeout, invalid output, output flood, runner failure, and boundary escape. The exact isolation disclosure in the report controls; a Node child process alone is not represented as a security sandbox.
 
-## Demonstration-slice limits
+## Coverage and limits
 
-The 12-vector corpus is a Fair demonstration slice selected from the reviewed 26-vector corpus `1.1.0`. The cut preserves one ACCEPT path per transaction version and the named behavior classes above, but it intentionally drops some per-arm mutation detections from the larger corpus: legacy-size-only, signature-cap-only, address-cap-only, heap-only, and v1-duplicate-address-only mutants can survive this slice. V15 exercises the fail-closed input-shape guard. Strict-base64 discrimination is not covered: the runner compares decision and detected version, not reason, so a permissive decoder can still refuse V14-class bytes for a different reason. Legacy/v0 header-inconsistency call sites and `writable_unsigned_overflow` are unvectored in both this slice and its 26-vector source corpus; V23 covers the v1 `ro_signed_gte_req` site only. Prior family-level mutant kills establish at least one covered site per named family, not site-by-site coverage across every target call site. A `CONFORMANT` result means only that the target matched this named corpus at its pinned digest.
+Corpus 1.3 restores the 15 omitted source rows: all 26 source coverage properties plus the existing exact-key control are present. Source corpus bytes are retained under corpus/source with their original hash; restored inputs and expectations are unchanged. All 26 inputs and expectations match the pinned source, including V21’s 4202-byte witness. The subtle target now diverges on V03, V10 and V16: two defect classes, three rows. Target and profile bytes are unchanged.
 
-Use this claim for the experimental profile: **"The target matched this named experimental corpus."** Do not infer signature verification, transaction safety, wallet/Blink coverage, simulation, or on-chain execution.
-
-## Conformance receipt → Solana DEVNET (ugly bridge)
-
-New kind `raven-conformance-receipt/1` (receipt-v1 untouched). Digests only on-chain.
-
-```bash
-export RAVEN_CONFORMANCE_RECEIPT_KEYPAIR="$HOME/.raven/fair-conformance-devnet.json"
-# key = Solana JSON secret-key array; never commit
-
-npm run conform -- --target CONFORMANT_REFERENCE
-npm run receipt:issue -- --report reports/run_<id>.json
-npm run receipt:anchor -- --receipt receipts/run_<id>.conformance-receipt.json
-npm run receipt:verify -- --report reports/run_<id>.json \
-  --receipt receipts/run_<id>.conformance-receipt.json \
-  --anchor receipts/run_<id>.anchor.json
-```
-
-Refuses missing keypair and non-devnet RPC. Label everything DEVNET. No push/deploy from this lane.
+Restored metadata binds local profile rules, not a claim of complete external-spec conformity. Strict-base64 rejection is present, but reason discrimination is still outside the runner's decision/version comparison. Unvectored header sites and known profile/spec gaps remain; 27 passing rows do not establish complete Solana support, signature validity or transaction safety.

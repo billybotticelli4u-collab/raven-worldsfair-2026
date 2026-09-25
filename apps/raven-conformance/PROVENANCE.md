@@ -22,13 +22,13 @@ Those target bytes are unchanged from the source demo. Fixture-generation claims
 - Selection record review-package path: `REVIEWS/RAVEN_SOLANA_PROFILE_PROVENANCE_AND_SELECTION_KIMI_2026_09_20.md`
 - Selection record SHA-256: `4586542b491668478167ddc83cb4087e9097ccc4936860ccd7e50c5e50497ee6`
 
-The integrated corpus is version `1.2.0` with new bytes and a new content digest. Review of the source corpus does not approve the integrated corpus.
+The integrated corpus is version `1.3.0` with new bytes and a new content digest. Review of the source corpus does not approve the integrated corpus.
 
 ## Specification identities
 
 The corpus uses two digest scopes and names the scope per vector:
 
 - Published page or branch: `spec_digest` is SHA-256 of a committed UTF-8 clause snapshot under `spec-snapshots/`; the snapshot records the published URL, retrieval date, and full response-body digest observed at retrieval.
-- Local transport policy: `spec_digest` is SHA-256 of the committed profile JSON named by `policy_source`.
+- Local profile policy (including transport): `spec_digest` is SHA-256 of the committed profile JSON named by `policy_source`.
 
 No vector uses a live response-body digest as its `spec_digest`. The snapshots make the bytes used in review reproducible from a clean clone; their recorded raw-response identities do not claim that a mutable upstream page will keep the same body.

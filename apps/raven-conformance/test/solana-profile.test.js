@@ -24,9 +24,9 @@ describe("Solana transaction-version profile", () => {
 
     assert.equal(profile.data.name, SOLANA_PROFILE);
     assert.equal(corpus.data.profile, SOLANA_PROFILE);
-    assert.equal(corpus.data.vectors.length, 12);
+    assert.equal(corpus.data.vectors.length, 27);
     assert.ok(corpus.data.vectors.some((vector) => vector.id === "V15_unexpected_input_key"));
-    assert.ok(!corpus.data.vectors.some((vector) => vector.id === "V14_malformed_base64"));
+    assert.ok(corpus.data.vectors.some((vector) => vector.id === "V14_malformed_base64"));
     assert.equal(corpus.data.lineage.source_demo_head, "08889b69798ad69a719a2634cabbebb0eb82c5fe");
     assert.equal(corpus.data.lineage.source_demo_tree, "384507c892c83c372eddb2331fabb5fad392ddd4");
     assert.equal(
@@ -70,8 +70,8 @@ describe("Solana transaction-version profile", () => {
       for (const field of requiredFields) {
         assert.ok(vector[field], `${vector.id} missing ${field}`);
       }
-      if (vector.requirement_level === "PROFILE_TRANSPORT") {
-        assert.equal(vector.policy_source, "profiles/raven-solana-txversion-experimental-0.json#R1");
+      if (["PROFILE_TRANSPORT", "PROFILE_POLICY"].includes(vector.requirement_level)) {
+        assert.match(vector.policy_source, /^profiles\/raven-solana-txversion-experimental-0\.json#R/);
         assert.equal(vector.spec_digest, profile.digest);
       } else {
         assert.match(vector.specification, /https:\/\//);
@@ -113,8 +113,8 @@ describe("Solana transaction-version profile", () => {
 
     assert.equal(report.summary.overall, "CONFORMANT");
     assert.equal(report.summary.pass, report.corpus.vector_count);
-    assert.match(report.reproduction.clean_clone, /raven-solana-profile-base-fa205f85\.bundle/);
-    assert.match(report.reproduction.clean_clone, /git apply \.\.\/raven-solana-profile-v1\.patch/);
+    assert.match(report.reproduction.clean_clone, /raven-solana-coverage-repair\.bundle/);
+    assert.doesNotMatch(report.reproduction.clean_clone, /git apply/);
     assert.ok(report.results.some((row) => row.expected.version === "legacy"));
     assert.ok(report.results.some((row) => row.expected.version === 0));
     assert.ok(report.results.some((row) => row.expected.version === 1));
@@ -130,7 +130,7 @@ describe("Solana transaction-version profile", () => {
     assert.equal(report.summary.overall, "DIVERGENT");
     assert.deepEqual(
       report.summary.behavioral_divergence_vector_ids,
-      ["V03_valid_v1", "V16_valid_v1_two_instructions"],
+      ["V03_valid_v1", "V10_noncanonical_shortvec_sigcount", "V16_valid_v1_two_instructions"],
     );
     assert.deepEqual(report.summary.execution_error_vector_ids, []);
     assert.ok(report.results.every((row) => typeof row.description === "string" && row.description.length > 0));

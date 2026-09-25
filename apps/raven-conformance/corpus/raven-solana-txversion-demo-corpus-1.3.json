@@ -1,0 +1,802 @@
+{
+  "id": "raven-solana-txversion-demo-corpus/1.3",
+  "version": "1.3.0",
+  "profile": "raven-solana-txversion-experimental/0",
+  "description": "All 26 source-corpus coverage rows plus the existing Raven-local exact-key control. Restored rows bind local profile policy without claiming external-spec certification. Existing V21 enlarged size witness is retained; source bytes are included for audit.",
+  "lineage": {
+    "source_demo_head": "08889b69798ad69a719a2634cabbebb0eb82c5fe",
+    "source_demo_tree": "384507c892c83c372eddb2331fabb5fad392ddd4",
+    "source_corpus_file_sha256": "edf533bd64bac1eb00de78833614edd94e190bef437c7f73b80b100e7ea5540e",
+    "source_corpus_content_digest_sha256": "c463a23b9ee3d1e91204e1d2bc9b1a3bf121e97ca9ba00e7a970b8fd97c5aa1a",
+    "selection_record_package_path": "REVIEWS/RAVEN_SOLANA_PROFILE_PROVENANCE_AND_SELECTION_KIMI_2026_09_20.md",
+    "selection_record_sha256": "4586542b491668478167ddc83cb4087e9097ccc4936860ccd7e50c5e50497ee6"
+  },
+  "vectors": [
+    {
+      "id": "V01_valid_legacy",
+      "specification": "Solana documentation — Versioned Transactions (https://solana.com/docs/core/transactions/versioned-transactions)",
+      "spec_version": "fetched-2026-09-20",
+      "spec_digest": "8eb0feac97dbc9f07456825622834597469ede1e86b3ffe1115b12c65c0f83e7",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable live HTML body hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/solana-versioned-transactions-2026-09-20.md",
+      "section": "Format legacy / Legacy wire layout",
+      "normative_clause": "Legacy transactions have no version prefix; the wire transaction begins with the compact-u16 signature count and the legacy message header has its version bit clear.",
+      "requirement_level": "PUBLISHED_FORMAT",
+      "behaviour_class": "accept-valid-legacy",
+      "input": {
+        "tx_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA="
+      },
+      "expected_outcome": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy"
+      },
+      "requirement": "R4/R5/R8 legacy happy path",
+      "rationale": "Valid real legacy transfer (kit-generated) must ACCEPT as legacy.",
+      "provenance": "real: kit-generated offline, synthetic keys",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy"
+      }
+    },
+    {
+      "id": "V02_valid_v0",
+      "specification": "Solana documentation — Versioned Transactions (https://solana.com/docs/core/transactions/versioned-transactions)",
+      "spec_version": "fetched-2026-09-20",
+      "spec_digest": "8eb0feac97dbc9f07456825622834597469ede1e86b3ffe1115b12c65c0f83e7",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable live HTML body hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/solana-versioned-transactions-2026-09-20.md",
+      "section": "Format v0 / v0 wire layout",
+      "normative_clause": "A v0 message uses version prefix 0x80 and extends the legacy layout with address-table lookups.",
+      "requirement_level": "PUBLISHED_FORMAT",
+      "behaviour_class": "accept-valid-v0",
+      "input": {
+        "tx_base64": "ARrNkJtx9vCp07Tg0gpFhAJvwI9aBJgRVNZ69Wn1jQr0LSd/tUbgUtOwVlWTyVAAzu1kaMsb1BV6/iWH8YmsJg2AAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAAAA=="
+      },
+      "expected_outcome": {
+        "decision": "ACCEPT",
+        "version": 0,
+        "reason": "ok:0"
+      },
+      "requirement": "R4/R5/R8 v0 happy path",
+      "rationale": "Valid real v0 transfer (message prefix 0x80 after signatures) must ACCEPT as v0.",
+      "provenance": "real: kit-generated offline, synthetic keys",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": 0,
+        "reason": "ok:0"
+      }
+    },
+    {
+      "id": "V03_valid_v1",
+      "specification": "SIMD-0385 Transaction V1 Format (https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0385-transaction-v1.md)",
+      "spec_version": "status-review@main-fetched-2026-09-20",
+      "spec_digest": "1650b61191ff891d82e7ce6fb636d7834d39275f63ac5a108c8d26ffeb58a053",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable branch response hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/simd-0385-transaction-v1-2026-09-20.md",
+      "section": "Transaction V1 Specification / VersionByte",
+      "normative_clause": "The v1 VersionByte is 129 (0x81), distinguishing v1 from legacy and v0.",
+      "requirement_level": "MUST",
+      "behaviour_class": "accept-valid-v1",
+      "input": {
+        "tx_base64": "gQEAAR8AAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiBMAAAAAAAAgTgAAAAABAAAAAQACAgwAAAECAAAAgJaYAAAAAADMPVnyBP/Qhuqkqb5AMZ1glJcTLl15K6tr16aTrfvqT16WuepMxzJO7bNGF9QEUsONyPvROkbUoiGePBo8v9sA"
+      },
+      "expected_outcome": {
+        "decision": "ACCEPT",
+        "version": 1,
+        "reason": "ok:1"
+      },
+      "requirement": "R3/R9 v1 happy path",
+      "rationale": "Valid synthetic v1 transfer (version byte 0x81 at offset zero, SIMD-0385) must ACCEPT as v1. A pre-v1 parser misreads 0x81 as a short-vec continuation byte.",
+      "provenance": "real: kit-generated offline, synthetic keys",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": 1,
+        "reason": "ok:1"
+      }
+    },
+    {
+      "id": "V04_valid_v0_with_lookup_table",
+      "input": {
+        "tx_base64": "ARrNkJtx9vCp07Tg0gpFhAJvwI9aBJgRVNZ69Wn1jQr0LSd/tUbgUtOwVlWTyVAAzu1kaMsb1BV6/iWH8YmsJg2AAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAAATMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAQAA"
+      },
+      "requirement": "R8 v0 lookup section",
+      "rationale": "v0 with one address-lookup-table entry must ACCEPT as v0; parsers that end the v0 message at the instruction list reject it as trailing bytes.",
+      "provenance": "synthetic: real v0 fixture + documented lookup section appended (Solana docs v0 layout)",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": 0,
+        "reason": "ok:0"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R8",
+      "normative_clause": "R8 structure (legacy/v0): account keys short-vec (32B each), 32B blockhash, instructions short-vec [program_index u8][accounts short-vec u8][data short-vec u8]; every account index and program index must be < total addressable accounts (static + lookup-table-loaded for v0). v0 only: lookup-table short-vec follows instructions [32B table address][writable indexes short-vec][readonly indexes short-vec]. Legacy has no lookup section.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R8",
+      "behaviour_class": "valid_v0_with_lookup_table",
+      "expected_outcome": {
+        "decision": "ACCEPT",
+        "version": 0,
+        "reason": "ok:0"
+      }
+    },
+    {
+      "id": "V05_valid_legacy_duplicate_account",
+      "input": {
+        "tx_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzfQSrIydCu0qzoTaL1GFeTm0CJKtxoBa6+FIKMyyXeHNwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA="
+      },
+      "requirement": "R8 legacy duplicates allowed (docs version matrix)",
+      "rationale": "Legacy transactions permit duplicate account addresses (only v1 rejects them). Contrast vector with V12: same mutation, opposite verdict by version.",
+      "provenance": "derived: dest account bytes replaced by payer bytes in real legacy fixture",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R8",
+      "normative_clause": "R8 structure (legacy/v0): account keys short-vec (32B each), 32B blockhash, instructions short-vec [program_index u8][accounts short-vec u8][data short-vec u8]; every account index and program index must be < total addressable accounts (static + lookup-table-loaded for v0). v0 only: lookup-table short-vec follows instructions [32B table address][writable indexes short-vec][readonly indexes short-vec]. Legacy has no lookup section.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R8",
+      "behaviour_class": "valid_legacy_duplicate_account",
+      "expected_outcome": {
+        "decision": "ACCEPT",
+        "version": "legacy",
+        "reason": "ok:legacy"
+      }
+    },
+    {
+      "id": "V06_truncated_legacy",
+      "input": {
+        "tx_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmd"
+      },
+      "requirement": "R11 truncated",
+      "rationale": "Legacy fixture cut mid-accounts must REJECT.",
+      "provenance": "derived: truncation of real fixture",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "truncated:accounts"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R11",
+      "normative_clause": "R11 exact_consumption: parsing must consume every byte exactly; reject trailing_bytes or truncated.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R11",
+      "behaviour_class": "truncated_legacy",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "truncated:accounts"
+      }
+    },
+    {
+      "id": "V07_trailing_bytes_v0",
+      "specification": "SIMD-0385 Transaction V1 Format (https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0385-transaction-v1.md)",
+      "spec_version": "status-review@main-fetched-2026-09-20",
+      "spec_digest": "1650b61191ff891d82e7ce6fb636d7834d39275f63ac5a108c8d26ffeb58a053",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable branch response hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/simd-0385-transaction-v1-2026-09-20.md",
+      "section": "Signatures",
+      "normative_clause": "SIMD-0385 forbids trailing data after v1 signatures; this Raven profile explicitly extends exact consumption to the v0 fixture in this vector.",
+      "requirement_level": "PROFILE_EXTENSION",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R11",
+      "behaviour_class": "reject-trailing-bytes",
+      "input": {
+        "tx_base64": "ARrNkJtx9vCp07Tg0gpFhAJvwI9aBJgRVNZ69Wn1jQr0LSd/tUbgUtOwVlWTyVAAzu1kaMsb1BV6/iWH8YmsJg2AAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAAAKqqqqqq"
+      },
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "trailing_bytes"
+      },
+      "requirement": "R11 exact consumption",
+      "rationale": "Five garbage bytes appended after a valid v0 transaction must REJECT (trailing_bytes). NOTE: @solana/kit 8.3.0's own decoder tolerates trailing bytes — this vector demonstrates that codec-level decode success is not admission hygiene.",
+      "provenance": "derived: real v0 fixture + 5 trailing 0xAA",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "trailing_bytes"
+      }
+    },
+    {
+      "id": "V08_unsupported_tx_version_2",
+      "input": {
+        "tx_base64": "ggEAAR8AAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiBMAAAAAAAAgTgAAAAABAAAAAQACAgwAAAECAAAAgJaYAAAAAADMPVnyBP/Qhuqkqb5AMZ1glJcTLl15K6tr16aTrfvqT16WuepMxzJO7bNGF9QEUsONyPvROkbUoiGePBo8v9sA"
+      },
+      "requirement": "R3 unsupported_version",
+      "rationale": "Version byte 0x82 (version 2) at offset zero is reserved/unsupported; must REJECT, not optimistic-accept a future format.",
+      "provenance": "derived: v1 fixture version byte flipped 0x81→0x82",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "unsupported_version:tx_offset0_2"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R3",
+      "normative_clause": "R3 envelope_version: if decoded[0] === 0x81 the transaction is v1 (version byte at offset zero, SIMD-0385). If decoded[0] >= 0x80 and != 0x81 reject unsupported_version (0x80 reserved at offset zero; 0x82..0xFF = versions 2..127 not supported). A first byte >= 0x80 can never be a canonical short-vec signature count, so no valid legacy/v0 transaction is misclassified.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R3",
+      "behaviour_class": "unsupported_tx_version_2",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "unsupported_version:tx_offset0_2"
+      }
+    },
+    {
+      "id": "V09_unsupported_message_version_3",
+      "input": {
+        "tx_base64": "ARrNkJtx9vCp07Tg0gpFhAJvwI9aBJgRVNZ69Wn1jQr0LSd/tUbgUtOwVlWTyVAAzu1kaMsb1BV6/iWH8YmsJg2DAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAAAA=="
+      },
+      "requirement": "R5 message-level version",
+      "rationale": "Message prefix 0x83 (message version 3) after a valid signature section must REJECT.",
+      "provenance": "derived: v0 fixture message prefix 0x80→0x83",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "unsupported_version:msg_3"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R5",
+      "normative_clause": "R5 message_version (legacy/v0 family): after signatures, message[0] === 0x80 means v0; message[0] with MSB clear means legacy; message[0] MSB set with any other value rejects unsupported_version.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R5",
+      "behaviour_class": "unsupported_message_version_3",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "unsupported_version:msg_3"
+      }
+    },
+    {
+      "id": "V10_noncanonical_shortvec_sigcount",
+      "input": {
+        "tx_base64": "gQCRon0mHlQTp+2f/SM0k+a5XRQLorXmN5rcLxp9wCoJOAZMzIj+Vd1yYvgvERs1Lg38dF7/KtTKHrYKjS78qDcGAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAA"
+      },
+      "requirement": "R3/R4 canonical short-vec + envelope precedence",
+      "rationale": "Signature count 1 encoded non-canonically as 81 00. Under the post-SIMD-0385 envelope convention a leading 0x81 IS the v1 version byte, so this is a malformed v1 transaction; a stale pre-v1 parser reads it as count=1 and ACCEPTs. Catches non-minimal-encoding tolerance and version ambiguity together.",
+      "provenance": "derived: legacy fixture sig-count byte replaced by non-minimal two-byte encoding",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "config_mask_invalid:partial_fee_bits"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R3, R4",
+      "normative_clause": "R3 envelope_version: if decoded[0] === 0x81 the transaction is v1 (version byte at offset zero, SIMD-0385). If decoded[0] >= 0x80 and != 0x81 reject unsupported_version (0x80 reserved at offset zero; 0x82..0xFF = versions 2..127 not supported). A first byte >= 0x80 can never be a canonical short-vec signature count, so no valid legacy/v0 transaction is misclassified. R4 sigcount_envelope (legacy/v0 family): read the signature count as a short-vec (compact-u16) in CANONICAL minimal encoding; reject non_canonical_shortvec otherwise. Reject truncated if fewer than 64*count signature bytes follow.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R3,R4",
+      "behaviour_class": "noncanonical_shortvec_sigcount",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "config_mask_invalid:partial_fee_bits"
+      }
+    },
+    {
+      "id": "V11_inflated_sigcount",
+      "input": {
+        "tx_base64": "ApGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA="
+      },
+      "requirement": "R4/R7 signature section consistency",
+      "rationale": "Signature count edited 1→2 without adding a signature must REJECT.",
+      "provenance": "derived: legacy fixture count byte 0x01→0x02",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "non_canonical_shortvec:non_minimal"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R4, R7",
+      "normative_clause": "R4 sigcount_envelope (legacy/v0 family): read the signature count as a short-vec (compact-u16) in CANONICAL minimal encoding; reject non_canonical_shortvec otherwise. Reject truncated if fewer than 64*count signature bytes follow. R7 signature_count_binding: the transaction's signature vector length must equal header.num_required_signatures exactly. (Profile rule, consistent with runtime sanitize.)",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R4,R7",
+      "behaviour_class": "inflated_sigcount",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "non_canonical_shortvec:non_minimal"
+      }
+    },
+    {
+      "id": "V12_v1_duplicate_accounts",
+      "input": {
+        "tx_base64": "gQEAAR8AAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzfQSrIydCu0qzoTaL1GFeTm0CJKtxoBa6+FIKMyyXeHNwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiBMAAAAAAAAgTgAAAAABAAAAAQACAgwAAAECAAAAgJaYAAAAAADMPVnyBP/Qhuqkqb5AMZ1glJcTLl15K6tr16aTrfvqT16WuepMxzJO7bNGF9QEUsONyPvROkbUoiGePBo8v9sA"
+      },
+      "requirement": "R9 v1 duplicate rejection (docs version matrix)",
+      "rationale": "v1 rejects duplicate static account addresses; legacy/v0 allow them (V05). Parsers that apply one rule set to all versions diverge here.",
+      "provenance": "derived: dest account bytes replaced by payer bytes in real v1 fixture",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "duplicate_static_accounts"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R9",
+      "normative_clause": "R9 structure (v1, GROUPED layout per SIMD-0385 proposal text, confirmed against @solana/kit 8.3.0 encoder output): version(0x81) | legacyHeader(3) | configMask u32 LE | lifetimeSpecifier(32) | numInstructions u8 | numAddresses u8 | addresses[N*32] | configValues | InstructionHeaders[numInstructions x (programAccountIndex u8, numInstructionAccounts u8, numInstructionDataBytes u16 LE)] | InstructionPayloads[numInstructions x (accountIndexes[numInstructionAccounts] ++ instructionData[numInstructionDataBytes])] | signature tail of exactly header.num_required_signatures x 64 raw bytes (no short-vec count — count implicit). ALL InstructionHeaders come first, THEN ALL InstructionPayloads concatenated; the interleaved header-then-payload-per-instruction shape is NOT v1. configMask bits: 0b11 = priorityFeeLamports (u64, both bits must be set together), 0b100 = computeUnitLimit (u32), 0b1000 = loadedAccountsDataSizeLimit (u32), 0b10000 = heapSize (u32); values positional in that field order. Reject config_mask_invalid on partial fee bits (mask & 3 == 1 or 2) or any unknown bit above 0b10000. v1 rejects duplicate static accounts (SIMD-0385: 'It is a sanitization failure for this array to contain any duplicates'). v1 has NO address lookup tables.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R9",
+      "behaviour_class": "v1_duplicate_accounts",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "duplicate_static_accounts"
+      }
+    },
+    {
+      "id": "V13_v1_heap_out_of_range",
+      "input": {
+        "tx_base64": "gQEAAR8AAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiBMAAAAAAAAgTgAAAAABAABAAAACAgwAAAECAAAAgJaYAAAAAADMPVnyBP/Qhuqkqb5AMZ1glJcTLl15K6tr16aTrfvqT16WuepMxzJO7bNGF9QEUsONyPvROkbUoiGePBo8v9sA"
+      },
+      "requirement": "R10 heap bounds (docs: sanitization failure)",
+      "rationale": "v1 heapSize 16384 is below the 32 KiB minimum — a sanitization failure per Solana docs. kit 8.3.0 refuses to BUILD this (client-side validation), so bytes are derived by single-field surgery on the real fixture.",
+      "provenance": "derived: heap value 65536→16384 in real v1 fixture (kit refuses to emit this)",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "config_heap_out_of_range:16384"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R10",
+      "normative_clause": "R10 heap_bounds: a present v1 heapSize must be a multiple of 1024 in [32768, 262144]; reject config_heap_out_of_range otherwise (Solana docs: out-of-range heap is a sanitization failure).",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R10",
+      "behaviour_class": "v1_heap_out_of_range",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "config_heap_out_of_range:16384"
+      }
+    },
+    {
+      "id": "V14_malformed_base64",
+      "input": {
+        "tx_base64": "!!!not-base64!!!"
+      },
+      "requirement": "R2 strict base64",
+      "rationale": "Non-base64 input must REJECT, not coerce or accept.",
+      "provenance": "synthetic",
+      "codec_check": "not_applicable",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "malformed_base64"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R2",
+      "normative_clause": "R2 base64: reject malformed_base64 unless strict RFC 4648 base64 decoding succeeds (alphabet + correct padding + round-trip length).",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R2",
+      "behaviour_class": "malformed_base64",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "malformed_base64"
+      }
+    },
+    {
+      "id": "V15_malformed_input_shape",
+      "input": {
+        "wrong_key": "AA=="
+      },
+      "requirement": "R1 input shape",
+      "rationale": "Object without exactly the tx_base64 key must REJECT (error-vs-refusal hygiene).",
+      "provenance": "synthetic",
+      "codec_check": "not_applicable",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "malformed_input:keys"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R1",
+      "normative_clause": "R1 input_shape: reject malformed_input unless the input is a JSON object with exactly one key, tx_base64, a string.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R1",
+      "behaviour_class": "malformed_input_shape",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "malformed_input:keys"
+      }
+    },
+    {
+      "id": "V15_unexpected_input_key",
+      "specification": "Raven Solana transaction-version profile invocation contract",
+      "spec_version": "raven-solana-txversion-experimental/0@0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of the committed profile JSON named by policy_source.",
+      "section": "R1 input_shape",
+      "normative_clause": "The profile invocation input is a JSON object with exactly one key, tx_base64, whose value is a string; every other input shape is rejected.",
+      "requirement_level": "PROFILE_TRANSPORT",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R1",
+      "behaviour_class": "reject-malformed-input-shape",
+      "input": {
+        "tx_base64": "AZGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwYBAAED0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBAgIAAQwCAAAAgJaYAAAAAAA=",
+        "extra": 1
+      },
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "malformed_input:keys"
+      },
+      "requirement": "R1 input shape",
+      "rationale": "A valid legacy transaction plus an unexpected input key must REJECT; deleting only the exact-key guard changes this witness from refusal to admission.",
+      "provenance": "derived: V01 valid legacy fixture plus one unexpected input key",
+      "codec_check": "not_applicable",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "malformed_input:keys"
+      }
+    },
+    {
+      "id": "V16_valid_v1_two_instructions",
+      "specification": "SIMD-0385 Transaction V1 Format (https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0385-transaction-v1.md)",
+      "spec_version": "status-review@main-fetched-2026-09-20",
+      "spec_digest": "1650b61191ff891d82e7ce6fb636d7834d39275f63ac5a108c8d26ffeb58a053",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable branch response hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/simd-0385-transaction-v1-2026-09-20.md",
+      "section": "Transaction V1 Specification / InstructionHeaders / InstructionPayloads",
+      "normative_clause": "All NumInstructions instruction headers precede the concatenated instruction payloads; payload lengths come from the corresponding headers.",
+      "requirement_level": "PUBLISHED_FORMAT",
+      "behaviour_class": "accept-valid-v1-grouped-layout",
+      "input": {
+        "tx_base64": "gQEAAQAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgID0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgIMAAICDAAAAQIAAACAlpgAAAAAAAABAgAAAAAtMQEAAAAA0ast3IHCMpjZLoW0/bWZKURwXQ19eQOtjV/W/9ZZ85oSuIorsk82Mqf93iH/gg2ZsDDftKExnc7ZXGuXtJFnDA=="
+      },
+      "expected_outcome": {
+        "decision": "ACCEPT",
+        "version": 1,
+        "reason": "ok:1"
+      },
+      "requirement": "R9 v1 GROUPED instruction layout",
+      "rationale": "Real kit-generated v1 with TWO instructions. SIMD-0385 groups ALL InstructionHeaders then ALL InstructionPayloads; with 1 instruction the grouped and interleaved layouts are byte-identical, so only a 2+ instruction vector can catch a wrong-layout parser. Pre-repair (v0.1.0 profile) this vector was falsely REJECTed.",
+      "provenance": "real: kit-generated offline, synthetic keys",
+      "codec_check": "decode_ok",
+      "expected": {
+        "decision": "ACCEPT",
+        "version": 1,
+        "reason": "ok:1"
+      }
+    },
+    {
+      "id": "V17_v1_interleaved_layout",
+      "specification": "SIMD-0385 Transaction V1 Format (https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0385-transaction-v1.md)",
+      "spec_version": "status-review@main-fetched-2026-09-20",
+      "spec_digest": "1650b61191ff891d82e7ce6fb636d7834d39275f63ac5a108c8d26ffeb58a053",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable branch response hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/simd-0385-transaction-v1-2026-09-20.md",
+      "section": "Transaction V1 Specification / InstructionHeaders / InstructionPayloads",
+      "normative_clause": "The wire layout places the complete InstructionHeaders array before the complete InstructionPayloads array; an interleaved header-payload layout does not match that format.",
+      "requirement_level": "PUBLISHED_FORMAT",
+      "behaviour_class": "reject-v1-interleaved-layout",
+      "input": {
+        "tx_base64": "gQEAAQAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgID0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgIMAAABAgAAAICWmAAAAAAAAgIMAAABAgAAAAAtMQEAAAAA0ast3IHCMpjZLoW0/bWZKURwXQ19eQOtjV/W/9ZZ85oSuIorsk82Mqf93iH/gg2ZsDDftKExnc7ZXGuXtJFnDA=="
+      },
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "trailing_bytes"
+      },
+      "requirement": "R9 v1 GROUPED instruction layout",
+      "rationale": "Byte-reorder of V16 into the interleaved header-then-payload-per-instruction shape: identical length, identical byte multiset, layout is the ONLY variable. Must REJECT. kit 8.3.0 decodes it structurally (payload byte sums are preserved) — codec decode success is not admission hygiene, again.",
+      "provenance": "derived: documented header/payload reorder of the real V16 fixture",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "trailing_bytes"
+      }
+    },
+    {
+      "id": "V18_v1_header_req_sig_gt_accounts",
+      "input": {
+        "tx_base64": "gQQAAQAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgID0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgIMAAICDAAAAQIAAACAlpgAAAAAAAABAgAAAAAtMQEAAAAA0ast3IHCMpjZLoW0/bWZKURwXQ19eQOtjV/W/9ZZ85oSuIorsk82Mqf93iH/gg2ZsDDftKExnc7ZXGuXtJFnDA=="
+      },
+      "requirement": "R6 header_consistency (v1)",
+      "rationale": "v1 num_required_signatures (4) > num_addresses (3) must REJECT header_inconsistent. Kills mutants that delete the v1 header check.",
+      "provenance": "derived: header byte surgery on real V16 fixture",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "header_inconsistent:req_sig_gt_accounts"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R6",
+      "normative_clause": "R6 header_consistency (all versions): num_readonly_signed < num_required_signatures (equality is a sanitization failure — it would make the fee payer readonly — so num_required_signatures >= 1 is implied); num_required_signatures <= account_count; (num_required_signatures - num_readonly_signed) + num_readonly_unsigned <= account_count. (Agave message sanitize semantics; SIMD-0385 restates the equality rule for v1.)",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R6",
+      "behaviour_class": "v1_header_req_sig_gt_accounts",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "header_inconsistent:req_sig_gt_accounts"
+      }
+    },
+    {
+      "id": "V19_legacy_signature_count_mismatch",
+      "specification": "Solana documentation — Transaction Pipeline (https://solana.com/docs/core/transactions/transaction-pipeline)",
+      "spec_version": "fetched-2026-09-20",
+      "spec_digest": "da9c5a76070ee5172bf2061f16bdb012fabc4bc9f8285dbbef2c52dbcc578ceb",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable live HTML body hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/solana-transaction-pipeline-2026-09-20.md",
+      "section": "Transaction processing pipeline / Sanitize",
+      "normative_clause": "Sanitization requires the number of transaction signatures to match num_required_signatures in the message header.",
+      "requirement_level": "SANITIZE_INVARIANT",
+      "behaviour_class": "reject-signature-count-mismatch",
+      "input": {
+        "tx_base64": "ApGifSYeVBOn7Z/9IzST5rldFAuiteY3mtwvGn3AKgk4BkzMiP5V3XJi+C8RGzUuDfx0Xv8q1MoetgqNLvyoNwaRon0mHlQTp+2f/SM0k+a5XRQLorXmN5rcLxp9wCoJOAZMzIj+Vd1yYvgvERs1Lg38dF7/KtTKHrYKjS78qDcGAQABA9BKsjJ0K7SrOhNovUYV5ObQIkq3GgFrr4UgozLJd4c3oJql9HpnWYAv+VX43C0qFKXJnSO+l/hkEn/5ODRVpPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAQICAAEMAgAAAICWmAAAAAAA"
+      },
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "signature_count_mismatch:2!=1"
+      },
+      "requirement": "R7 signature_count_binding (legacy)",
+      "rationale": "Signature vector length (2) != header.num_required_signatures (1) with BOTH signatures present — parses cleanly to the binding check, unlike V11 which fails earlier as truncation. Kills mutants that delete the count binding.",
+      "provenance": "derived: legacy fixture sig-count 1->2 with duplicated signature slot",
+      "codec_check": "decode_fail",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "signature_count_mismatch:2!=1"
+      }
+    },
+    {
+      "id": "V20_v1_account_index_out_of_bounds",
+      "specification": "SIMD-0385 Transaction V1 Format (https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0385-transaction-v1.md)",
+      "spec_version": "status-review@main-fetched-2026-09-20",
+      "spec_digest": "1650b61191ff891d82e7ce6fb636d7834d39275f63ac5a108c8d26ffeb58a053",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable branch response hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/simd-0385-transaction-v1-2026-09-20.md",
+      "section": "InstructionPayloads",
+      "normative_clause": "A v1 transaction fails sanitization when an instruction account index is greater than or equal to NumAddresses.",
+      "requirement_level": "SANITIZE_INVARIANT",
+      "behaviour_class": "reject-account-index-out-of-bounds",
+      "input": {
+        "tx_base64": "gQEAAQAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgID0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgIMAAICDABjAQIAAACAlpgAAAAAAAABAgAAAAAtMQEAAAAA0ast3IHCMpjZLoW0/bWZKURwXQ19eQOtjV/W/9ZZ85oSuIorsk82Mqf93iH/gg2ZsDDftKExnc7ZXGuXtJFnDA=="
+      },
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "account_index_out_of_bounds:account"
+      },
+      "requirement": "R9/R8 account index bounds (v1)",
+      "rationale": "v1 instruction account index 99 >= num_addresses 3 must REJECT. kit decodes it structurally — bounds are sanitization, not decoding. Kills mutants that delete the bounds check.",
+      "provenance": "derived: payload byte surgery on real V16 fixture",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "account_index_out_of_bounds:account"
+      }
+    },
+    {
+      "id": "V21_v1_size_cap_exceeded",
+      "specification": "SIMD-0385 Transaction V1 Format (https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0385-transaction-v1.md)",
+      "spec_version": "status-review@main-fetched-2026-09-20",
+      "spec_digest": "1650b61191ff891d82e7ce6fb636d7834d39275f63ac5a108c8d26ffeb58a053",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable branch response hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/simd-0385-transaction-v1-2026-09-20.md",
+      "section": "Transaction Constraints",
+      "normative_clause": "The maximum v1 transaction size specified by SIMD-0385 is 4096 bytes.",
+      "requirement_level": "MAXIMUM",
+      "behaviour_class": "reject-v1-size-cap",
+      "input": {
+        "tx_base64": "gQEAAAAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQggC0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzfu7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7gEA9AEBAPQBAQD0AQEA9AEBAPQBAQD0AQEA9AEBAPQBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB1VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU="
+      },
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "size_cap_exceeded:v1>4096"
+      },
+      "requirement": "R12 v1 size cap",
+      "rationale": "Fully well-formed v1 transaction of 4202 bytes (> 4096) must REJECT size_cap_exceeded. Valid-except-size construction: a padded vector would also be caught by R11 exact-consumption and could not detect a mutant that deletes only the size cap — this one can.",
+      "provenance": "synthetic: programmatically constructed, fully-formed except total size",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "size_cap_exceeded:v1>4096"
+      }
+    },
+    {
+      "id": "V22_legacy_size_cap_exceeded",
+      "input": {
+        "tx_base64": "AVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUBAAAk0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzcBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8QEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBEREREREREREREREREREREREREREREREREREREREREREhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhITExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxscHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkIBIwAA"
+      },
+      "requirement": "R12 legacy/v0 size cap",
+      "rationale": "Fully well-formed legacy transaction of 1257 bytes (> 1232) must REJECT size_cap_exceeded. Valid-except-size for the same mutant-detection reason as V21.",
+      "provenance": "synthetic: programmatically constructed, fully-formed except total size",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "size_cap_exceeded:legacy_v0>1232"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R12",
+      "normative_clause": "R12 size_caps: legacy/v0 total <= 1232 bytes; v1 total <= 4096 bytes (Solana docs version matrix; SIMD-0385 transaction constraints).",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R12",
+      "behaviour_class": "legacy_size_cap_exceeded",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "size_cap_exceeded:legacy_v0>1232"
+      }
+    },
+    {
+      "id": "V23_v1_ro_signed_equals_req_sig",
+      "specification": "SIMD-0385 Transaction V1 Format (https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0385-transaction-v1.md)",
+      "spec_version": "status-review@main-fetched-2026-09-20",
+      "spec_digest": "1650b61191ff891d82e7ce6fb636d7834d39275f63ac5a108c8d26ffeb58a053",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable branch response hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/simd-0385-transaction-v1-2026-09-20.md",
+      "section": "LegacyHeader",
+      "normative_clause": "A transaction fails sanitization when num_readonly_signed_accounts is greater than or equal to num_required_signatures because the fee payer would be readonly.",
+      "requirement_level": "SANITIZE_INVARIANT",
+      "behaviour_class": "reject-readonly-fee-payer",
+      "input": {
+        "tx_base64": "gQEBAQAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgID0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzegmqX0emdZgC/5VfjcLSoUpcmdI76X+GQSf/k4NFWk8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgIMAAICDAAAAQIAAACAlpgAAAAAAAABAgAAAAAtMQEAAAAA0ast3IHCMpjZLoW0/bWZKURwXQ19eQOtjV/W/9ZZ85oSuIorsk82Mqf93iH/gg2ZsDDftKExnc7ZXGuXtJFnDA=="
+      },
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "header_inconsistent:ro_signed_gte_req"
+      },
+      "requirement": "R6 header_consistency equality case (SIMD-0385)",
+      "rationale": "num_readonly_signed == num_required_signatures is a sanitization failure per SIMD-0385 ('As in prior formats... equality fails — it would imply the fee payer is readonly'). v0.1.0 of this profile allowed equality; 0.2.0 rejects it. Kills mutants that weaken the strict inequality.",
+      "provenance": "derived: header byte surgery on real V16 fixture",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "header_inconsistent:ro_signed_gte_req"
+      }
+    },
+    {
+      "id": "V24_v1_instructions_cap",
+      "specification": "SIMD-0385 Transaction V1 Format (https://github.com/solana-foundation/solana-improvement-documents/blob/main/proposals/0385-transaction-v1.md)",
+      "spec_version": "status-review@main-fetched-2026-09-20",
+      "spec_digest": "1650b61191ff891d82e7ce6fb636d7834d39275f63ac5a108c8d26ffeb58a053",
+      "spec_digest_scope": "SHA-256 of the committed UTF-8 clause snapshot; the mutable branch response hash at retrieval is recorded inside that snapshot.",
+      "spec_snapshot": "spec-snapshots/simd-0385-transaction-v1-2026-09-20.md",
+      "section": "NumInstructions / Transaction Constraints",
+      "normative_clause": "A v1 transaction fails sanitization when NumInstructions exceeds 64.",
+      "requirement_level": "MAXIMUM",
+      "behaviour_class": "reject-v1-instruction-cap",
+      "input": {
+        "tx_base64": "gQEAAAAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkEB0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU="
+      },
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "constraint_cap_exceeded:instructions>64"
+      },
+      "requirement": "R12b v1 count caps (instructions)",
+      "rationale": "v1 num_instructions 65 > 64 is a sanitization failure per the SIMD-0385 Transaction Constraints table. Kills mutants that delete the instruction cap.",
+      "provenance": "synthetic: programmatically constructed, fully-formed except the cap violation",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "constraint_cap_exceeded:instructions>64"
+      }
+    },
+    {
+      "id": "V25_v1_signatures_cap",
+      "input": {
+        "tx_base64": "gQ0AAAAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgEN0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzcBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwBAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ=="
+      },
+      "requirement": "R12b v1 count caps (signatures)",
+      "rationale": "v1 num_required_signatures 13 > 12 is a sanitization failure per the SIMD-0385 Transaction Constraints table. Kills mutants that delete the signature cap.",
+      "provenance": "synthetic: programmatically constructed, fully-formed except the cap violation",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "constraint_cap_exceeded:signatures>12"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R12b",
+      "normative_clause": "R12b v1_count_caps (v1 only): num_required_signatures <= 12, num_addresses <= 64, num_instructions <= 64 (SIMD-0385 Transaction Constraints table). For legacy/v0 these caps are already implied by the 1232-byte size cap and need no separate check.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R12b",
+      "behaviour_class": "v1_signatures_cap",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "constraint_cap_exceeded:signatures>12"
+      }
+    },
+    {
+      "id": "V26_v1_addresses_cap",
+      "input": {
+        "tx_base64": "gQEAAAAAAABCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQgFB0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzcBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8QEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBEREREREREREREREREREREREREREREREREREREREREREhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhITExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxscHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJycnJycnJycnJycnJycnJycnJycnJycnJycnJycnJycoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiorKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKywsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz9AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAEAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"
+      },
+      "requirement": "R12b v1 count caps (addresses)",
+      "rationale": "v1 num_addresses 65 > 64 is a sanitization failure per the SIMD-0385 Transaction Constraints table. Kills mutants that delete the address cap.",
+      "provenance": "synthetic: programmatically constructed, fully-formed except the cap violation",
+      "codec_check": "decode_ok_but_profile_rejects",
+      "expected": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "constraint_cap_exceeded:addresses>64"
+      },
+      "specification": "Raven experimental transaction-version profile (local policy; not external-spec certification)",
+      "spec_version": "0.2.0",
+      "spec_digest": "1250b4ac1d65595933666e9c6a77f95395b5015d8d88bf63a32b0c068d860be3",
+      "spec_digest_scope": "SHA-256 of committed profile JSON.",
+      "section": "R12b",
+      "normative_clause": "R12b v1_count_caps (v1 only): num_required_signatures <= 12, num_addresses <= 64, num_instructions <= 64 (SIMD-0385 Transaction Constraints table). For legacy/v0 these caps are already implied by the 1232-byte size cap and need no separate check.",
+      "requirement_level": "PROFILE_POLICY",
+      "policy_source": "profiles/raven-solana-txversion-experimental-0.json#R12b",
+      "behaviour_class": "v1_addresses_cap",
+      "expected_outcome": {
+        "decision": "REJECT",
+        "version": null,
+        "reason": "constraint_cap_exceeded:addresses>64"
+      }
+    }
+  ],
+  "content_digest_sha256": "ce7d6b354817d4b4c01de352146bb16dc7f2447a8816f671e2cc121994450124"
+}
