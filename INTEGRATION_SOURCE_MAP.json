@@ -1,0 +1,27 @@
+{
+  "schema": "raven-judge-integration-source-map/1",
+  "public_base": "10326982e445bdb7b56776039cd3d9028f776747",
+  "replay": {
+    "source_head": "4d14531a69eaa4df69af8f8fa07e9a21bc10360c",
+    "source_tree": "88c58b8aa1400f4b0371a5e1fa502385c833a991",
+    "destination": "apps/raven-replay",
+    "tree_parity": true,
+    "review_state": "packaging-only successor awaiting independent review; runtime review records in REVIEW-STATUS.md",
+    "sdk_head": "dbcee545f0ee22549d13faf622e86b5e52e73e65"
+  },
+  "conformance": {
+    "source_head": "9f6aaf77020ebc7d56c0ff272f157320d156ccd2",
+    "source_app_tree": "71a6c9ee71448bc66af50f4008f286145d484c61",
+    "destination": "apps/raven-conformance",
+    "tree_parity": true,
+    "review_state": "coverage/bootstrap repair awaiting independent review",
+    "corpus_rows": 27
+  },
+  "excluded": [
+    "separate SDK v1 successor",
+    "customer adapter prototypes",
+    "installed node_modules",
+    "private review/evidence directories"
+  ],
+  "publication": "not authorized; SDK license and source exposure decisions remain open"
+}

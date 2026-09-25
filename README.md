@@ -1,3 +1,5 @@
+> **Combined local review candidate:** [Start here](JUDGE_START_HERE.md) for Replay saved cases and the repaired27-row Conformance workflow. Neither this integration nor its pending deltas are a public release.
+
 > **Local submission candidate — not published.** This checkout adds Raven Replay under `apps/raven-replay/`. Public main at the base commit does not contain it. The existing deployed demos and Replay are distinct.
 >
 > **Start here for saved regression cases:** [Replay judge walkthrough](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md). Replay runs locally on Node v22.18.0. It is not hosted by the existing Vercel routes. Reports are unsigned; MATCH is not a safety verdict.
@@ -13,8 +15,9 @@ evaluation time), and fail-closed refusal on malformed evaluation time.
 **Preferred live URL (when Owner authorizes deploy):**
 https://ravenattest.com/worldsfair
 
-**This public Fair repo does not deploy by itself.** No deployment to
-ravenattest.com is performed by this repository's publication.
+**This repository has recorded Vercel Preview and Production deployments.**
+A push may trigger hosting automation. That does not authorize a change to
+ravenattest.com; the Replay browser app in this candidate is local only.
 
 ---
 
