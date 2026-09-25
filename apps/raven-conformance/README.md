@@ -77,7 +77,7 @@ The second named profile, `raven-solana-txversion-experimental/0`, tests offline
 |--------|-----------------|
 | `SOL_CONFORMANT_REFERENCE` | `CONFORMANT` — 27/27 PASS |
 | `SOL_BROKEN_OBVIOUS` | `DIVERGENT` on multiple rows |
-| `SOL_BROKEN_SUBTLE` | `DIVERGENT` on exactly `V03` and `V16` |
+| `SOL_BROKEN_SUBTLE` | `DIVERGENT` on exactly `V03`, `V10` and `V16` |
 
 The committed fixtures are synthetic or generated offline. This profile does not verify signatures, account state, blockhash freshness, simulation, execution, or any on-chain result. The 27-vector corpus restores all 26 source coverage rows and retains the exact-key control; see `DEVELOPER.md` for the exact limits and reproduction commands.
 
