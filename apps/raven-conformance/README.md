@@ -71,15 +71,15 @@ Paired proto vectors: `V11_proto_digest_includes_member` (ACCEPT) and `V12_proto
 
 ## Solana transaction-version profile
 
-The second named profile, `raven-solana-txversion-experimental/0`, tests offline admission of serialized Solana legacy, v0, and v1 transaction envelopes. Its 12-vector Fair slice compares both the target's decision and detected transaction version.
+The second named profile, `raven-solana-txversion-experimental/0`, tests offline admission of serialized Solana legacy, v0, and v1 transaction envelopes. Its 27-vector Fair slice compares both the target's decision and detected transaction version.
 
 | Target | Expected result |
 |--------|-----------------|
-| `SOL_CONFORMANT_REFERENCE` | `CONFORMANT` — 12/12 PASS |
+| `SOL_CONFORMANT_REFERENCE` | `CONFORMANT` — 27/27 PASS |
 | `SOL_BROKEN_OBVIOUS` | `DIVERGENT` on multiple rows |
-| `SOL_BROKEN_SUBTLE` | `DIVERGENT` on exactly `V03` and `V16` |
+| `SOL_BROKEN_SUBTLE` | `DIVERGENT` on exactly `V03`, `V10` and `V16` |
 
-The committed fixtures are synthetic or generated offline. This profile does not verify signatures, account state, blockhash freshness, simulation, execution, or any on-chain result. The 12-vector slice intentionally omits several per-arm detections from its 26-vector source corpus; see `DEVELOPER.md` for the exact limits and reproduction commands.
+The committed fixtures are synthetic or generated offline. This profile does not verify signatures, account state, blockhash freshness, simulation, execution, or any on-chain result. The 27-vector corpus restores all 26 source coverage rows and retains the exact-key control; see `DEVELOPER.md` for the exact limits and reproduction commands.
 
 The supported claim is: **“The target matched this named experimental corpus.”** The complete source-to-slice membership is machine-readable in `SOLANA_COVERAGE_INVENTORY.json`.
 
@@ -87,7 +87,7 @@ The supported claim is: **“The target matched this named experimental corpus.�
 
 `examples/solana-developer-adapter.mjs` is an executable process-adapter example for the JSON-line target contract. It delegates to the bundled reference implementation; a developer can replace its `IMPLEMENTATION_ENTRY` with their own compatible classifier without changing the runner.
 
-`.github/workflows/solana-profile-example.yml` runs the full app suite, keeps the envelope reference green, requires the Solana reference to pass 12/12, checks that the deliberately broken target differs on exactly `V03_valid_v1` and `V16_valid_v1_two_instructions`, and replays the bound reference report.
+`.github/workflows/solana-profile-example.yml` runs the full app suite, keeps the envelope reference green, requires the Solana reference to pass 27/27, checks that the deliberately broken target differs on exactly `V03_valid_v1`, `V10_noncanonical_shortvec_sigcount` and `V16_valid_v1_two_instructions`, and replays the bound reference report.
 
 ## Result taxonomy
 
