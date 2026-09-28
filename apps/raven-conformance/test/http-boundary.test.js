@@ -99,6 +99,12 @@ test('profile discovery exposes envelope and Solana metadata with separate targe
   assert.equal(meta.body.corpus.vector_count, 27);
   assert.equal(meta.body.claim, 'The target matched this named experimental corpus.');
 });
+test('Solana corpus scope states the served count and retains its disclaimer', async () => {
+  const meta = await request('/api/meta?profile=solana');
+  assert.equal(meta.status, 200);
+  assert.equal(meta.body.corpus.scope_note,
+    `Experimental ${meta.body.corpus.vector_count}-vector Fair slice for offline serialized-transaction admission; no signature, wallet, Blink, safety, or on-chain claim.`);
+});
 test('unknown profile selection fails closed before target execution', async () => {
   const meta = await request('/api/meta?profile=does-not-exist');
   assert.equal(meta.status, 400); assert.equal(meta.body.error, 'unknown_profile');

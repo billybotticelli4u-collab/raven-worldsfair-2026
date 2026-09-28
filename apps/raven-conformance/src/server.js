@@ -161,7 +161,7 @@ const server = http.createServer(async (req, res) => {
           sha256: corpus.digest,
           vector_count: corpus.data.vectors.length,
           scope_note: profile.data.name === SOLANA_PROFILE
-            ? "Experimental 12-vector Fair slice for offline serialized-transaction admission; no signature, wallet, Blink, safety, or on-chain claim."
+            ? `Experimental ${corpus.data.vectors.length}-vector Fair slice for offline serialized-transaction admission; no signature, wallet, Blink, safety, or on-chain claim.`
             : "Raven-owned Fair demo corpus only — self-contained fixtures, not private production corpora.",
         },
         claim: profile.data.name === SOLANA_PROFILE ? SOLANA_CLAIM : profile.data.claimed_conformance_meaning || null,

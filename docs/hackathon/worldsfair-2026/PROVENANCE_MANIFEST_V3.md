@@ -4,21 +4,21 @@ Date: 2026-09-28
 
 Class: **AUTHOR-SIDE DOCUMENTATION SUCCESSOR — NON-AUTHOR REVIEW REQUIRED**
 
-This document describes the correction successor whose sole parent is
-`d4ef576977b965410eee807b7826ee4d44029ba8` (TREE
-`a1cb0f3368a468bc7de5eabd69e5b1811a0d45bf`), whose grandparent is the
-SDK-licence successor `d93cab02…`, and whose great-grandparent is the preserved
-combined candidate `4be5ff78…`. It corrects the attribution scope in the root README and
-supersedes the older public-exposure labels only for this local successor. It
-does not alter any ancestor, grant publication authority or transfer any
-review verdict to new bytes.
+This document describes the judge-facing successor whose sole parent is
+`d39517aac2e0ed8ffd6e6bfa2a3e4af4f6813f89` (TREE
+`045774e0d404c4206c4a9e502befc34605c6b488`). That parent descends from
+`d4ef576977b965410eee807b7826ee4d44029ba8`, the SDK-licence successor
+`d93cab02…`, and preserved combined candidate `4be5ff78…`, in that order.
+This successor aligns the served corpus description, completes the Replay
+manifest and records the bounded review history. It does not alter any
+ancestor, grant publication authority or transfer any review verdict to new bytes.
 
 ## Exact lineage and bound evidence
 
-- Grandparent HEAD `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`, TREE
+- SDK-licence ancestor HEAD `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`, TREE
   `22dcc1eb62664340326c4a52eea02cb02a926cdf`; licence-successor bundle
   SHA-256 `697ef5a348132cbc7e2974ef7499cdc2ee1b939895782213dd107f4dbb63edf4`.
-- Great-grandparent HEAD `4be5ff7858b6636108a219f2c4e94a989c08d79e`, TREE
+- Preserved combined ancestor HEAD `4be5ff7858b6636108a219f2c4e94a989c08d79e`, TREE
   `30471bbd366d726102446ce3240e4b941e292439`; frozen-base bundle SHA-256
   `9db5e65d92b7e663c808ef9a10e3c1bbba45e316d09f933779a24d346481439d`.
 - Combined-candidate review SHA-256
@@ -112,9 +112,11 @@ their labels as follows:
   documentation commit is non-author for these docs but touches text about
   Claude's own work.
 - Claude authored submission-copy REV2 and REV3.
-- KIMI's licence verdict on `d93cab02…` and Claude's verdict on this
-  documentation successor are separate scopes. Neither approves the combined
-  release.
+- KIMI backup's licence verdict on `d93cab02…` and Claude's verdict on
+  `d39517a…` are separate scopes. KIMI backup's verdict of record is CHANGES;
+  the failing checksum condition is closed in `d39517a…`. This
+  review-recording and manifest-completion successor requires its own
+  non-author review. None of those reviews approves the combined release.
 - Four Claude PASS lanes are four scopes from one reviewer, not four
   independent reviewers.
 
@@ -127,13 +129,19 @@ their labels as follows:
   SHA-256 `d2b4f0e0551ae615b4cad77c76a79963c2e0ccac6acbbf69cd75158b46b00d78`
   and selects Apache-2.0 option (a).
 - Ancestor `d93cab02…` carries Apache-2.0 in the nested SDK package metadata and
-  an SDK-local LICENSE byte-identical to the root LICENSE. KIMI's changed-scope
-  review of those four changed paths is pending.
+  an SDK-local LICENSE byte-identical to the root LICENSE. KIMI backup's
+  verdict of record on exactly those four changed paths is CHANGES, bound to
+  HEAD `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`, TREE
+  `22dcc1eb62664340326c4a52eea02cb02a926cdf`, and report SHA-256
+  `c39be2d16e9cd8b059f2fbde1abcfffcda0723afe3014b7ef2345812419f533e`.
+  All four licence confirmations pass; the verdict is CHANGES because the
+  changed JSON files make that tree fail its documented Replay checksum step.
+  The review did not adjudicate ownership or authorize release.
 - Preserved `4be5ff78…` still declares the nested SDK `UNLICENSED`; it has not
   been modified.
-- No whole-tree "wholly open source" claim is valid until the KIMI review
-  returns PASS on the exact `d93cab02…` identity and the remaining third-party
-  and history limitations are kept visible.
+- No whole-tree "wholly open source" claim is made here. KIMI backup's review
+  is limited to the four-path licence delta; the remaining third-party and
+  history limitations must stay visible.
 
 ## Test-count attribution
 
@@ -147,11 +155,12 @@ exactly those three names differ.
 
 ## Checksum defect fixed in this successor
 
-The inherited defect in `apps/raven-replay/SHA256SUMS.txt` is fixed here by
-updating only the two entries for the SDK `package-lock.json` and `package.json`
-to the unchanged `d93cab02…` bytes. Glen's YES fold-in decision is recorded in
-`TO-GLEN/2026-09-28-CLAUDE-CONSOLIDATED-BOARD-AND-PROMPTS.md`.
-The documented `shasum -a 256 -c SHA256SUMS.txt` now verifies 112/112 entries.
+The inherited defect in `apps/raven-replay/SHA256SUMS.txt` was fixed in
+`d39517a…` by updating the two entries for the SDK `package-lock.json` and
+`package.json` to the unchanged `d93cab02…` bytes. Glen's YES fold-in decision
+is recorded in the 2026-09-28 candidate-chain board. This successor also adds
+the SDK-local `LICENSE`, completing coverage of all tracked Replay files except the manifest itself. The documented
+`shasum -a 256 -c SHA256SUMS.txt` now verifies 113/113 entries.
 The preserved `d93cab02…` and `d4ef576…` still fail those two entries; neither
 ancestor was modified. This corrects byte-consistency metadata, not runtime
 behavior or the scope of any prior review.

@@ -1,4 +1,4 @@
-> **Combined local review candidate:** [Start here](JUDGE_START_HERE.md) for Replay saved cases and the repaired27-row Conformance workflow. Neither this integration nor its pending deltas are a public release.
+> **Combined local review candidate:** [Start here](JUDGE_START_HERE.md) for Replay saved cases and the repaired 27-row Conformance workflow. Neither this integration nor its pending deltas are a public release.
 
 > **Local submission candidate — not published.** This checkout adds Raven Replay under `apps/raven-replay/`. Public main at the base commit does not contain it. The existing deployed demos and Replay are distinct.
 >
@@ -86,9 +86,13 @@ This combined local candidate descends from non-author reviewed (INTERNAL_ADVERS
 `30471bbd366d726102446ce3240e4b941e292439`. Claude's review was bounded to
 the supplied Darwin/local/unpublished package and its stated component scopes.
 The later SDK-licence successor `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`
-has a separate KIMI changed-scope review pending. This documentation successor
-also requires its own non-author review. None of those reviews authorizes a
-merge, deployment, publication or submission.
+has a KIMI backup changed-scope CHANGES verdict: its four licence changes pass,
+but that exact tree fails the guide's Replay checksum step. The condition is
+closed in checksum-and-documentation successor
+`d39517aac2e0ed8ffd6e6bfa2a3e4af4f6813f89`, which has a bounded Claude PASS.
+This review-recording and manifest-completion successor requires its own
+non-author review. None of those reviews authorizes a merge, deployment,
+publication or submission.
 
 The Agent Trust app's review class remains the Day-2 `a5cd592b` INTERNAL_ADVERSARIAL_NON_AUTHOR GO; the combined review did not exercise that app.
 
