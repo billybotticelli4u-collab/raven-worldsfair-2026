@@ -4,7 +4,7 @@
 >
 > **Start here for saved regression cases:** [Replay judge walkthrough](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md). Replay runs locally on Node v22.18.0. It is not hosted by the existing Vercel routes. Reports are unsigned; MATCH is not a safety verdict.
 
-# Raven × Crypto World's Fair 2026 — Agent Trust demo
+# Raven Conformance × Crypto World's Fair 2026 — combined local review candidate
 
 Judge demo: Agent A refuses blind trust, requires Raven-verified Solana
 receipt-v1 evidence from Agent B, then PROCEED / REFUSE fail-closed.
@@ -79,21 +79,27 @@ This demo does **not** perform live Solana RPC acquisition for PATH A/B.
 Evidence is offline fixture-based (`liveAcquisition:false`). Do not treat the
 demo as a live-chain fetch or production signing workflow.
 
-### 6. Review class: INTERNAL_ADVERSARIAL_NON_AUTHOR — not EXTERNAL_INDEPENDENT
+### 6. Review class: bounded exact-artifact reviews — not release approval
 
-Day-2 product tip `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` /
-tree `3e442f93529bdb5da876b54d484294032535e84a` carries
-**INTERNAL_ADVERSARIAL_NON_AUTHOR** GO (Billy copy-GO class).
-That is **not** EXTERNAL_INDEPENDENT review.
+This combined local candidate descends from independently reviewed HEAD
+`4be5ff7858b6636108a219f2c4e94a989c08d79e` / TREE
+`30471bbd366d726102446ce3240e4b941e292439`. Claude's review was bounded to
+the supplied Darwin/local/unpublished package and its stated component scopes.
+The later SDK-licence successor `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`
+has a separate KIMI changed-scope review pending. This documentation successor
+also requires its own non-author review. None of those reviews authorizes a
+merge, deployment, publication or submission.
 
-### 7. Public Fair repo ≠ all Raven production/security work is hackathon-created
+### 7. Combined-candidate attribution is component-specific
 
-Publishing this Fair-only repository does **not** imply that all Raven
-production, security, governance, or research work was created during
-the hackathon. Only the Fair surface listed under FAIR_NEW in
-`docs/hackathon/worldsfair-2026/PUBLIC_EXPOSURE_MANIFEST_V2.md` is
-competition work. The linked verifier submodule is labeled
-**PRE-EXISTING RAVEN FOUNDATION — NOT CRYPTO WORLD'S FAIR WORK**.
+The combined candidate contains both pre-existing Raven foundations and work
+first introduced during Crypto World's Fair 2026. Component-level attribution
+is recorded in
+[`PROVENANCE_MANIFEST_V3.md`](docs/hackathon/worldsfair-2026/PROVENANCE_MANIFEST_V3.md).
+Review verdicts establish only their stated scopes; they do not establish
+authorship, public availability, production readiness or publication authority.
+The linked verifier submodule remains labeled **PRE-EXISTING RAVEN FOUNDATION
+— NOT CRYPTO WORLD'S FAIR WORK**.
 
 ---
 
@@ -129,6 +135,9 @@ npm dependencies; verification code comes from the git submodule.
 | Path | Role |
 | --- | --- |
 | `apps/worldsfair-agent-trust/` | Fair Day-2 agent↔agent demo (FAIR_NEW) |
+| `apps/raven-conformance/` | Fair-era Conformance runner, profiles, UI and corpora; imported Solana target bytes retain their recorded Raven lineage |
+| `apps/raven-replay/` | Fair-era saved-case Replay prototype, including the nested parser SDK; included upstream history is limited as disclosed in V3 |
+| `apps/raven-site/` | Pre-existing Raven site apart from the Fair-era `worldsfair/` surface and changed Vercel configuration |
 | `docs/hackathon/worldsfair-2026/` | Fair provenance + PUBLIC_EXPOSURE_MANIFEST_V2 |
 | `vendor/raven-receipt-verifier/` | **Submodule** — PRE-EXISTING foundation pin |
 | `EXPORTED_FILE_MANIFEST.md` | Exact exported file set vs V2 |
@@ -143,7 +152,7 @@ npm dependencies; verification code comes from the git submodule.
   by this Day-2 tip-bump pass.
 - **No npm publish** of `raven-receipt-verifier` or this Fair app.
 
-## Source tip (Fair product — Day-2)
+## Historical source tip (Fair product — Day-2; not the current combined candidate)
 
 | Field | Value |
 | --- | --- |
