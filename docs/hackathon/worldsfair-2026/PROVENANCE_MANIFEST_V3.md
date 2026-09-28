@@ -4,19 +4,21 @@ Date: 2026-09-28
 
 Class: **AUTHOR-SIDE DOCUMENTATION SUCCESSOR — NON-AUTHOR REVIEW REQUIRED**
 
-This document describes the documentation successor whose parent is the
-SDK-licence successor `d93cab02…` and whose grandparent is the preserved combined
-candidate `4be5ff78…`. It corrects the attribution scope in the root README and
+This document describes the correction successor whose sole parent is
+`d4ef576977b965410eee807b7826ee4d44029ba8` (TREE
+`a1cb0f3368a468bc7de5eabd69e5b1811a0d45bf`), whose grandparent is the
+SDK-licence successor `d93cab02…`, and whose great-grandparent is the preserved
+combined candidate `4be5ff78…`. It corrects the attribution scope in the root README and
 supersedes the older public-exposure labels only for this local successor. It
-does not alter either ancestor, grant publication authority or transfer any
+does not alter any ancestor, grant publication authority or transfer any
 review verdict to new bytes.
 
 ## Exact lineage and bound evidence
 
-- Parent HEAD `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`, TREE
+- Grandparent HEAD `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`, TREE
   `22dcc1eb62664340326c4a52eea02cb02a926cdf`; licence-successor bundle
   SHA-256 `697ef5a348132cbc7e2974ef7499cdc2ee1b939895782213dd107f4dbb63edf4`.
-- Grandparent HEAD `4be5ff7858b6636108a219f2c4e94a989c08d79e`, TREE
+- Great-grandparent HEAD `4be5ff7858b6636108a219f2c4e94a989c08d79e`, TREE
   `30471bbd366d726102446ce3240e4b941e292439`; frozen-base bundle SHA-256
   `9db5e65d92b7e663c808ef9a10e3c1bbba45e316d09f933779a24d346481439d`.
 - Combined-candidate review SHA-256
@@ -36,8 +38,8 @@ publish or submit.
 | Component | Pre-existing foundation | Fair-era work in this candidate | Evidence and confidence |
 | --- | --- | --- | --- |
 | `apps/worldsfair-agent-trust` | Raven receipt-v1 verifier lineage, production trust anchor and BONK receipt content predate the Fair. The receipt-verifier is linked as submodule pin `1b04356a275742752fb7afd8dfcc4269d462a778`. | Agent A/B orchestration, `raven-agent-trust/1`, fail-closed PROCEED/REFUSE, Fair UI, About/Build Info and tests. | High for app code from bundle history. The BONK fixture carries pre-existing JSON content and must not be labelled wholly `FAIR_NEW`. |
-| `apps/raven-conformance` | Research lineage and private corpora are referenced, not copied. The Solana targets are unchanged bytes from `apps/raven-solana-demo` at source demo HEAD `08889b69798ad69a719a2634cabbebb0eb82c5fe`, first committed during the Fair at `7df934b` on 2026-09-16. Fixture-generation claims are inherited and were not regenerated in this lane. | Runner, bounded execution, taxonomy, probes, replay, UI, profiles and corpora. The candidate raises the Solana corpus from 12 to 27 rows: 26 source rows plus one exact-key control. | High for bytes present in this history. "First appears in this history" is a repository-history statement, not a claim of invention. Exact component tree at `4be5ff78…`: `71a6c9ee71448bc66af50f4008f286145d484c61`. |
-| `apps/raven-replay` excluding its nested SDK | `vendor/solana-inspector.mjs` is an unchanged copy of Raven's reference target from `a5c78f8a225c70f28661be600ea26af68c0cb0eb`; it is byte-identical to the Fair-era Conformance reference target. | Saved-case server, launcher, cleanup guard, browser UI and tests. | Medium because the included history begins with one import commit. Exact component tree at `4be5ff78…`: `88c58b8aa1400f4b0371a5e1fa502385c833a991`. |
+| `apps/raven-conformance` | Research lineage and private corpora are referenced, not copied. | **Fair-era internal lineage (not pre-existing):** The Solana targets are unchanged bytes from `apps/raven-solana-demo` at source demo HEAD `08889b69798ad69a719a2634cabbebb0eb82c5fe`, first committed during the Fair at `7df934b` on 2026-09-16. Fixture-generation claims are inherited and were not regenerated in this lane. Runner, bounded execution, taxonomy, probes, replay, UI, profiles and corpora. The candidate raises the Solana corpus from 12 to 27 rows: 26 source rows plus one exact-key control. | High for bytes present in this history. "First appears in this history" is a repository-history statement, not a claim of invention. Exact component tree at `4be5ff78…`: `71a6c9ee71448bc66af50f4008f286145d484c61`. |
+| `apps/raven-replay` excluding its nested SDK | No pre-existing target bytes claimed in this row. | **Fair-era internal lineage (not pre-existing):** `vendor/solana-inspector.mjs` is an unchanged copy of Raven's reference target from `a5c78f8a225c70f28661be600ea26af68c0cb0eb` (2026-09-21 19:19 +0200); it is byte-identical to the Fair-era Conformance reference target. Saved-case server, launcher, cleanup guard, browser UI and tests. | Medium because the included history begins with one import commit. Exact component tree at `4be5ff78…`: `88c58b8aa1400f4b0371a5e1fa502385c833a991`. |
 | Nested parser SDK | No byte-identical SDK source was found in the pre-Fair baseline. Its dependency and runtime lineage are listed below. | Adapter registry, runner, bindings, CLI and tests; `d93cab02…` adds Apache-2.0 metadata and an SDK-local LICENSE. | Medium because the included history does not reproduce the stated upstream Replay commit. SDK origin HEAD `dbcee545f0ee22549d13faf622e86b5e52e73e65`, TREE `1e7b5835…`. |
 | `apps/raven-site` | 166 files match the pre-Fair baseline at the same path, and one further file matches by content at another path. Site history begins 2026-06-04 with "Launch Console v1"; its last pre-Fair change was 2026-09-13 11:01. | 22 files under `worldsfair/` plus the changed Vercel configuration. | High from the measured blob ledger. Do not count the whole site as Fair-built. |
 | `vendor/raven-receipt-verifier` | Pre-existing Raven foundation, linked rather than copied; Apache-2.0 upstream at pin `1b04356a275742752fb7afd8dfcc4269d462a778`. | No new implementation claimed here. | High for classification; the submodule was not materialized in the Linux packet. |
@@ -124,7 +126,7 @@ their labels as follows:
 - The exact Owner statement exists in four byte-identical relay copies at
   SHA-256 `d2b4f0e0551ae615b4cad77c76a79963c2e0ccac6acbbf69cd75158b46b00d78`
   and selects Apache-2.0 option (a).
-- Parent `d93cab02…` carries Apache-2.0 in the nested SDK package metadata and
+- Ancestor `d93cab02…` carries Apache-2.0 in the nested SDK package metadata and
   an SDK-local LICENSE byte-identical to the root LICENSE. KIMI's changed-scope
   review of those four changed paths is pending.
 - Preserved `4be5ff78…` still declares the nested SDK `UNLICENSED`; it has not
@@ -143,16 +145,16 @@ only when that Darwin-only test runs. Claude reproduced the Darwin count on
 2026-09-28 with Node 22.18.0 and name-diffed it against the Linux transcript;
 exactly those three names differ.
 
-## Known open checksum defect inherited from `d93cab02…`
+## Checksum defect fixed in this successor
 
-`apps/raven-replay/SHA256SUMS.txt` lines 98–99 still pin the pre-licence SDK
-`package-lock.json` and `package.json`. The documented judge command in
-`JUDGE_START_HERE.md` line 18,
-`cd apps/raven-replay && shasum -a 256 -c SHA256SUMS.txt`, exits 1 with those
-two entries reported `FAILED` on `d93cab02…`; it exited 0 with 112/112 entries
-on `4be5ff78…`. This documentation-only successor intentionally carries the
-same two failures. Fixing the checksum manifest is outside this commit's
-authorized scope and requires a separately authorized successor.
+The inherited defect in `apps/raven-replay/SHA256SUMS.txt` is fixed here by
+updating only the two entries for the SDK `package-lock.json` and `package.json`
+to the unchanged `d93cab02…` bytes. Glen's YES fold-in decision is recorded in
+`TO-GLEN/2026-09-28-CLAUDE-CONSOLIDATED-BOARD-AND-PROMPTS.md`.
+The documented `shasum -a 256 -c SHA256SUMS.txt` now verifies 112/112 entries.
+The preserved `d93cab02…` and `d4ef576…` still fail those two entries; neither
+ancestor was modified. This corrects byte-consistency metadata, not runtime
+behavior or the scope of any prior review.
 
 ## Claim limits
 

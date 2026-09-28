@@ -95,8 +95,8 @@ c3ec7537841513647608a0c48c6ebb72f23cad9dcd2ad5a5ab2d0e544ccda4c0  vendor/raven-r
 8b595eb943c44301c52128b345fdfa2513c67b5500eaf26baa74758f5bdfae0d  vendor/raven-replay-parser-sdk/docs/SOURCE-IMPORT.md
 f303db7f0b74a9bf36c44411a14cb1a5d487eebee0ba95c7ca801368b280dc44  vendor/raven-replay-parser-sdk/fixtures/legacy-transaction.base64
 3209e2cd29cd3116dfc05913cf944304e668b0f92d3b686f1a4cad74dfad384f  vendor/raven-replay-parser-sdk/fixtures/v0-transaction.base64
-f7a35dd85e2d34b9c168098a464e706e49a4ab790a9d283a42a5a45d91dc0824  vendor/raven-replay-parser-sdk/package-lock.json
-ae5c8ae144a99e778f3d3c9b95c957a724c8836c99a4d7d4cf14179bd4992e8f  vendor/raven-replay-parser-sdk/package.json
+257fd9291799ff4c28e5af94c4cc60e9944d9586d97aa4eda42cdc781ad87800  vendor/raven-replay-parser-sdk/package-lock.json
+e03c2d1c69ae4a09c824301b189a0102860176337c091b75c4e8364e90d685ed  vendor/raven-replay-parser-sdk/package.json
 f2642d92d3eb09cb144086419f354ececfd14fceeac78ded080761097a083629  vendor/raven-replay-parser-sdk/src/binding.mjs
 ad41a9e3ea3d054a5c3e90ebc7a17a4883157d1c67b8e1ee8919be683b4b1976  vendor/raven-replay-parser-sdk/src/cases.mjs
 68ad82be4382e80d300cd62c5efb5ec210160a7c0366c5412bdf3ac0538712d1  vendor/raven-replay-parser-sdk/src/cli.mjs

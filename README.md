@@ -81,7 +81,7 @@ demo as a live-chain fetch or production signing workflow.
 
 ### 6. Review class: bounded exact-artifact reviews — not release approval
 
-This combined local candidate descends from independently reviewed HEAD
+This combined local candidate descends from non-author reviewed (INTERNAL_ADVERSARIAL_NON_AUTHOR; not EXTERNAL_INDEPENDENT) HEAD
 `4be5ff7858b6636108a219f2c4e94a989c08d79e` / TREE
 `30471bbd366d726102446ce3240e4b941e292439`. Claude's review was bounded to
 the supplied Darwin/local/unpublished package and its stated component scopes.
@@ -90,7 +90,11 @@ has a separate KIMI changed-scope review pending. This documentation successor
 also requires its own non-author review. None of those reviews authorizes a
 merge, deployment, publication or submission.
 
+The Agent Trust app's review class remains the Day-2 `a5cd592b` INTERNAL_ADVERSARIAL_NON_AUTHOR GO; the combined review did not exercise that app.
+
 ### 7. Combined-candidate attribution is component-specific
+
+Publishing this repository does **not** imply that all Raven production, security, governance, or research work was created during the hackathon.
 
 The combined candidate contains both pre-existing Raven foundations and work
 first introduced during Crypto World's Fair 2026. Component-level attribution
