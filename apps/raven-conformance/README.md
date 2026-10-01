@@ -177,8 +177,14 @@ digits and cannot overwrite an existing report. All execution routes share one
 in-process lock. `GET /api/profiles` lists the allowlisted profile registry;
 `GET /api/targets?profile=…`, `GET /api/meta?profile=…`, SSE, and `POST /api/run`
 bind execution to one of those profiles and fail closed on unknown selectors.
-HTTP replay is limited to regular JSON files directly in this
-app's `reports/` or `examples/`; external paths remain available through the CLI.
+The browser replays by posting `{ "report": <the downloaded report object> }`
+to `/api/replay`, within the same 64 KiB body limit. This works across hosted
+instances without a shared report store. Only registered demo targets can be
+selected; report integrity, transcript limits, bundle identities and re-executed
+outcomes are checked. Digests are consistency checks, not authentication.
+For local compatibility, `{ "report_path": "reports/run_….json" }` still accepts
+only regular JSON files directly in this app's `reports/` or `examples/`.
+Do not send both selectors. External paths remain available through the CLI.
 See the UI contract for exact errors and compatibility changes.
 
 These controls do not make the localhost app a public multi-tenant service.

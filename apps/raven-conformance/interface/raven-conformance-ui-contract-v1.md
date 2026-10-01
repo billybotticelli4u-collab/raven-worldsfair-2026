@@ -138,6 +138,7 @@ MVP HTTP path returns the full report in one response (no SSE required). UI may 
 | `run_id_exists` / `run_in_progress` | 409 | Existing report ID / server executing work |
 | `request_too_large` / `request_timeout` | 413 / 408 | Body admission limit |
 | `invalid_report_path` / `invalid_recorded_id` / `invalid_path_encoding` | 400 | Invalid HTTP file selector |
+| `invalid_report` / `ambiguous_report` | 400 | Malformed report object / both replay selectors supplied |
 | `RUNNER_FAILURE` | 500 / report | Isolation/setup failed |
 | `OUTPUT_FLOOD` | in-result | Byte cap hit |
 | `TIMEOUT` | in-result | Kill after timeout |
@@ -148,13 +149,22 @@ MVP HTTP path returns the full report in one response (no SSE required). UI may 
 
 CLI: `npm run replay -- --report <path>`
 
-HTTP `POST /api/replay` accepts an existing regular `.json` file directly inside
-this app's `reports/` or `examples/` only (app-relative or absolute). Symlinks and
+HTTP `POST /api/replay` accepts `{ "report": <report object> }` for hosted replay.
+The browser sends the report returned by its run, so the receiving instance does
+not need the producer's local file. The complete request remains capped at 64 KiB
+with a five-second upload deadline. Only the report's registered demo target can
+run; supplied code and entry paths cannot select an executable. The existing
+integrity, escaped-transcript, bundle and semantic checks apply. Self-hashes do
+not authenticate a report, and successful replay is not an attestation.
+
+For local compatibility, `{ "report_path": "reports/run_….json" }` accepts an
+existing regular `.json` file directly inside this app's `reports/` or `examples/`
+only (app-relative or absolute). Sending both selectors is refused. Symlinks and
 external paths are refused. The CLI continues to accept operator-selected paths.
 Recorded/download routes also reject symlinks and directory escapes. App files
 are trusted; these checks do not isolate an attacker who can modify the app.
 
-Request conceptually:
+Local file request:
 
 ```json
 { "report_path": "reports/run_….json" }

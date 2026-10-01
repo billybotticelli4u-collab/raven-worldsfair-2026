@@ -17,7 +17,7 @@ import {
   listProfiles,
   humanView,
 } from "./lib/runner.js";
-import { replayReport } from "./lib/replay.js";
+import { replayReport, replayReportObject } from "./lib/replay.js";
 import { readBuildInfo } from "./lib/buildInfo.js";
 import {
   isProductionRuntime,
@@ -338,12 +338,31 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "POST" && url.pathname === "/api/replay") {
       const body = await readJsonObject(req);
-      if (!body.report_path) return sendJson(res, 400, { error: "missing_report_path" });
-      const reportPath = localReplayPath(APP_ROOT, body.report_path);
+      const hasReport = Object.hasOwn(body, "report");
+      if (hasReport && Object.hasOwn(body, "report_path")) return sendJson(res, 400, { error: "ambiguous_report" });
+      let reportPath;
+      if (hasReport) {
+        // Hosted instances need not share files. Accept bounded report data, never
+        // target code or an arbitrary execution path; only existing demo IDs run.
+        const report = body.report;
+        if (!report || typeof report !== "object" || Array.isArray(report) ||
+            typeof report.claimed_profile?.name !== "string" || typeof report.target?.id !== "string") {
+          return sendJson(res, 400, { error: "invalid_report" });
+        }
+        let demos;
+        try { demos = loadDemoTargets(report.claimed_profile.name); }
+        catch { return sendJson(res, 400, { error: "unknown_profile" }); }
+        if (!demos.some(target => target.id === report.target.id)) return sendJson(res, 400, { error: "unknown_target" });
+      } else {
+        if (!body.report_path) return sendJson(res, 400, { error: "missing_report_path" });
+        reportPath = localReplayPath(APP_ROOT, body.report_path);
+      }
       if (activeRun) return sendJson(res, 409, { error: "run_in_progress" });
       activeRun = { target: "replay", startedAt: new Date().toISOString() };
       try {
-        const result = await replayReport(reportPath, { write: false });
+        const result = hasReport
+          ? await replayReportObject(body.report, { write: false })
+          : await replayReport(reportPath, { write: false });
         return sendJson(res, result.ok ? 200 : 409, result);
       } finally { activeRun = null; }
     }

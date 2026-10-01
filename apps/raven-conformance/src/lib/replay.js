@@ -203,6 +203,19 @@ export function compareSemantic(original, replayed) {
  */
 export async function replayReport(reportPath, opts = {}) {
   const { data: original } = loadReport(reportPath);
+  return replayReportObject(original, opts);
+}
+
+/**
+ * Replay the supplied report without relying on a producer's local report store.
+ * The same integrity, bundle and semantic checks apply to file and object inputs.
+ * Self-hashes are not authentication; execution uses only the local target registry.
+ */
+export async function replayReportObject(original, opts = {}) {
+  if (!original || typeof original !== "object" || Array.isArray(original)) return {
+    schema: "raven-conformance-replay/1", ok: false, bundle_match: false, semantic_match: false,
+    error: "report_integrity_mismatch", diffs: [{ field: "report", error: "invalid_report_structure" }],
+  };
   if (original.probe) {
     return {
       schema: "raven-conformance-replay/1",

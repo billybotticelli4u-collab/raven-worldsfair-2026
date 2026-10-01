@@ -14,7 +14,7 @@
 4. Treat vector `status === "PASS"` as green; any other status as not-pass (including `BEHAVIORAL_DIVERGENCE`, formerly implied by `DIVERGENCE`).
 5. Display `report.isolation.mode` + `report.isolation.verified` in the identity panel. If `verified === false`, show curated-demo disclosure (do not claim sandbox).
 6. Demo target list: `GET /api/targets?profile=<selector>` returns non-probe targets only. Probes remain envelope-only via `GET /api/probes` / `POST /api/run-probes`.
-7. Replay: `POST /api/replay` with `{ "report_path": "..." }` or CLI `npm run replay -- --report …`.
+7. Hosted replay: `POST /api/replay` with `{ "report": <report object> }` (64 KiB maximum request). Keep the report returned by the run; a later instance may not have its file. Local file compatibility: `{ "report_path": "..." }`, or CLI `npm run replay -- --report …`. Never send both selectors. Object replay permits only registered demo targets and performs the same integrity, bundle and semantic checks; it does not authenticate the report's author.
 8. Do **not** add arbitrary file/code upload controls.
 
 ## Compatibility with current `public/app.js`

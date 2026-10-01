@@ -69,6 +69,8 @@
     "invalid_run_id",
     "run_id_exists",
     "invalid_report_path",
+    "invalid_report",
+    "ambiguous_report",
     "invalid_recorded_id",
     "invalid_path_encoding",
     "request_too_large",
@@ -83,8 +85,9 @@
   ],
   "replay_request": {
     "type": "object",
-    "required": ["report_path"],
+    "oneOf": [{ "required": ["report"] }, { "required": ["report_path"] }],
     "properties": {
+      "report": { "type": "object", "description": "Hosted: report returned by a run, within the 64 KiB request cap. Only registered demo targets execute after integrity, transcript and bundle checks; semantic outcomes are re-measured. No shared report store required; self-hashes are not authentication." },
       "report_path": { "type": "string", "description": "HTTP: existing regular JSON file directly in app reports/ or examples/, no symlinks. App-relative or absolute. CLI path behavior is unchanged." }
     }
   },

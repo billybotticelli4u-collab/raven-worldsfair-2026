@@ -16,7 +16,7 @@ import http from "node:http";
 import assert from "node:assert/strict";
 import { execFile as execFileCb } from "node:child_process";
 import { promisify } from "node:util";
-import { mkdtempSync, readdirSync, realpathSync } from "node:fs";
+import { mkdtempSync, readdirSync, realpathSync, unlinkSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -142,7 +142,7 @@ try {
   await step("CONFORMANT_REFERENCE: pass === test_count === 12", async () => ({ ok: state.report?.summary?.pass === 12 && state.report?.summary?.test_count === 12, detail: JSON.stringify(state.report?.summary?.counts) }));
   await step("report written under the relocated runtime root", async () => {
     // The ESM loader realpaths module URLs (macOS: /var -> /private/var), so compare realpaths.
-    const wrote = typeof state.run?.written_path === "string" ? realpathSync(state.run.written_path) : "";
+    const wrote = typeof state.run?.written_path === "string" ? realpathSync(path.resolve(RUNTIME_ROOT, state.run.written_path)) : "";
     return { ok: wrote.startsWith(realpathSync(RUNTIME_ROOT) + path.sep), detail: state.run?.written_path };
   });
   await step("isolation disclosed", async () => ({ ok: typeof state.report?.isolation?.mode === "string", detail: state.report?.isolation?.mode }));
@@ -150,8 +150,15 @@ try {
     const r = await call("/api/report/" + encodeURIComponent(state.report?.run_id));
     return { ok: r.status === 200 && /attachment/.test(r.headers.get("content-disposition") || ""), detail: r.status };
   });
-  await step("POST /api/replay of the live report -> 200 ok", async () => {
-    const r = await postJson("/api/replay", JSON.stringify({ report_path: `reports/${state.report?.run_id}.json` }));
+  await step("remove the runtime report; GET now returns 404", async () => {
+    const wrote = realpathSync(path.resolve(RUNTIME_ROOT, state.run.written_path));
+    assert.ok(wrote.startsWith(realpathSync(RUNTIME_ROOT) + path.sep));
+    unlinkSync(wrote); // Only this smoke run's report in its own temporary runtime.
+    const r = await call("/api/report/" + encodeURIComponent(state.report.run_id));
+    return { ok: r.status === 404, detail: r.status };
+  });
+  await step("POST /api/replay with report object and no runtime file -> 200 ok", async () => {
+    const r = await postJson("/api/replay", JSON.stringify({ report: state.report }));
     return { ok: r.status === 200 && r.json?.ok === true, detail: short(r.text) };
   });
 

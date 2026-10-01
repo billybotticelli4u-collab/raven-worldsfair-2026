@@ -31,7 +31,7 @@ const els = Object.fromEntries([
 
 const DEFAULT_PROFILE = "raven-canonical-envelope/1";
 let profiles = [], selectedProfile = null, targets = [], selected = null;
-let lastReport = null, lastReportPath = null, lastRepro = "", lastSource = null;
+let lastReport = null, lastRepro = "", lastSource = null;
 let runGeneration = 0, eventSource = null, runInFlight = false;
 
 function textOnly(el, v) { el.textContent = v == null ? "" : String(v); }
@@ -151,7 +151,7 @@ async function selectProfile(name, { initial = false } = {}) {
   textOnly(els.targetBlurb, "Choose a target for " + (descriptor?.label || name) + ".");
   els.recordedBtn.disabled = name !== DEFAULT_PROFILE;
   if (!initial) {
-    lastReport = null; lastReportPath = null; lastRepro = ""; lastSource = null;
+    lastReport = null; lastRepro = ""; lastSource = null;
     textOnly(els.overall, "—"); els.overall.className = "outcome";
     textOnly(els.summaryLine, "No run yet"); clear(els.countKv); clear(els.idKv); clear(els.vectorList);
     textOnly(els.failurePre, "Select a vector row after a run.");
@@ -178,7 +178,7 @@ function setRunningUi(on) {
   runInFlight = on;
   els.runBtn.disabled = on || !selected;
   els.recordedBtn.disabled = on || selectedProfile !== DEFAULT_PROFILE;
-  els.replayBtn.disabled = on || !lastReportPath;
+  els.replayBtn.disabled = on || !lastReport;
   for (const btn of els.profileRow.querySelectorAll("button")) btn.disabled = on;
   els.progressText.classList.toggle("loading-pulse", on);
 }
@@ -271,7 +271,6 @@ function renderPayload(data, opts = {}) {
   }
   if (ui?.error) showError("Report could not be adapted for UI: " + ui.error + ". Not labeled PASS.");
   lastReport = report; lastSource = opts.source || data.source || "unknown";
-  lastReportPath = data.written_path || data.replay_path || null;
   lastRepro = report.reproduction?.clean_clone || report.reproduction?.one_liner || "";
   const overallVal = report.summary?.overall || "UNVERIFIED";
   textOnly(els.overall, overallVal);
@@ -324,7 +323,7 @@ function renderPayload(data, opts = {}) {
   else if (data.replay_command) textOnly(els.reproPre, data.replay_command);
   else textOnly(els.reproPre, lastRepro || "No reproduction command in report.");
   if (!lastRepro && data.replay_command) lastRepro = data.replay_command;
-  els.copyBtn.disabled = !lastRepro; els.downloadBtn.disabled = !report; els.replayBtn.disabled = !lastReportPath; if (els.receiptBtn) els.receiptBtn.disabled = !report;
+  els.copyBtn.disabled = !lastRepro; els.downloadBtn.disabled = !report; els.replayBtn.disabled = !lastReport; if (els.receiptBtn) els.receiptBtn.disabled = !report;
 }
 
 function renderIssue(issue) {
@@ -429,13 +428,13 @@ els.downloadBtn.addEventListener("click", async () => {
 });
 
 els.replayBtn.addEventListener("click", async () => {
-  if (!lastReportPath || runInFlight) return;
+  if (!lastReport || runInFlight) return;
   clearError(); els.replayBtn.disabled = true; textOnly(els.replayStatus, "Replaying bound report…");
   try {
     const response = await fetch("/api/replay", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ report_path: lastReportPath }),
+      body: JSON.stringify({ report: lastReport }),
     });
     const replay = await response.json();
     if (!response.ok || !replay.ok) throw new Error(replay.error || replay.reason || "replay_mismatch");
@@ -447,7 +446,7 @@ els.replayBtn.addEventListener("click", async () => {
   } catch (err) {
     textOnly(els.replayStatus, "Replay failed."); showError("Replay failed: " + err);
   } finally {
-    els.replayBtn.disabled = !lastReportPath;
+    els.replayBtn.disabled = !lastReport;
   }
 });
 
