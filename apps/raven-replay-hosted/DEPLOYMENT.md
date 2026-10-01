@@ -44,3 +44,26 @@ store was provisioned, no credentials configured and no deployment created.
 References checked 2 October 2026:
 - https://vercel.com/docs/functions/runtimes/node-js
 - https://upstash.com/docs/redis/features/restapi
+
+## Selected Supabase backend
+
+Raven project `ptjykejlrbifjbustbuz` hosts the shared admission function.
+Set `RAVEN_REPLAY_BUDGET_BACKEND=supabase`,
+`RAVEN_REPLAY_SUPABASE_URL=https://ptjykejlrbifjbustbuz.supabase.co`, and the
+server-only `RAVEN_REPLAY_SUPABASE_SECRET_KEY` (a Supabase secret API key).
+Never expose this key in public assets. Redis settings are unused in this mode.
+The migration is recorded under `supabase/migrations/`.
+
+Two private, RLS-enabled tables store policy and timestamps only. The public
+RPC is SECURITY INVOKER and executable only by service_role. Row locks serialize
+admission across instances. Database time defines rolling 60-second and 24-hour
+windows; errors and timeouts refuse work, without retry or refund. This caps
+admitted operations, not monetary costs or concurrent executions.
+
+Initial policies are disabled. Prepared limits are run 3/minute and 300/day,
+fetch 20/minute and 2000/day. Before public activation, approve the limits,
+securely configure the server key, verify real REST admission on the deployed
+service, then enable the two policy rows. Never reset events to recover from an
+error; restoring an older database can also restore an older budget. A paused
+or unavailable free database refuses operations until it is available again.
+No request data or case storage has been added.
