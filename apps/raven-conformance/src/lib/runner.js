@@ -47,6 +47,7 @@ const PROFILE_CONFIGS = [
 ];
 export { getDeliveryIdentity } from "./reproduction.js";
 import { cleanCloneRecipe } from "./reproduction.js";
+import { readIdentity } from "./buildIdentity.js";
 
 function refuse(code) { const error = new Error(code); error.code = code; throw error; }
 
@@ -616,7 +617,9 @@ export async function runConformance(targetId, opts = {}) {
       "Author-lane Fair Build Stage product review surface only. No arbitrary public code upload.",
     ],
     reproduction: {
-      clean_clone: cleanCloneRecipe(targetId, profile.data.name),
+      // Pinned to this instance's asserted build commit (readIdentity: platform, git checkout or
+      // generated claim); the recipe prints the claim's source and status beside the pin.
+      clean_clone: cleanCloneRecipe(targetId, profile.data.name, readIdentity(APP_ROOT)),
       one_liner: `cd apps/raven-conformance && npm run conform -- --profile ${profile.data.name} --target ${targetId}`,
       replay: `cd apps/raven-conformance && npm run replay -- --report reports/<run_id>.json`,
       demo: "cd apps/raven-conformance && npm run demo",

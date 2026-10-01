@@ -2,7 +2,26 @@
 
 These commands run entirely against committed fixtures. They do not query a Solana cluster and do not claim that any transaction executed on-chain.
 
-## Bootstrap from the review package
+## Bootstrap from the public repository
+
+No delivery folder is needed. Pin the checkout to the commit the instance you are reproducing asserts
+(`/api/build-info`, `fairBuildCommit`); the claim is asserted, not proof of served bytes.
+
+```bash
+set -e
+: "${FAIR_BUILD_COMMIT:?set FAIR_BUILD_COMMIT to the fairBuildCommit shown by /api/build-info}"
+git clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git raven-worldsfair-2026
+cd raven-worldsfair-2026
+git checkout --detach "$FAIR_BUILD_COMMIT"
+git rev-parse HEAD
+git rev-parse 'HEAD^{tree}'
+cd apps/raven-conformance
+npm test
+npm run conform -- --profile raven-solana-txversion-experimental/0 --target SOL_BROKEN_SUBTLE
+# SOL_BROKEN_SUBTLE intentionally returns exit 1 for V03/V10/V16 divergence; reference returns 0.
+```
+
+## Bootstrap from the review package (holders of the sealed delivery)
 
 From the extracted delivery folder, verify SHA256SUMS.txt and clone the complete bundle. The external identity binds the finished commit (no patch application).
 

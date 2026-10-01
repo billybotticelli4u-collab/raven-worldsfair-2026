@@ -124,7 +124,8 @@ process.stdout.write(JSON.stringify({ write: "ok" }));
 });
 
 describe("R1 reproduction instructions + About inventory", () => {
-  it("fresh report binds C2 release bundle/branch and refuses old disclosure names", async () => {
+  it("fresh report prints the public-repository recipe and refuses old disclosure names", async () => {
+    // The sealed-delivery names remain for RELEASE-HANDOFF.md holders; the report itself needs no delivery.
     const id = getDeliveryIdentity();
     assert.equal(id.bundle, "raven-c2-release-successor-2026-09-19.bundle");
     assert.equal(id.branch, "codex/c2-release-successor-2026-09-19");
@@ -136,12 +137,11 @@ describe("R1 reproduction instructions + About inventory", () => {
     assert.equal(typeof repro, "string");
     assert.doesNotMatch(repro, /codex\/challenge2-disclosure-fixes-2026-09-16/);
     assert.doesNotMatch(repro, /challenge2-disclosure-candidate\.bundle/);
-    assert.match(repro, /raven-c2-release-successor-2026-09-19\.bundle/);
-    assert.match(repro, /codex\/c2-release-successor-2026-09-19/);
+    assert.match(repro, /git clone https:\/\/github\.com\/billybotticelli4u-collab\/raven-worldsfair-2026\.git raven-worldsfair-2026/);
+    assert.match(repro, /git checkout --detach "\$FAIR_BUILD_COMMIT"/);
     assert.match(repro, /git rev-parse HEAD/);
     assert.match(repro, /HEAD\^\{tree\}/);
-    assert.match(repro, /AUTHOR-REPORT\.md/);
-    assert.match(repro, /DELIVERY-IDENTITY\.json/);
+    assert.doesNotMatch(repro, /\.bundle|DELIVERY-IDENTITY\.json|AUTHOR-REPORT\.md/);
   });
 
   it("About/build inventory discloses Node permissions — not curated_demo-only for Linux", () => {

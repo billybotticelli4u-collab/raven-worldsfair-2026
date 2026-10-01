@@ -5,16 +5,16 @@ import { createHash } from 'node:crypto';
 import { runConformance } from '../src/lib/runner.js';
 import { checkReportIntegrity } from '../src/lib/replay.js';
 
-const bundle = 'raven-c2-release-successor-2026-09-19.bundle';
-const branch = 'codex/c2-release-successor-2026-09-19';
+const PUBLIC = 'https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git';
 const stale = /billy-d1-correction|challenge2-disclosure-candidate|billy\/fair-conformance-mvp|codex\/challenge2-disclosure-fixes/;
+const privateDelivery = /\.bundle|DELIVERY-IDENTITY\.json|DELIVERY_IDENTITY_MISMATCH|AUTHOR-REPORT\.md/;
+// The public recipe needs only the public repository; it pins the asserted build commit, or stops at a guard.
 function check(recipe) {
-  assert.ok(recipe.includes(bundle), 'recipe must name current bundle');
-  assert.ok(recipe.includes(branch), 'recipe must name current branch');
-  assert.ok(recipe.includes('DELIVERY-IDENTITY.json'), 'recipe must bind external identity');
-  assert.ok(recipe.includes('DELIVERY_IDENTITY_MISMATCH'), 'identity mismatch must stop reproduction');
+  assert.ok(recipe.includes(`git clone ${PUBLIC} raven-worldsfair-2026`), 'recipe must clone the public repository');
+  assert.ok(recipe.includes(': "${FAIR_BUILD_COMMIT:?'), 'recipe must stop until the build commit is known');
+  assert.ok(recipe.includes('git checkout --detach "$FAIR_BUILD_COMMIT"'), 'recipe must pin the checkout to the asserted commit');
   assert.doesNotMatch(recipe, stale);
-  assert.ok(recipe.includes(`git clone --branch ${branch} ./${bundle} raven-worldsfair-2026`));
+  assert.doesNotMatch(recipe, privateDelivery);
 }
 
 test('release recipe: live report uses current delivery with an executable identity gate', async () => {
@@ -24,14 +24,17 @@ test('release recipe: live report uses current delivery with an executable ident
   assert.equal(report.summary.pass, 12);
 });
 
-test('release handoff contains the same executable live recipe', async () => {
+test('release handoff contains the live recipe, minus the per-instance commit line', async () => {
   const report = await runConformance('CONFORMANT_REFERENCE', { write: false });
   const handoff = readFileSync(new URL('../RELEASE-HANDOFF.md', import.meta.url), 'utf8');
-  assert.ok(handoff.includes(report.reproduction.clean_clone));
+  // A document cannot carry the commit of the instance that prints the recipe; every other line must match.
+  const template = report.reproduction.clean_clone.split('\n').filter((line) => !line.startsWith('FAIR_BUILD_COMMIT=') && !line.startsWith('# Build identity of this instance'));
+  assert.ok(template.length >= 12);
+  assert.ok(handoff.includes(template.join('\n')), 'RELEASE-HANDOFF.md must contain the public recipe verbatim');
 });
 
 for (const name of readdirSync(new URL('../examples/', import.meta.url)).filter(n => /^sample-report-.*\.json$/.test(n))) {
-  test(`release recipe: recorded ${name} uses current delivery and retains migration provenance`, () => {
+  test(`release recipe: recorded ${name} uses the public route and retains migration provenance`, () => {
     const report = JSON.parse(readFileSync(new URL(`../examples/${name}`, import.meta.url)));
     check(report.reproduction.clean_clone);
     assert.equal(report.reproduction_update.kind, 'instructions_only');

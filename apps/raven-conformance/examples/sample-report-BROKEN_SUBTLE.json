@@ -280,16 +280,20 @@
     "Author-lane Fair Build Stage product review surface only."
   ],
   "reproduction": {
-    "clean_clone": "# Verify the external ZIP hash and packet manifest before running these commands.\n# Run from the extracted delivery folder containing the bundle and DELIVERY-IDENTITY.json.\nset -e\ngit clone --branch codex/c2-release-successor-2026-09-19 ./raven-c2-release-successor-2026-09-19.bundle raven-worldsfair-2026\ncd raven-worldsfair-2026\ngit rev-parse HEAD\ngit rev-parse 'HEAD^{tree}'\nnode -e 'const fs=require(\"node:fs\"),cp=require(\"node:child_process\"),id=JSON.parse(fs.readFileSync(\"../DELIVERY-IDENTITY.json\",\"utf8\"));const head=cp.execFileSync(\"git\",[\"rev-parse\",\"HEAD\"],{encoding:\"utf8\"}).trim(),tree=cp.execFileSync(\"git\",[\"rev-parse\",\"HEAD^{tree}\"],{encoding:\"utf8\"}).trim();if(id.head!==head||id.tree!==tree||id.branch!==\"codex/c2-release-successor-2026-09-19\"||id.bundle!==\"raven-c2-release-successor-2026-09-19.bundle\")throw Error(\"DELIVERY_IDENTITY_MISMATCH\");'\n# AUTHOR-REPORT.md beside the bundle records scope, checks and limitations.\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target BROKEN_SUBTLE\n# BROKEN_SUBTLE intentionally returns exit 1 for V07/V08 divergence; reference returns 0.",
+    "clean_clone": "# Reproduce from the public repository, pinned to the commit this instance asserts it was built from.\nset -e\n# This instance could not determine its build commit. Set it from /api/build-info (fairBuildCommit) before running.\n: \"${FAIR_BUILD_COMMIT:?set FAIR_BUILD_COMMIT to the fairBuildCommit shown by /api/build-info}\"\ngit clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git raven-worldsfair-2026\ncd raven-worldsfair-2026\ngit checkout --detach \"$FAIR_BUILD_COMMIT\"\ngit rev-parse HEAD\ngit rev-parse 'HEAD^{tree}'\ncd apps/raven-conformance\nnpm test\nnpm run conform -- --target BROKEN_SUBTLE\n# BROKEN_SUBTLE intentionally returns exit 1 for V07/V08 divergence; reference returns 0.\n# Holders of the sealed delivery can follow RELEASE-HANDOFF.md instead.",
     "one_liner": "cd apps/raven-conformance && npm run conform -- --target BROKEN_SUBTLE"
   },
-  "report_content_digest_sha256": "06e74f3b925ea40c8801fdcdd2bac7b0eebdb4f0a8977bb09a3f214509eee197",
+  "report_content_digest_sha256": "caa28015566f2a793f4dec5993330366e6b6a38053cdaaa464c4c972e3a14863",
   "reproduction_update": {
     "kind": "instructions_only",
     "observations_rerun": false,
-    "previous_file_sha256": "9a7d01fea9985d5fbeb5a86905a174c21f572c4324287afc482b229ce68c486d",
-    "source_commit": "24dbca45ef479fc843fef593365e4007dff75ed3",
-    "note": "Recorded observations are retained. Delivery instructions supersede the prior recipe; this is not a fresh execution or a claim of replay compatibility.",
-    "previous_candidate": "1a8275cbbeb5513011f06325c334e24f619c0ae7"
+    "previous_file_sha256": "61963577c47616ba7eb5c646a1edb0d11b874a3794be45103cd7cdf4d2d77ace",
+    "source_commit": "527116f7e7b6ae0013a4cc4dd953f9500bcfcfce",
+    "note": "Recorded observations are retained. The public-repository recipe supersedes the sealed-delivery recipe; the reader sets FAIR_BUILD_COMMIT from the instance they reproduce. Not a fresh execution.",
+    "previous_candidate": "24dbca45ef479fc843fef593365e4007dff75ed3",
+    "previous_update": {
+      "previous_file_sha256": "9a7d01fea9985d5fbeb5a86905a174c21f572c4324287afc482b229ce68c486d",
+      "source_commit": "24dbca45ef479fc843fef593365e4007dff75ed3"
+    }
   }
 }

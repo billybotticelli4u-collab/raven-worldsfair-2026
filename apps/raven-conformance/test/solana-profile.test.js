@@ -113,8 +113,9 @@ describe("Solana transaction-version profile", () => {
 
     assert.equal(report.summary.overall, "CONFORMANT");
     assert.equal(report.summary.pass, report.corpus.vector_count);
-    assert.match(report.reproduction.clean_clone, /raven-solana-coverage-repair\.bundle/);
-    assert.doesNotMatch(report.reproduction.clean_clone, /git apply/);
+    assert.match(report.reproduction.clean_clone, /git clone https:\/\/github\.com\/billybotticelli4u-collab\/raven-worldsfair-2026\.git/);
+    assert.match(report.reproduction.clean_clone, /--profile raven-solana-txversion-experimental\/0 --target SOL_CONFORMANT_REFERENCE/);
+    assert.doesNotMatch(report.reproduction.clean_clone, /git apply|\.bundle/);
     assert.ok(report.results.some((row) => row.expected.version === "legacy"));
     assert.ok(report.results.some((row) => row.expected.version === 0));
     assert.ok(report.results.some((row) => row.expected.version === 1));

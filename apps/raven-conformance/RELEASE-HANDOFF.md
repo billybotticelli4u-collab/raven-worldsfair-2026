@@ -2,7 +2,32 @@
 
 Use Node 22.18.0 or 24.20.0 for the measured reproduction. No dependency install or network fetch is needed for the application. Authenticate the external ZIP hash, then verify the packet manifest before execution. The extracted folder contains raven-c2-release-successor-2026-09-19.bundle, DELIVERY-IDENTITY.json and AUTHOR-REPORT.md. These names must travel together. The final HEAD/TREE are outside source, avoiding a self-referential commit hash.
 
-## Fresh reference run
+## Public reproduction (what every report and the Judge UI print)
+
+Anyone with the public repository can reproduce a report without the delivery. The recipe is pinned to the commit
+the running instance asserts for itself (`/api/build-info`, `fairBuildCommit`: platform, git checkout or generated
+claim; asserted, not proof of served bytes). When the instance cannot name a commit, the shell guard stops the
+reader until `FAIR_BUILD_COMMIT` is set by hand from `/api/build-info`.
+
+```sh
+# Reproduce from the public repository, pinned to the commit this instance asserts it was built from.
+set -e
+: "${FAIR_BUILD_COMMIT:?set FAIR_BUILD_COMMIT to the fairBuildCommit shown by /api/build-info}"
+git clone https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git raven-worldsfair-2026
+cd raven-worldsfair-2026
+git checkout --detach "$FAIR_BUILD_COMMIT"
+git rev-parse HEAD
+git rev-parse 'HEAD^{tree}'
+cd apps/raven-conformance
+npm test
+npm run conform -- --target CONFORMANT_REFERENCE
+# BROKEN_SUBTLE intentionally returns exit 1 for V07/V08 divergence; reference returns 0.
+# Holders of the sealed delivery can follow RELEASE-HANDOFF.md instead.
+```
+
+A live report adds the line `FAIR_BUILD_COMMIT=<commit>` with the claim's source and status before the guard.
+
+## Fresh reference run from the sealed delivery
 
 Run this verbatim from the extracted delivery directory. Use a fresh directory: an existing raven-worldsfair-2026 destination should cause a refusal, not overwrite it.
 
