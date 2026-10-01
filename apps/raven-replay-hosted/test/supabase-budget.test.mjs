@@ -28,3 +28,5 @@ test('body that never completes is bounded independently of transport',async()=>
  const permit=createSupabaseBudget({...config,timeoutMs:25,fetchFn:async()=>new Response(new ReadableStream({pull(){return new Promise(()=>{});},cancel(){return new Promise(()=>{});}}))});
  await assert.rejects(permit({path:'/api/transaction'}),/HOST_NOT_CONFIGURED/);
 });
+
+test('legacy server JWT receives bearer authorization',async()=>{let headers;const token='eyJtest-only-server-token';const permit=createSupabaseBudget({...config,token,fetchFn:async(_,options)=>{headers=options.headers;return new Response('true');}});assert.equal(await permit({path:'/api/run'}),true);assert.equal(headers.authorization,'Bearer '+token);});

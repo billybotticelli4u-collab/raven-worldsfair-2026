@@ -67,3 +67,10 @@ service, then enable the two policy rows. Never reset events to recover from an
 error; restoring an older database can also restore an older budget. A paused
 or unavailable free database refuses operations until it is available again.
 No request data or case storage has been added.
+
+The server adapter also accepts an existing legacy service_role JWT, sent as
+both apikey and Bearer authorization. Keep either form server-only. The live
+REST check used the existing service_role JWT retrieved in memory through the
+authenticated CLI; no credential was saved to the packet. CLI-returned modern
+secret-key material was rejected by the gateway during this check; it must not
+be assumed usable without verification. Hosting secrets are not configured yet.

@@ -9,7 +9,7 @@ export function createSupabaseBudget({url,token,fetchFn=fetch,timeoutMs=3000}={}
   const controller=new AbortController();let timer,reader;
   const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('deadline'));},timeoutMs);});
   try{
-   const response=await Promise.race([deadline,fetchFn(endpoint,{method:'POST',redirect:'error',headers:{apikey:token,'content-type':'application/json'},body:JSON.stringify({p_kind:path==='/api/run'?'run':'fetch'}),signal:controller.signal})]);
+   const response=await Promise.race([deadline,fetchFn(endpoint,{method:'POST',redirect:'error',headers:{apikey:token,...(token.startsWith('eyJ')?{authorization:'Bearer '+token}:{}),'content-type':'application/json'},body:JSON.stringify({p_kind:path==='/api/run'?'run':'fetch'}),signal:controller.signal})]);
    if(!response.ok||!response.body)return unavailable();
    reader=response.body.getReader();let size=0;const chunks=[];
    while(true){const {done,value}=await Promise.race([deadline,reader.read()]);if(done)break;size+=value.byteLength;if(size>1024)return unavailable();chunks.push(Buffer.from(value));}
