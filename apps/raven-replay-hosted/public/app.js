@@ -3,6 +3,7 @@ let source = null,
   savedCase = null,
   busy = false;
 const errors = {
+  REQUEST_TIMEOUT: "The upload did not finish in time. Retry with a complete case or transaction file.",
   UNSUPPORTED_DECODER_VERSION:
     "These v1 bytes were retained, but this decoder’s saved-case format supports legacy and v0 only. No baseline was created.",
   TRANSACTION_UNAVAILABLE:

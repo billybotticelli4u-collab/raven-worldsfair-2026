@@ -53,15 +53,20 @@ async function readJson(request) {
   const reader = request.body.getReader();
   const chunks = [];
   let bytes = 0;
+  let timer;
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new IntakeError("REQUEST_TIMEOUT")), 5000);
+  });
   try {
     while (true) {
-      const { done, value } = await reader.read();
+      const { done, value } = await Promise.race([reader.read(), deadline]);
       if (done) break;
       bytes += value.byteLength;
       if (bytes > MAX_REQUEST_BYTES) throw new IntakeError("REQUEST_TOO_LARGE");
       chunks.push(Buffer.from(value));
     }
   } finally {
+    clearTimeout(timer);
     void reader.cancel().catch(() => {});
   }
   try {
@@ -126,6 +131,8 @@ export function createApi({
       return reply(200, await runIsolatedFn(body));
     } catch (error) {
       const code = error?.code;
+      if (code === "REQUEST_TIMEOUT")
+        return reply(408, { ok: false, error: code });
       if (code === "REQUEST_TOO_LARGE")
         return reply(413, { ok: false, error: code });
       if (inputErrors.has(code)) return reply(400, { ok: false, error: code });
