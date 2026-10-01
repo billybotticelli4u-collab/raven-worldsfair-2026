@@ -58,7 +58,7 @@ separate cloud and browser evidence is required for an integrated claim.
 
 The operator supplies `RAVEN_REPLAY_SNAPSHOT_ID` and
 `RAVEN_REPLAY_ENGINE_PIN_SHA256`, plus Vercel OIDC authentication for the Sandbox
-SDK, and runs `node src/server.mjs`. It binds only `127.0.0.1:8797`.
+SDK, and runs `node src/dev-server.mjs`. It binds only `127.0.0.1:8797`.
 The server's 20-request/minute budget and two-job concurrency limit are explicitly
 local-process limits. They are not adequate shared limits for a public deployment.
 The generic API refuses execution if its deployment adapter supplies no budget
@@ -70,3 +70,6 @@ Finish public deployment wiring and shared abuse
 and spend controls, review the assembled source and dependency identity, obtain a
 distinct non-author review, and repeat the browser journey on the actual hosted
 origin. No public-release or customer-acceptance claim is made by this directory.
+
+Public-host wiring and fail-closed configuration are in `DEPLOYMENT.md`. They have
+not been deployed or verified against a real shared budget store.

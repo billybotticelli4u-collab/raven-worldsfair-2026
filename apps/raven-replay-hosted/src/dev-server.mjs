@@ -44,6 +44,7 @@ export function startServer({
     ["/", ["index.html", "text/html; charset=utf-8"]],
     ["/app.js", ["app.js", "text/javascript; charset=utf-8"]],
     ["/style.css", ["style.css", "text/css; charset=utf-8"]],
+    ["/raven-logo.svg", ["raven-logo.svg", "image/svg+xml"]],
     ["/example.json", ["example.json", "application/json"]],
   ]);
   const server = createServer(async (req, res) => {

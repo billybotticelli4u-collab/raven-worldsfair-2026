@@ -101,6 +101,8 @@ const response=await fetch('https://nodejs.org/dist/v22.18.0/${nodeTar}',{signal
       engine_pin_sha256: pinHash,
       snapshot_id: snapshot.snapshotId,
       snapshot_status: snapshot.status,
+      snapshot_created_at: snapshot.createdAt.toISOString(),
+      snapshot_expires_at: snapshot.expiresAt?.toISOString() ?? null,
       source_sandbox: box.name,
     };
   } finally {

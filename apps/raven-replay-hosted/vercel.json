@@ -1,0 +1,22 @@
+{
+  "framework": null,
+  "buildCommand": "",
+  "outputDirectory": "public",
+  "installCommand": "npm ci --ignore-scripts --no-audit --no-fund",
+  "functions": {
+    "api/*.mjs": {
+      "maxDuration": 90,
+      "includeFiles": "src/**"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {"key":"X-Content-Type-Options","value":"nosniff"},
+        {"key":"Referrer-Policy","value":"no-referrer"},
+        {"key":"Content-Security-Policy","value":"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"}
+      ]
+    }
+  ]
+}
