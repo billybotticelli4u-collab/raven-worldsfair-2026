@@ -7,6 +7,7 @@ import {
   parseCase,
   caseDigest,
   runCases,
+  compareVersionsAgainstBaseline,
 } from "../engine/src/cases.mjs";
 import {
   validateRequest,
@@ -41,6 +42,10 @@ export function executeRequest(request) {
       reference: request.reference,
       case_reference: caseDigest(sdkCase),
     };
+  if (request.op === "compare") {
+    const report = compareVersionsAgainstBaseline({baselineCase: sdkCase, baselineCaseSha256: caseDigest(sdkCase), candidateAdapterId: request.candidate_adapter_id, label: "Retained baseline comparison", detailed: false});
+    return {status: report.status, report, reference: request.reference};
+  }
   const report = runCases([sdkCase], {
     expectedCaseSha256s: [caseDigest(sdkCase)],
   });

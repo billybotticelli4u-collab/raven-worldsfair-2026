@@ -33,6 +33,7 @@ function buttons() {
   for (const b of document.querySelectorAll("button,input,textarea,select"))
     b.disabled = busy;
   $("save").disabled = busy || !source;
+  $("compare").disabled = busy || !savedCase || !/^[a-f0-9]{64}$/.test($("reference").value) || savedCase.sdk_case?.adapter_id === $("candidate-decoder").value;
   $("replay").disabled =
     busy || !savedCase || !/^[a-f0-9]{64}$/.test($("reference").value);
 }
@@ -329,3 +330,22 @@ $("replay-form").addEventListener("submit", (event) => {
   });
 });
 buttons();
+
+$("candidate-decoder").addEventListener("change", () => {
+  if (!busy) show("Candidate changed", "Run a new comparison for this decoder.");
+  buttons();
+});
+$("compare").addEventListener("click", () => {
+  if (!savedCase) return;
+  attempt("Comparing decoder versions", async () => {
+    const r = await post("/api/run", {op: "compare", envelope: savedCase, reference: $("reference").value, candidate_adapter_id: $("candidate-decoder").value});
+    const report = r.data.report;
+    const complete = report.status === "COMPLETE" && report.comparison_complete === true;
+    const box = show(complete ? (report.changed ? "Decoder result changed" : "No decoder difference") : "Comparison incomplete", complete ? "Compared against your retained baseline. A difference is not proof of a bug or a safety finding." : "The candidate did not complete. No behavioral conclusion is available.", complete ? "" : "error");
+    facts(box, [["Baseline decoder", report.baseline.adapter_id], ["Candidate decoder", report.candidate.adapter_id], ["Retained reference", report.baseline.retained_reference], ["Changed fields", complete ? report.differences.length : "Not compared"], ["Cloud environment", r.isolation.lifecycle]]);
+    download("Download comparison", report, "raven-decoder-comparison.json");
+    const details = node("details");
+    details.append(node("summary", "Inspect comparison"), node("pre", JSON.stringify(report,null,2)));
+    box.append(details);
+  });
+});

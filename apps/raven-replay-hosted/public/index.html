@@ -72,7 +72,7 @@
                   <option value="solana-kit-tx-decode">
                     @solana/kit 8.3.0
                   </option>
-                </select>
+                <option value="kit-3.0.3-tx-decode">@solana/kit 3.0.3</option><option value="kit-4.0.0-tx-decode">@solana/kit 4.0.0</option></select>
               </div>
               <button id="save" disabled>Save baseline</button>
             </form>
@@ -95,6 +95,16 @@
               </div>
               <button id="replay" disabled>Replay saved bytes</button>
             </form>
+            <div class="import-row">
+              <label for="candidate-decoder">Compare saved baseline with</label>
+              <select id="candidate-decoder">
+                <option value="solana-kit-tx-decode">@solana/kit 8.3.0</option>
+                <option value="kit-4.0.0-tx-decode" selected>@solana/kit 4.0.0</option>
+                <option value="kit-3.0.3-tx-decode">@solana/kit 3.0.3</option>
+              </select>
+              <button type="button" id="compare" disabled>Compare decoder versions</button>
+            </div>
+            <p class="note">Only the fixed decoders listed here can run. Comparison reuses the saved bytes and result; it does not fetch again.</p>
             <p class="note">
               Keep the digest separately. A digest checks bytes; it does not
               authenticate their source.

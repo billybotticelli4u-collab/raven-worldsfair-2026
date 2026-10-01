@@ -12,7 +12,9 @@ export async function provision(credentials = {}, record = () => {}) {
   const manifest = JSON.parse(
     readFileSync(new URL("ENGINE-SOURCE.json", root)),
   );
-  const files = manifest.files.map((item) => {
+  const assembly = JSON.parse(readFileSync(new URL("ENGINE-ASSEMBLY.json", root)));
+  if (assembly.base_source_manifest_sha256 !== sha(readFileSync(new URL("ENGINE-SOURCE.json", root)))) throw Error("assembly source mismatch");
+  const files = assembly.files.map((item) => {
     if (
       !/^[a-zA-Z0-9_./-]+$/.test(item.path) ||
       item.path.split("/").includes("..")
@@ -30,7 +32,8 @@ export async function provision(credentials = {}, record = () => {}) {
     ),
     node_tar_sha256: nodeTarSha,
     node_version: "v22.18.0",
-    engine_files: manifest.files,
+    assembly_manifest_sha256: sha(readFileSync(new URL("ENGINE-ASSEMBLY.json", root))),
+    engine_files: assembly.files,
   };
   const pinHash = sha(JSON.stringify(pin));
   let box, snapshot;

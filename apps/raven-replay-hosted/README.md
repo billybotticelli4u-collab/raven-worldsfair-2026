@@ -10,8 +10,11 @@ Raw-byte files and an explicitly synthetic example are also available.
 
 ## Current boundary
 
-- The one exposed adapter is pinned `@solana/kit` 8.3.0. Decoder-upgrade comparison
-  is still to be connected; a same-decoder replay is not an upgrade comparison.
+- Three fixed adapters are registered: pinned `@solana/kit` 8.3.0 and published
+  3.0.3/4.0.0 decoder bundles. Upgrade comparison requires an existing case and
+  its separately retained digest. It does not silently create a fresh baseline.
+  The comparison backend and fresh-import browser flow have author measurements
+  against an assembled cloud snapshot. Non-author review remains required.
 - Legacy and v0 can become saved cases. Actual v1 transaction bytes can be fetched
   and exported, but case creation refuses them with `UNSUPPORTED_DECODER_VERSION`.
 - `finalized`, slot, block time and network are provider-reported. Matching the
@@ -26,9 +29,12 @@ Raw-byte files and an explicitly synthetic example are also available.
 
 ## Execution
 
-`ENGINE-SOURCE.json` records the 44 unchanged files copied from the reviewed S2
-engine at `564cba333d27e6ee69ab7e98b39cb0a051ebe611`. That review covers its original
-local integration, not this new host wrapper.
+`ENGINE-SOURCE.json` preserves the original 44-file S2 source inventory at
+`564cba333d27e6ee69ab7e98b39cb0a051ebe611`. `ENGINE-ASSEMBLY.json` describes this
+assembly: 43 original files unchanged, one registry addition, six adapter files
+added. SDK core code is unchanged. The old review does not cover this assembly.
+The historical bundle imports were relocated inside each adapter’s own bound
+directory; bundle bytes were not changed. See `ADAPTER-PROVENANCE.md`.
 
 An operator constructs a snapshot through `scripts/provision.mjs`, which checks
 source hashes, verifies the official Node 22.18.0 Linux archive, installs the
@@ -60,7 +66,7 @@ control.
 
 ## Before public release
 
-Finish upgrade comparison and public deployment wiring, implement shared abuse
+Finish public deployment wiring and shared abuse
 and spend controls, review the assembled source and dependency identity, obtain a
 distinct non-author review, and repeat the browser journey on the actual hosted
 origin. No public-release or customer-acceptance claim is made by this directory.

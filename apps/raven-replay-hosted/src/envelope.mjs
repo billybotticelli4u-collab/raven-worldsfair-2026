@@ -6,7 +6,7 @@ import {
   IntakeError,
 } from "./intake.mjs";
 export const MAX_REQUEST_BYTES = 320 * 1024;
-export const ALLOWED_ADAPTERS = Object.freeze(["solana-kit-tx-decode"]);
+export const ALLOWED_ADAPTERS = Object.freeze(["solana-kit-tx-decode", "kit-3.0.3-tx-decode", "kit-4.0.0-tx-decode"]);
 export const exact = (value, keys) =>
   value !== null &&
   typeof value === "object" &&
@@ -76,6 +76,11 @@ export function validateRequest(request) {
         fail("INTAKE_INPUT_MISMATCH");
     } else if (request.intake_reference !== null) fail("INVALID_REQUEST");
     if (bytes[0] === 0x81) fail("UNSUPPORTED_DECODER_VERSION");
+  } else if (request.op === "compare") {
+    if (!exact(request, ["op", "envelope", "reference", "candidate_adapter_id"])) fail("INVALID_REQUEST");
+    validateEnvelope(request.envelope, request.reference);
+    if (!ALLOWED_ADAPTERS.includes(request.candidate_adapter_id)) fail("UNKNOWN_ADAPTER");
+    if (request.candidate_adapter_id === request.envelope.sdk_case.adapter_id) fail("INVALID_REQUEST");
   } else if (request.op === "replay" || request.op === "import") {
     if (!exact(request, ["op", "envelope", "reference"]))
       fail("INVALID_REQUEST");

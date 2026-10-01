@@ -7,7 +7,9 @@
       "label": "Pinned @solana/kit offline wire/message decode",
       "entrypoint": "solana-kit-tx-decode/adapter.mjs",
       "output_contract": "raven-adapter-parsed/1",
-      "dependency_packages": ["@solana/kit"]
+      "dependency_packages": [
+        "@solana/kit"
+      ]
     },
     {
       "id": "example-parser-v1",
@@ -62,6 +64,20 @@
       "id": "control-bad-protocol",
       "label": "Control: invalid protocol stdout",
       "entrypoint": "example-parser/bad-protocol.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "kit-3.0.3-tx-decode",
+      "label": "Published @solana/kit 3.0.3 bundled offline decoder",
+      "entrypoint": "kit-3.0.3-tx-decode/adapter.mjs",
+      "output_contract": "raven-adapter-parsed/1",
+      "dependency_packages": []
+    },
+    {
+      "id": "kit-4.0.0-tx-decode",
+      "label": "Published @solana/kit 4.0.0 bundled offline decoder",
+      "entrypoint": "kit-4.0.0-tx-decode/adapter.mjs",
       "output_contract": "raven-adapter-parsed/1",
       "dependency_packages": []
     }
