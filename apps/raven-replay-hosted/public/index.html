@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Fetch a Solana transaction, retain its bytes, and replay a pinned decoder against a saved reference."
+    />
+    <title>Raven Replay</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">RAVEN <span>/</span> <small>Replay</small></a
+      ><a href="https://raven-worldsfair-2026.vercel.app/">Conformance</a>
+    </header>
+    <main>
+      <h1>Replay a Solana transaction</h1>
+      <p class="intro">
+        Fetch once. Save the bytes. Compare the decoder result.
+      </p>
+      <div class="workspace">
+        <div class="controls panel">
+          <section aria-labelledby="get-heading">
+            <h2 id="get-heading">1. Get transaction bytes</h2>
+            <form id="fetch-form">
+              <label for="signature">Solana transaction signature</label
+              ><textarea
+                id="signature"
+                rows="2"
+                maxlength="88"
+                spellcheck="false"
+                autocomplete="off"
+                placeholder="Paste a transaction signature"
+                required
+              ></textarea>
+              <div class="actions">
+                <button id="fetch" type="submit">Fetch transaction</button
+                ><button id="example" type="button" class="secondary">
+                  Use synthetic example
+                </button>
+              </div>
+            </form>
+            <p class="note">Mainnet · finalized · provider-reported evidence</p>
+            <details class="file-option">
+              <summary>Use a file instead</summary>
+              <label for="wire-file"
+                >Transaction bytes (.bin) or base64 text (.txt)</label
+              ><input id="wire-file" type="file" accept=".bin,.txt,.base64" />
+            </details>
+            <div id="source" class="source" hidden></div>
+          </section>
+          <section aria-labelledby="case-heading" class="case-section">
+            <h2 id="case-heading">2. Save or replay a case</h2>
+            <form id="save-form" class="save-row">
+              <div>
+                <label for="case-name">Case name</label
+                ><input
+                  id="case-name"
+                  value="My transaction"
+                  maxlength="64"
+                  pattern="[a-zA-Z0-9][a-zA-Z0-9._ \-]{0,63}"
+                  required
+                />
+              </div>
+              <div>
+                <label for="decoder">Decoder</label
+                ><select id="decoder">
+                  <option value="solana-kit-tx-decode">
+                    @solana/kit 8.3.0
+                  </option>
+                </select>
+              </div>
+              <button id="save" disabled>Save baseline</button>
+            </form>
+            <form id="replay-form" class="import-row">
+              <div>
+                <label for="case-file">Import saved case</label
+                ><input id="case-file" type="file" accept=".json" />
+              </div>
+              <div>
+                <label for="reference"
+                  >Separately retained reference digest</label
+                ><input
+                  id="reference"
+                  maxlength="64"
+                  pattern="[a-f0-9]{64}"
+                  spellcheck="false"
+                  autocomplete="off"
+                  required
+                />
+              </div>
+              <button id="replay" disabled>Replay saved bytes</button>
+            </form>
+            <p class="note">
+              Keep the digest separately. A digest checks bytes; it does not
+              authenticate their source.
+            </p>
+          </section>
+        </div>
+        <aside class="result panel" aria-labelledby="result-heading">
+          <h2 id="result-heading">Result</h2>
+          <div id="result" aria-live="polite" aria-atomic="true">
+            <div class="empty">
+              <h3>No run yet</h3>
+              <p>Fetch a transaction or import a saved case to begin.</p>
+            </div>
+          </div>
+          <div id="downloads" class="downloads" hidden></div>
+          <div class="limits">
+            <p>Fetching and decoding are separate steps.</p>
+            <p>Reports are unsigned. A match is not a safety verdict.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <footer>
+      Legacy and v0 replay supported. Version 1 bytes can be fetched but cannot
+      yet become a replay case.
+    </footer>
+  </body>
+</html>
