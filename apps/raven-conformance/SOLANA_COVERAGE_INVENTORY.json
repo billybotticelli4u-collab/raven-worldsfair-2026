@@ -1,13 +1,13 @@
 {
   "schema": "raven-solana-coverage-inventory/1",
   "profile": "raven-solana-txversion-experimental/0",
-  "integrated_corpus": "raven-solana-txversion-demo-corpus/1.3",
+  "integrated_corpus": "raven-solana-txversion-demo-corpus/1.4",
   "source_corpus": "raven-solana-txversion-demo-corpus/1",
   "source_corpus_version": "1.1.0",
   "source_corpus_file_sha256": "edf533bd64bac1eb00de78833614edd94e190bef437c7f73b80b100e7ea5540e",
   "source_corpus_content_digest_sha256": "c463a23b9ee3d1e91204e1d2bc9b1a3bf121e97ca9ba00e7a970b8fd97c5aa1a",
   "source_vector_count": 26,
-  "integrated_vector_count": 27,
+  "integrated_vector_count": 30,
   "included_from_source": [
     {
       "source_id": "V01_valid_legacy",
@@ -121,6 +121,24 @@
       "role": "fail-closed exact input-key guard",
       "source": "profiles/raven-solana-txversion-experimental-0.json#R1",
       "note": "Raven-local profile transport vector; not represented as a published Solana requirement."
+    },
+    {
+      "id": "LAB01_legacy_unsigned_overflow",
+      "role": "required=1, readonlySigned=0, readonlyUnsigned=3, accounts=3: 1-0+3=4>3. All other bytes unchanged.",
+      "source": "profiles/raven-solana-txversion-experimental-0.json#R6",
+      "note": "Synthetic existing-profile witness; original construction/provenance retained in corpus. External-spec conformance NOT_ESTABLISHED."
+    },
+    {
+      "id": "LAB02_v1_unsigned_overflow",
+      "role": "required=1, readonlySigned=0, readonlyUnsigned=3, accounts=3: 1-0+3=4>3. All other bytes unchanged.",
+      "source": "profiles/raven-solana-txversion-experimental-0.json#R6",
+      "note": "Synthetic existing-profile witness; original construction/provenance retained in corpus. External-spec conformance NOT_ESTABLISHED."
+    },
+    {
+      "id": "LAB03_v1_required_accounts",
+      "role": "required=4>accounts=3. readonlySigned=3<4 and 4-3+0=1<=3 avoid masking guards. Append 3*64 zero signature bytes to preserve the implicit count. Four signatures remain within cap12.",
+      "source": "profiles/raven-solana-txversion-experimental-0.json#R6",
+      "note": "Synthetic existing-profile witness; original construction/provenance retained in corpus. External-spec conformance NOT_ESTABLISHED."
     }
   ],
   "claim": "The target matched this named experimental corpus.",

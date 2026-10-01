@@ -95,8 +95,8 @@ test('profile discovery exposes envelope and Solana metadata with separate targe
   const meta = await request('/api/meta?profile=solana');
   assert.equal(meta.status, 200);
   assert.equal(meta.body.profile.name, 'raven-solana-txversion-experimental/0');
-  assert.equal(meta.body.corpus.id, 'raven-solana-txversion-demo-corpus/1.3');
-  assert.equal(meta.body.corpus.vector_count, 27);
+  assert.equal(meta.body.corpus.id, 'raven-solana-txversion-demo-corpus/1.4');
+  assert.equal(meta.body.corpus.vector_count, 30);
   assert.equal(meta.body.claim, 'The target matched this named experimental corpus.');
 });
 test('Solana corpus scope states the served count and retains its disclaimer', async () => {
@@ -212,8 +212,8 @@ test('Solana HTTP reference, broken target, report download and replay preserve 
   assert.equal(reference.status, 200);
   assert.equal(reference.body.report.claimed_profile.name, 'raven-solana-txversion-experimental/0');
   assert.equal(reference.body.report.summary.overall, 'CONFORMANT');
-  assert.equal(reference.body.report.summary.pass, 27);
-  assert.equal(reference.body.report.results.length, 27);
+  assert.equal(reference.body.report.summary.pass, 30);
+  assert.equal(reference.body.report.results.length, 30);
 
   const download = await request('/api/report/run_httpsolana');
   assert.equal(download.status, 200);
@@ -232,7 +232,7 @@ test('Solana HTTP reference, broken target, report download and replay preserve 
     json: { profile: 'solana', target: 'SOL_BROKEN_SUBTLE' },
   });
   assert.equal(subtle.status, 200);
-  assert.equal(subtle.body.report.summary.pass, 24);
+  assert.equal(subtle.body.report.summary.pass, 27);
   assert.deepEqual(
     subtle.body.report.results
       .filter(row => row.status === 'BEHAVIORAL_DIVERGENCE')

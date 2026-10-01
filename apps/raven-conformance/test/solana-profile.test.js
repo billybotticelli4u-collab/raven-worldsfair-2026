@@ -24,7 +24,7 @@ describe("Solana transaction-version profile", () => {
 
     assert.equal(profile.data.name, SOLANA_PROFILE);
     assert.equal(corpus.data.profile, SOLANA_PROFILE);
-    assert.equal(corpus.data.vectors.length, 27);
+    assert.equal(corpus.data.vectors.length, 30);
     assert.ok(corpus.data.vectors.some((vector) => vector.id === "V15_unexpected_input_key"));
     assert.ok(corpus.data.vectors.some((vector) => vector.id === "V14_malformed_base64"));
     assert.equal(corpus.data.lineage.source_demo_head, "08889b69798ad69a719a2634cabbebb0eb82c5fe");

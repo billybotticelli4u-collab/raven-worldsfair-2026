@@ -27,7 +27,7 @@ describe("usable Solana feature surface", () => {
     assert.match(app, /fetch\("\/api\/replay"/);
   });
 
-  it("ships a complete, disjoint 26-vector coverage inventory plus one Raven-local addition", () => {
+  it("ships a complete, disjoint 26-vector coverage inventory plus four Raven-local additions", () => {
     const inventory = JSON.parse(
       readFileSync(path.join(APP, "SOLANA_COVERAGE_INVENTORY.json"), "utf8"),
     );
@@ -39,8 +39,8 @@ describe("usable Solana feature surface", () => {
     assert.equal(inventory.source_vector_count, 26);
     assert.equal(included.size, 26);
     assert.equal(omitted.size, 0);
-    assert.equal(local.size, 1);
-    assert.deepEqual([...local], ["V15_unexpected_input_key"]);
+    assert.equal(local.size, 4);
+    assert.deepEqual([...local], ["V15_unexpected_input_key", "LAB01_legacy_unsigned_overflow", "LAB02_v1_unsigned_overflow", "LAB03_v1_required_accounts"]);
     const inventoriedSourceIds = [...included, ...omitted];
     assert.equal(inventoriedSourceIds.length, 26);
     for (const prefix of SOURCE_IDS) {
@@ -65,7 +65,7 @@ describe("usable Solana feature surface", () => {
     }
   });
 
-  it("runs the developer adapter against all 27 integrated vectors", () => {
+  it("runs the developer adapter against all 30 integrated vectors", () => {
     const corpus = loadCorpus(PROFILE).data;
     const adapter = path.join(APP, "examples/solana-developer-adapter.mjs");
     for (const vector of corpus.vectors) {
