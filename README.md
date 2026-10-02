@@ -1,10 +1,10 @@
-> **Combined local review candidate:** [Start here](JUDGE_START_HERE.md) for Replay saved cases and the repaired 27-row Conformance workflow. Neither this integration nor its pending deltas are a public release.
-
-> **Local submission candidate — not published.** This checkout adds Raven Replay under `apps/raven-replay/`. Public main at the base commit does not contain it. The existing deployed demos and Replay are distinct.
+> **Judges: [start here](JUDGE_START_HERE.md).** This repository is public. It contains Raven Conformance (30-row Solana transaction-version corpus, hosted at https://raven-worldsfair-2026.vercel.app/) and a local Raven Replay prototype under `apps/raven-replay/`.
 >
-> **Start here for saved regression cases:** [Replay judge walkthrough](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md). Replay runs locally on Node v22.18.0. It is not hosted by the existing Vercel routes. Reports are unsigned; MATCH is not a safety verdict.
+> **Two different things are called Replay.** The prototype in this repository runs locally on Node v22.18.0: [Replay judge walkthrough](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md). The hosted page at https://raven-replay.vercel.app is a separate application whose source is not in this repository. Reports from both are unsigned; MATCH is not a safety verdict.
+>
+> Sections below that describe earlier candidates and their reviews are kept as history and are labelled with the commits they refer to.
 
-# Raven Conformance × Crypto World's Fair 2026 — combined local review candidate
+# Raven Conformance × Crypto World's Fair 2026
 
 Judge demo: Agent A refuses blind trust, requires Raven-verified Solana
 receipt-v1 evidence from Agent B, then PROCEED / REFUSE fail-closed.
@@ -12,12 +12,14 @@ Day-2 adds an explicit deterministic `raven-agent-trust/1` machine exchange,
 truth disclosure (`liveAcquisition:false`, deterministic fixture/demo
 evaluation time), and fail-closed refusal on malformed evaluation time.
 
-**Preferred live URL (when Owner authorizes deploy):**
-https://ravenattest.com/worldsfair
+**Live Conformance page:** https://raven-worldsfair-2026.vercel.app/
+(its Disclosure / Build Info shows the commit the platform asserts).
+Landing page: https://ravenattest.com/worldsfair
 
 **This repository has recorded Vercel Preview and Production deployments.**
 A push may trigger hosting automation. That does not authorize a change to
-ravenattest.com; the Replay browser app in this candidate is local only.
+ravenattest.com. The Replay browser app in this repository is local only;
+the hosted Raven Replay page is built from separate, unpublished source.
 
 ---
 

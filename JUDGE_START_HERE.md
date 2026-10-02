@@ -1,11 +1,18 @@
-# Raven — local judge candidate
+# Raven — judge start
 
-**Unpublished candidate. Independent delivery review is pending.** Two separate workflows are included. Choose one below; their uses of “replay” are different.
+**This repository is public.** Reviews of its contents are internal and non-author; none is an external audit. Two separate workflows are included. Choose one below; their uses of “replay” are different.
+
+Hosted pages, no install needed:
+
+- Conformance: https://raven-worldsfair-2026.vercel.app/ runs Raven-owned demo targets from this repository. **Disclosure / Build Info** on the page shows the commit the platform asserts it was built from; that is an assertion, not proof of the served bytes.
+- Raven Replay: https://raven-replay.vercel.app is a separate hosted application that runs three fixed decoders. **Its source is not in this repository.** The `apps/raven-replay` directory below is an earlier local prototype, not that hosted page.
+
+Neither hosted page runs code you upload. To run your own decoder, clone this repository and run Conformance locally.
 
 | Workflow | What to try | Location |
 |---|---|---|
 | Saved parser regression cases | Create → export → reload → import → rerun against a reference → inspect changes → download report | Raven Replay, local browser on port 8794 |
-| Named Conformance corpus | Run the reference and deliberately broken target on the same 27 rows, inspect differing rows, replay the report | Conformance app, local browser on port 8791 |
+| Named Conformance corpus | Run the reference and deliberately broken target on the same 30 rows, inspect differing rows, replay the report | Conformance app, local browser on port 8791, or the hosted page above |
 
 ## 1. Saved parser cases
 
@@ -35,7 +42,7 @@ cd apps/raven-conformance
 node src/server.js
 ```
 
-Open http://127.0.0.1:8791 and select **Solana transaction versions**. The reference should match27/27. The intentionally broken subtle target differs at V03, V10 and V16: three rows covering two defect classes. These are Raven-owned offline demonstration targets, not evidence that a customer's SDK is defective.
+Open http://127.0.0.1:8791 and select **Solana transaction versions**. The reference should match 30/30. The intentionally broken subtle target passes 27 rows and differs at V03, V10 and V16: three rows covering two defect classes. Rows 28 to 30 were added in corpus 1.4; the original 27-row corpus file is preserved in the repository. These are Raven-owned offline demonstration targets, not evidence that a customer's SDK is defective.
 
 For command-line reproduction:
 
@@ -46,7 +53,7 @@ node src/cli.js --profile solana --target SOL_BROKEN_SUBTLE --run-id judge-subtl
 node src/bin/replay.js --report reports/judge-reference.json
 ```
 
-The report's packaged clean-clone recipe refers to the separately supplied `solana-reproduction/` packet. That packet reproduces these exact Conformance app bytes at its own source commit; it does not claim the whole integrated repository has that commit. The [source map](INTEGRATION_SOURCE_MAP.json) binds both components.
+The reproduce commands printed by the app and packaged in each report clone this public repository and check out the commit the running instance asserts (`FAIR_BUILD_COMMIT`, shown by `/api/build-info`). No separately supplied packet is needed. The [source map](INTEGRATION_SOURCE_MAP.json) records where each component came from.
 
 ## Scope and delivery
 
@@ -54,4 +61,4 @@ Replay uses the legacy inspector and registered adapters from SDK dbcee545. It c
 
 Reports are unsigned. MATCH means the retained expectation reproduced, not that a transaction is safe. Exported cases contain input bytes; detailed reports can expose reconstructible input. Use synthetic or public, non-sensitive inputs. No wallet, signing or RPC is required for these examples. Installing dependencies requires registry access or a complete cache. A subprocess is not a sandbox.
 
-The existing Vercel configuration hosts Conformance, not this local Replay app. The remote repository has recorded Preview and Production deployments; a push may trigger hosting automation. No publication or deployment is part of this local packet. SDK package metadata and the SDK-local LICENSE now record Apache-2.0, matching the repository license. The existing pre-Fair foundation disclosure remains in README.md. This document does not certify contest eligibility, portal submission or final media readiness.
+This repository's Vercel configuration hosts Conformance, not the local Replay prototype in `apps/raven-replay`. The hosted Raven Replay page is deployed from separate source that is not published here, so it cannot be rebuilt from this repository. A push to this repository may trigger hosting automation. SDK package metadata and the SDK-local LICENSE now record Apache-2.0, matching the repository license. The existing pre-Fair foundation disclosure remains in README.md. This document does not certify contest eligibility, portal submission or final media readiness.
