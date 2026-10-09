@@ -1,23 +1,28 @@
-> **Combined local review candidate:** [Start here](JUDGE_START_HERE.md) for Replay saved cases and the repaired 27-row Conformance workflow. Neither this integration nor its pending deltas are a public release.
-
-> **Local submission candidate — not published.** This checkout adds Raven Replay under `apps/raven-replay/`. Public main at the base commit does not contain it. The existing deployed demos and Replay are distinct.
+> **Judges: [start here](JUDGE_START_HERE.md).** This repository is public. It contains Raven Conformance (30-row Solana transaction-version corpus, hosted at https://raven-worldsfair-2026.vercel.app/) and a local Raven Replay prototype under `apps/raven-replay/`.
 >
-> **Start here for saved regression cases:** [Replay judge walkthrough](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md). Replay runs locally on Node v22.18.0. It is not hosted by the existing Vercel routes. Reports are unsigned; MATCH is not a safety verdict.
+> **Start with Conformance:** choose **Solana transaction versions**, run **SOL_BROKEN_SUBTLE** (27 matches, 3 divergences), then **SOL_CONFORMANT_REFERENCE** (30 matches), and replay its report. These are deliberately constructed Raven-owned demonstration targets, not a third-party vulnerability claim.
+>
+> **Two different things are called Replay.** The prototype in this checkout runs locally on Node v22.18.0: [Replay judge walkthrough](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md). The separate hosted page is https://raven-replay.vercel.app. Its [source at commit 51b60b7b](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted) is public on the unmerged branch `codex/hosted-replay-source-recovery-51b60b7-20261003`, not on `main` (checked 9 October 2026). Source availability does not establish which server bytes are running or that hosted execution is available. Reports from both are unsigned; MATCH is not a safety verdict.
+>
+> Sections below that describe earlier candidates and their reviews are kept as history and are labelled with the commits they refer to.
 
-# Raven Conformance × Crypto World's Fair 2026 — combined local review candidate
+# Raven Conformance × Crypto World's Fair 2026
 
-Judge demo: Agent A refuses blind trust, requires Raven-verified Solana
+Earlier Fair Agent Trust demo: Agent A refuses blind trust, requires Raven-verified Solana
 receipt-v1 evidence from Agent B, then PROCEED / REFUSE fail-closed.
 Day-2 adds an explicit deterministic `raven-agent-trust/1` machine exchange,
 truth disclosure (`liveAcquisition:false`, deterministic fixture/demo
 evaluation time), and fail-closed refusal on malformed evaluation time.
 
-**Preferred live URL (when Owner authorizes deploy):**
-https://ravenattest.com/worldsfair
+**Live Conformance page:** https://raven-worldsfair-2026.vercel.app/
+(its Disclosure / Build Info shows the commit the platform asserts).
+Landing page: https://ravenattest.com/worldsfair
 
 **This repository has recorded Vercel Preview and Production deployments.**
 A push may trigger hosting automation. That does not authorize a change to
-ravenattest.com; the Replay browser app in this candidate is local only.
+ravenattest.com. The Replay browser app in this repository is local only;
+the hosted Raven Replay source is on the separate public branch linked above.
+That branch does not provide a provisioned execution snapshot or service credentials.
 
 ---
 
@@ -111,9 +116,12 @@ The linked verifier submodule remains labeled **PRE-EXISTING RAVEN FOUNDATION
 
 ---
 
-## Quickstart (judges)
+## Historical Agent Trust quickstart
 
-Requires **Node.js >= 22.18** (Node 25+ also fine).
+For the current Conformance demonstration and its local reproduction, use
+[Judge start](JUDGE_START_HERE.md). This older Agent Trust workflow is separate.
+
+Use **Node.js 22.18.0** for the recorded environment.
 
 ```bash
 git clone --recurse-submodules https://github.com/billybotticelli4u-collab/raven-worldsfair-2026
