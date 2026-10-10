@@ -2,7 +2,7 @@
 
 On the **13 structural rows** of Raven's 30-vector experimental corpus, unmodified published decoders matched as follows: Kit 8.4.0 and 8.3.0 each 11/13; Kit 4.0.0 9/13; Kit 3.0.3 8/13; web3.js 1.99.0 (`VersionedTransaction.deserialize`) 12/13; solders 0.29.0 11/13. The Node adapters ran in Raven's official sandboxed runner; solders used a separate harness.
 
-These are not quality rankings. Three other rows test adapter JSON/base64 handling; fourteen test sanitize/policy rules these decoders do not claim to enforce. The corpus is synthetic and its v1 interpretation experimental; agreement by other decoders supports rather than proves that interpretation. These headline scores are Billy's retained measurements. KIMI initially checked that summary without rerunning the decoders; its later independent reconciliation is partly confirmed, with a one-row Kit discrepancy and a different derived structural mapping, detailed below.
+These are not quality rankings. Three other rows test adapter JSON/base64 handling; fourteen test sanitize/policy rules these decoders do not claim to enforce. The corpus is synthetic and its v1 interpretation experimental; agreement by other decoders supports rather than proves that interpretation. These headline scores are Billy's retained measurements. KIMI initially checked that summary without rerunning the decoders; its later independent reconciliation is partly confirmed, with adapter-dependent Kit results and a different derived structural mapping, detailed below.
 
 ## Structural results
 
@@ -29,9 +29,9 @@ Full retained rows: [RESULTS_TABLE.md](third-party-decoders/RESULTS_TABLE.md). M
 
 ## V10 interpretation
 
-V10 places `81 00` at the transaction's first byte (signature count). KIMI's independent per-API checks found web3.js 1.99.0 `VersionedTransaction.deserialize` **REJECT**, on the v1 config-mask check rather than length minimality, while its legacy `Transaction.from` **ACCEPTS**. That modern/legacy split applies to web3.js only; an 'older versions only' description does not apply to Kit. Kit 4.0.0 and 8.4.0 both **ACCEPT** V10 (8.4.0 attributes it as v1). solders 0.29.0 **REJECTS** the non-canonical length. A V10 match therefore does not prove minimal-length validation, and none of these observations certifies an API as safe.
+V10 places `81 00` at the transaction's first byte (signature count). Older envelope readers — Kit ≤4.0.0, web3.js `Transaction.from`, and Raven's broken demo reader — accept it as legacy. Readers that treat the first byte as a v1 marker refuse it for a different reason, a malformed v1 layout rather than length minimality: web3.js `VersionedTransaction.deserialize` and solders `VersionedTransaction.from_bytes` reject it, and Kit 8.4.0 rejects it only when the adapter also runs Kit's compiled-message decoder (as Billy's two-call adapter does); Kit 8.4.0's transaction decoder alone accepts V10 as a v1 envelope. The Kit 8.4.0 result is therefore adapter-dependent. A V10 match does not prove minimal-length validation, and none of these observations certifies an API as safe.
 
-The retained Billy table reports Kit 8.4.0 rejecting V10, whereas KIMI's later direct and official-runner checks accept it. Both records are preserved; they are not represented as identical executions. Impact unassessed.
+Both records reproduce: Billy's two-call adapter rejects V10, while KIMI's transaction-decoder-only adapter accepts it (BILLY1 kit-delta reconciliation, 10 Oct). Both records are preserved. Impact unassessed.
 
 ### Separate retained reproducer — outside the submission summary
 
@@ -48,8 +48,8 @@ KIMI independently verified the seal and rederived the category split and struct
 KIMI's 10 October reconciliation (review SHA-256 `b73be56f3a00c25dfb81d08fc78ab5a2ebc2757b76069be03795d73c9e2e34fb`) freshly installed the named decoders, checked separate APIs and used Raven's official runner in scratch. CODEX did not rerun those decoder measurements in this documentation successor.
 
 - web3.js 1.99.0 deserialize-only: 17/30, matching Billy's retained total. A fallback to legacy `Transaction.from` changes V10 and V19 and explains the other adapter's 15/30.
-- Kit 8.4.0: KIMI measured 15/30; Billy retained 16/30. One row remains unresolved. The displayed structural headline is retained evidence, not a claim that the two runs have identical rows.
-- The 13 structural / 14 sanitize-policy / 3 prelude split is a derived taxonomy, not named corpus metadata. Billy's retained structural set includes V17 and excludes V19; KIMI's mapping instead includes V19 and puts V17 in sanitize-policy. Both yield Kit 11/13 and web3.js 12/13 in their own reported mappings; equal totals do not prove equal coverage.
+- Kit 8.4.0: KIMI's transaction-decoder-only adapter accepts V10 as a v1 envelope (15/30). Billy's two-call adapter also runs Kit's compiled-message decoder, which rejects V10 on a v1 layout error, not length minimality (16/30, the displayed 11/13 under Billy's mapping). The difference is V10, from adapter composition. This explanation is Billy 1's author evidence; KIMI's confirmation is pending.
+- The 13 structural / 14 sanitize-policy / 3 prelude split is a derived taxonomy, not named corpus metadata. Billy's retained structural set includes V17 and excludes V19; KIMI's mapping instead includes V19 and puts V17 in sanitize-policy. Both yield Kit 11/13 and web3.js 12/13 in their own reported mappings; equal totals do not prove equal coverage (Kit: Billy misses V07/V17, KIMI misses V07/V10).
 - KIMI did not repeat the full solders corpus, Kit 3.0.3/8.3.0 full runs or a standalone web3.js legacy-only full run. Their retained totals are not independently executed acceptance from that review.
 
 Kit's V07 trailing-byte tolerance is a **documented maintainer-accepted tradeoff**, tracked in [kit#1963](https://github.com/anza-xyz/kit/issues/1963); it is not a novel discovery. KIMI's reconciliation records that upstream disposition. These are differences against Raven's experimental decode/admit profile, not a demonstrated SDK security defect. **Impact unassessed.** No SDK safety, exploit, vulnerability, customer impact or universal correctness is established.
