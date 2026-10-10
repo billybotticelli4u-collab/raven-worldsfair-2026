@@ -1,14 +1,16 @@
 # Raven × Crypto World's Fair 2026
 
-Raven helps Solana apps test transaction readers against stated rules and verify offline receipts before agents act. [**Judges: start here.**](JUDGE_START_HERE.md)
+Raven checks how Solana transaction readers handle tricky bytes, and lets an agent verify a signed receipt offline before it acts. [**Judges: start here.**](JUDGE_START_HERE.md)
 
-In two minutes, [Raven Conformance](https://raven-worldsfair-2026.vercel.app/) shows a Raven-owned reader diverging on V03, V10 and V16 (27 match, 3 differ), then the reference matching 30/30. The separate **Agent Trust** offline fixture shows Agent A PROCEED with a valid receipt and REFUSE after one finding code changes without a new signature. Both paths and their expected output are in the judge guide.
+In two minutes, [Raven Conformance](https://raven-worldsfair-2026.vercel.app/) shows a Raven-owned reader diverging on V03/V16 (new v1 transactions) and V10 (a non-canonical length): 27 match, 3 differ, then the reference matching 30/30. The separate **Agent Trust** offline fixture shows Agent A PROCEED with a valid receipt and REFUSE after one finding code changes without a new signature. From a recursive checkout, run `npm run demo`. Both paths and their expected output are in the judge guide.
 
 ## Scope and limits
 
 At the 10 October 2026 dry run, the hosted page asserted build `dba22af0`; local reproduction pins `2cb12875`, whose product code is identical because the intervening merge changed only two docs. Conformance reports are unsigned and a match is not a safety verdict. Agent Trust uses a deterministic fixture (`liveAcquisition:false`), not live Solana acquisition. The hosted page runs Raven-owned demonstration readers, not visitor uploads. [Local saved-case Replay](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md) and [hosted Raven Replay](https://raven-replay.vercel.app) are separate applications; hosted source is [public on an unmerged branch at `51b60b7b`](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). Source availability does not prove deployed bytes or hosted execution.
 
-Sections below retain the recorded attribution and bounded review history. This repository has recorded Vercel Preview and Production deployments; a push may trigger hosting automation and does not authorize a change to ravenattest.com. The hosted Replay branch does not provide a provisioned execution snapshot or service credentials.
+The [third-party decoder measurements](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md) lead with 13 structural rows and distinguish them from adapter and policy rows. KIMI confirmed the summary against retained evidence, without rerunning the decoders.
+
+Sections below retain the required attribution; technical history is in the [provenance appendix](docs/hackathon/worldsfair-2026/JUDGE_PROVENANCE_APPENDIX.md). This repository has recorded Vercel Preview and Production deployments; a push may trigger hosting automation and does not authorize a change to ravenattest.com. The hosted Replay branch does not provide a provisioned execution snapshot or service credentials.
 
 ---
 
@@ -70,22 +72,9 @@ This demo does **not** perform live Solana RPC acquisition for PATH A/B.
 Evidence is offline fixture-based (`liveAcquisition:false`). Do not treat the
 demo as a live-chain fetch or production signing workflow.
 
-### 6. Review class: bounded exact-artifact reviews — not release approval
+### 6. Review limits
 
-This combined local candidate descends from non-author reviewed (INTERNAL_ADVERSARIAL_NON_AUTHOR; not EXTERNAL_INDEPENDENT) HEAD
-`4be5ff7858b6636108a219f2c4e94a989c08d79e` / TREE
-`30471bbd366d726102446ce3240e4b941e292439`. Claude's review was bounded to
-the supplied Darwin/local/unpublished package and its stated component scopes.
-The later SDK-licence successor `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`
-has a KIMI backup changed-scope CHANGES verdict: its four licence changes pass,
-but that exact tree fails the guide's Replay checksum step. The condition is
-closed in checksum-and-documentation successor
-`d39517aac2e0ed8ffd6e6bfa2a3e4af4f6813f89`, which has a bounded Claude PASS.
-This review-recording and manifest-completion successor requires its own
-non-author review. None of those reviews authorizes a merge, deployment,
-publication or submission.
-
-The Agent Trust app's review class remains the Day-2 `a5cd592b` INTERNAL_ADVERSARIAL_NON_AUTHOR GO; the combined review did not exercise that app.
+Reviews are internal, bounded to specific artifacts and scopes, and are not external audits or release approval. See the [recorded component reviews](docs/hackathon/worldsfair-2026/JUDGE_PROVENANCE_APPENDIX.md#recorded-component-reviews).
 
 ### 7. Combined-candidate attribution is component-specific
 
@@ -112,6 +101,7 @@ Use **Node.js 22.18.0** for the recorded environment.
 ```bash
 git clone --recurse-submodules https://github.com/billybotticelli4u-collab/raven-worldsfair-2026
 cd raven-worldsfair-2026
+npm run demo  # Valid receipt: PROCEED; One-field tamper: REFUSE
 
 # Confirm submodule pin (must be exact SHA below):
 git -C vendor/raven-receipt-verifier rev-parse HEAD
@@ -153,20 +143,6 @@ npm dependencies; verification code comes from the git submodule.
 - **Deploy to ravenattest.com / `/worldsfair` is HOLD** — not performed
   by this Day-2 tip-bump pass.
 - **No npm publish** of `raven-receipt-verifier` or this Fair app.
-
-## Historical source tip (Fair product — Day-2; not the current combined candidate)
-
-| Field | Value |
-| --- | --- |
-| Branch (private Fair worktree) | `billy/worldsfair-2026-day2-malformed-clock-repair-2026-09-14` |
-| Fair HEAD | `a5cd592b72d2da1ebf6f0c1e224d05489ff31524` |
-| Fair TREE | `3e442f93529bdb5da876b54d484294032535e84a` |
-| Worktree | `<home>/raven-rnd-gauntlet-push/wf-day2-malformed-clock-repair` |
-| Review | INTERNAL_ADVERSARIAL_NON_AUTHOR GO (Billy copy) — not EXTERNAL_INDEPENDENT |
-| Verifier pin | `1b04356a275742752fb7afd8dfcc4269d462a778` |
-| Prior public Day-1 HEAD | `feaa1fb452b8e1307979dea7fd1c561fad82aa00` |
-
----
 
 ## Related Fair app: Raven Conformance MVP
 

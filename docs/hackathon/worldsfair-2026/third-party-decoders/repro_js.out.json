@@ -1,0 +1,79 @@
+{
+  "cases": {
+    "A_legacy_canonical (control)": "010707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070701000102111111111111111111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333010101000101",
+    "B_legacy_acctcount_noncanonical_82_00 (=2)": "01070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070100018200111111111111111111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333010101000101",
+    "C_legacy_sigcount_noncanonical_81_00 (=1)": "81000707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070701000102111111111111111111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333010101000101",
+    "D_v0_canonical (control)": "0107070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707800100010211111111111111111111111111111111111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222333333333333333333333333333333333333333333333333333333333333333301010100010100",
+    "E_message_version_3 (0x83 prefix, v0 layout)": "0107070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707830100010211111111111111111111111111111111111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222333333333333333333333333333333333333333333333333333333333333333301010100010100",
+    "F_legacy_one_trailing_byte": "01070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070100010211111111111111111111111111111111111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222333333333333333333333333333333333333333333333333333333333333333301010100010100",
+    "G_v0_one_trailing_byte": "010707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070780010001021111111111111111111111111111111111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222233333333333333333333333333333333333333333333333333333333333333330101010001010000"
+  },
+  "results": {
+    "@solana/kit@3.0.3": {
+      "getShortU16Decoder().decode([0x81,0x00])": 1,
+      "getShortU16Decoder().decode([0x80,0x00])": 0,
+      "getShortU16Decoder().decode([0x80]) (truncated; PR #2067 fix check)": 0,
+      "A_legacy_canonical (control)": "ok version=\"legacy\" staticAccounts=2",
+      "B_legacy_acctcount_noncanonical_82_00 (=2)": "ok version=\"legacy\" staticAccounts=2",
+      "C_legacy_sigcount_noncanonical_81_00 (=1)": "ok version=\"legacy\" staticAccounts=2",
+      "D_v0_canonical (control)": "ok version=0 staticAccounts=2",
+      "E_message_version_3 (0x83 prefix, v0 layout)": "ok version=3 staticAccounts=2",
+      "F_legacy_one_trailing_byte": "ok version=\"legacy\" staticAccounts=2",
+      "G_v0_one_trailing_byte": "ok version=0 staticAccounts=2"
+    },
+    "@solana/kit@4.0.0": {
+      "getShortU16Decoder().decode([0x81,0x00])": 1,
+      "getShortU16Decoder().decode([0x80,0x00])": 0,
+      "getShortU16Decoder().decode([0x80]) (truncated; PR #2067 fix check)": 0,
+      "A_legacy_canonical (control)": "ok version=\"legacy\" staticAccounts=2",
+      "B_legacy_acctcount_noncanonical_82_00 (=2)": "ok version=\"legacy\" staticAccounts=2",
+      "C_legacy_sigcount_noncanonical_81_00 (=1)": "ok version=\"legacy\" staticAccounts=2",
+      "D_v0_canonical (control)": "ok version=0 staticAccounts=2",
+      "E_message_version_3 (0x83 prefix, v0 layout)": "THROW SolanaError#5663021: This version of Kit does not support decoding transactions with version 3. The current max supported version is 0.",
+      "F_legacy_one_trailing_byte": "ok version=\"legacy\" staticAccounts=2",
+      "G_v0_one_trailing_byte": "ok version=0 staticAccounts=2"
+    },
+    "@solana/kit@8.3.0": {
+      "getShortU16Decoder().decode([0x81,0x00])": 1,
+      "getShortU16Decoder().decode([0x80,0x00])": 0,
+      "getShortU16Decoder().decode([0x80]) (truncated; PR #2067 fix check)": 0,
+      "A_legacy_canonical (control)": "ok version=\"legacy\" staticAccounts=2",
+      "B_legacy_acctcount_noncanonical_82_00 (=2)": "ok version=\"legacy\" staticAccounts=2",
+      "C_legacy_sigcount_noncanonical_81_00 (=1)": "THROW SolanaError#8078001: Codec [fixCodecSize] expected 32 bytes, got 2.",
+      "D_v0_canonical (control)": "ok version=0 staticAccounts=2",
+      "E_message_version_3 (0x83 prefix, v0 layout)": "THROW SolanaError#5663021: This version of Kit does not support decoding transactions with version 3. The current max supported version is 1.",
+      "F_legacy_one_trailing_byte": "ok version=\"legacy\" staticAccounts=2",
+      "G_v0_one_trailing_byte": "ok version=0 staticAccounts=2"
+    },
+    "@solana/kit@8.4.0": {
+      "getShortU16Decoder().decode([0x81,0x00])": 1,
+      "getShortU16Decoder().decode([0x80,0x00])": 0,
+      "getShortU16Decoder().decode([0x80]) (truncated; PR #2067 fix check)": "THROW SolanaError#8078001: Codec [shortU16] expected 2 bytes, got 1.",
+      "A_legacy_canonical (control)": "ok version=\"legacy\" staticAccounts=2",
+      "B_legacy_acctcount_noncanonical_82_00 (=2)": "ok version=\"legacy\" staticAccounts=2",
+      "C_legacy_sigcount_noncanonical_81_00 (=1)": "THROW SolanaError#8078001: Codec [fixCodecSize] expected 32 bytes, got 2.",
+      "D_v0_canonical (control)": "ok version=0 staticAccounts=2",
+      "E_message_version_3 (0x83 prefix, v0 layout)": "THROW SolanaError#5663021: This version of Kit does not support decoding transactions with version 3. The current max supported version is 1.",
+      "F_legacy_one_trailing_byte": "ok version=\"legacy\" staticAccounts=2",
+      "G_v0_one_trailing_byte": "ok version=0 staticAccounts=2"
+    },
+    "@solana/web3.js@1.99.0 VersionedTransaction.deserialize": {
+      "A_legacy_canonical (control)": "ok version=\"legacy\" staticAccounts=2",
+      "B_legacy_acctcount_noncanonical_82_00 (=2)": "ok version=\"legacy\" staticAccounts=2",
+      "C_legacy_sigcount_noncanonical_81_00 (=1)": "THROW Error: Unexpected bits set in the transaction config mask",
+      "D_v0_canonical (control)": "ok version=0 staticAccounts=2",
+      "E_message_version_3 (0x83 prefix, v0 layout)": "THROW Error: Transaction message version 3 deserialization is not supported",
+      "F_legacy_one_trailing_byte": "ok version=\"legacy\" staticAccounts=2",
+      "G_v0_one_trailing_byte": "ok version=0 staticAccounts=2"
+    },
+    "@solana/web3.js@1.99.0 Transaction.from": {
+      "A_legacy_canonical (control)": "ok accounts=2",
+      "B_legacy_acctcount_noncanonical_82_00 (=2)": "ok accounts=2",
+      "C_legacy_sigcount_noncanonical_81_00 (=1)": "ok accounts=2",
+      "D_v0_canonical (control)": "THROW Error: Versioned messages must be deserialized with VersionedMessage.deserialize()",
+      "E_message_version_3 (0x83 prefix, v0 layout)": "THROW Error: Versioned messages must be deserialized with VersionedMessage.deserialize()",
+      "F_legacy_one_trailing_byte": "ok accounts=2",
+      "G_v0_one_trailing_byte": "THROW Error: Versioned messages must be deserialized with VersionedMessage.deserialize()"
+    }
+  }
+}

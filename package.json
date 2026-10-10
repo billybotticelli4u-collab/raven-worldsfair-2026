@@ -7,6 +7,7 @@
     "node": "22.x"
   },
   "scripts": {
+    "demo": "node --experimental-strip-types scripts/agent-trust-demo.mjs",
     "vercel:smoke": "node scripts/vercel-adapter-smoke.mjs",
     "test": "node --test tests/*.test.mjs",
     "verify:judge-url": "node scripts/verify-judge-url.mjs",

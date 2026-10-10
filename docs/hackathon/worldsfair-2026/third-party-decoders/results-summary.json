@@ -1,0 +1,254 @@
+[
+  {
+    "decoder": "@solana/kit 8.4.0 (latest)",
+    "runner": "official",
+    "report": "reports/official/official-TP_KIT_8_4_0.json",
+    "total": 30,
+    "PASS": 16,
+    "DIVERGENT": 14,
+    "other": 0,
+    "byCat": {
+      "structural": {
+        "n": 13,
+        "pass": 11
+      },
+      "sanitize/policy": {
+        "n": 14,
+        "pass": 2
+      },
+      "prelude": {
+        "n": 3,
+        "pass": 3
+      }
+    },
+    "divergent_ids": [
+      "V07_trailing_bytes_v0",
+      "V12_v1_duplicate_accounts",
+      "V13_v1_heap_out_of_range",
+      "V17_v1_interleaved_layout",
+      "V20_v1_account_index_out_of_bounds",
+      "V21_v1_size_cap_exceeded",
+      "V22_legacy_size_cap_exceeded",
+      "V23_v1_ro_signed_equals_req_sig",
+      "V24_v1_instructions_cap",
+      "V25_v1_signatures_cap",
+      "V26_v1_addresses_cap",
+      "LAB01_legacy_unsigned_overflow",
+      "LAB02_v1_unsigned_overflow",
+      "LAB03_v1_required_accounts"
+    ]
+  },
+  {
+    "decoder": "@solana/kit 8.3.0",
+    "runner": "official",
+    "report": "reports/official/official-TP_KIT_8_3_0.json",
+    "total": 30,
+    "PASS": 16,
+    "DIVERGENT": 14,
+    "other": 0,
+    "byCat": {
+      "structural": {
+        "n": 13,
+        "pass": 11
+      },
+      "sanitize/policy": {
+        "n": 14,
+        "pass": 2
+      },
+      "prelude": {
+        "n": 3,
+        "pass": 3
+      }
+    },
+    "divergent_ids": [
+      "V07_trailing_bytes_v0",
+      "V12_v1_duplicate_accounts",
+      "V13_v1_heap_out_of_range",
+      "V17_v1_interleaved_layout",
+      "V20_v1_account_index_out_of_bounds",
+      "V21_v1_size_cap_exceeded",
+      "V22_legacy_size_cap_exceeded",
+      "V23_v1_ro_signed_equals_req_sig",
+      "V24_v1_instructions_cap",
+      "V25_v1_signatures_cap",
+      "V26_v1_addresses_cap",
+      "LAB01_legacy_unsigned_overflow",
+      "LAB02_v1_unsigned_overflow",
+      "LAB03_v1_required_accounts"
+    ]
+  },
+  {
+    "decoder": "@solana/kit 4.0.0",
+    "runner": "official",
+    "report": "reports/official/official-TP_KIT_4_0_0.json",
+    "total": 30,
+    "PASS": 24,
+    "DIVERGENT": 6,
+    "other": 0,
+    "byCat": {
+      "structural": {
+        "n": 13,
+        "pass": 9
+      },
+      "sanitize/policy": {
+        "n": 14,
+        "pass": 12
+      },
+      "prelude": {
+        "n": 3,
+        "pass": 3
+      }
+    },
+    "divergent_ids": [
+      "V03_valid_v1",
+      "V07_trailing_bytes_v0",
+      "V10_noncanonical_shortvec_sigcount",
+      "V16_valid_v1_two_instructions",
+      "V22_legacy_size_cap_exceeded",
+      "LAB01_legacy_unsigned_overflow"
+    ]
+  },
+  {
+    "decoder": "@solana/kit 3.0.3",
+    "runner": "official",
+    "report": "reports/official/official-TP_KIT_3_0_3.json",
+    "total": 30,
+    "PASS": 23,
+    "DIVERGENT": 7,
+    "other": 0,
+    "byCat": {
+      "structural": {
+        "n": 13,
+        "pass": 8
+      },
+      "sanitize/policy": {
+        "n": 14,
+        "pass": 12
+      },
+      "prelude": {
+        "n": 3,
+        "pass": 3
+      }
+    },
+    "divergent_ids": [
+      "V03_valid_v1",
+      "V07_trailing_bytes_v0",
+      "V09_unsupported_message_version_3",
+      "V10_noncanonical_shortvec_sigcount",
+      "V16_valid_v1_two_instructions",
+      "V22_legacy_size_cap_exceeded",
+      "LAB01_legacy_unsigned_overflow"
+    ]
+  },
+  {
+    "decoder": "@solana/web3.js 1.99.0 VersionedTransaction.deserialize",
+    "runner": "official",
+    "report": "reports/official/official-TP_WEB3_1_99_0_VERSIONED.json",
+    "total": 30,
+    "PASS": 17,
+    "DIVERGENT": 13,
+    "other": 0,
+    "byCat": {
+      "structural": {
+        "n": 13,
+        "pass": 12
+      },
+      "sanitize/policy": {
+        "n": 14,
+        "pass": 2
+      },
+      "prelude": {
+        "n": 3,
+        "pass": 3
+      }
+    },
+    "divergent_ids": [
+      "V07_trailing_bytes_v0",
+      "V12_v1_duplicate_accounts",
+      "V13_v1_heap_out_of_range",
+      "V20_v1_account_index_out_of_bounds",
+      "V21_v1_size_cap_exceeded",
+      "V22_legacy_size_cap_exceeded",
+      "V23_v1_ro_signed_equals_req_sig",
+      "V24_v1_instructions_cap",
+      "V25_v1_signatures_cap",
+      "V26_v1_addresses_cap",
+      "LAB01_legacy_unsigned_overflow",
+      "LAB02_v1_unsigned_overflow",
+      "LAB03_v1_required_accounts"
+    ]
+  },
+  {
+    "decoder": "@solana/web3.js 1.99.0 Transaction.from (secondary, legacy-only API)",
+    "runner": "official",
+    "report": "reports/official/official-TP_WEB3_1_99_0_LEGACY.json",
+    "total": 30,
+    "PASS": 22,
+    "DIVERGENT": 8,
+    "other": 0,
+    "byCat": {
+      "structural": {
+        "n": 13,
+        "pass": 8
+      },
+      "sanitize/policy": {
+        "n": 14,
+        "pass": 11
+      },
+      "prelude": {
+        "n": 3,
+        "pass": 3
+      }
+    },
+    "divergent_ids": [
+      "V02_valid_v0",
+      "V03_valid_v1",
+      "V04_valid_v0_with_lookup_table",
+      "V10_noncanonical_shortvec_sigcount",
+      "V16_valid_v1_two_instructions",
+      "V19_legacy_signature_count_mismatch",
+      "V22_legacy_size_cap_exceeded",
+      "LAB01_legacy_unsigned_overflow"
+    ]
+  },
+  {
+    "decoder": "solders 0.29.0 VersionedTransaction.from_bytes (OUTSIDE official runner)",
+    "runner": "outside",
+    "report": "reports/outside/SOLDERS_0_29_0.json",
+    "total": 30,
+    "PASS": 15,
+    "DIVERGENT": 15,
+    "other": 0,
+    "byCat": {
+      "structural": {
+        "n": 13,
+        "pass": 11
+      },
+      "sanitize/policy": {
+        "n": 14,
+        "pass": 1
+      },
+      "prelude": {
+        "n": 3,
+        "pass": 3
+      }
+    },
+    "divergent_ids": [
+      "V07_trailing_bytes_v0",
+      "V12_v1_duplicate_accounts",
+      "V13_v1_heap_out_of_range",
+      "V17_v1_interleaved_layout",
+      "V19_legacy_signature_count_mismatch",
+      "V20_v1_account_index_out_of_bounds",
+      "V21_v1_size_cap_exceeded",
+      "V22_legacy_size_cap_exceeded",
+      "V23_v1_ro_signed_equals_req_sig",
+      "V24_v1_instructions_cap",
+      "V25_v1_signatures_cap",
+      "V26_v1_addresses_cap",
+      "LAB01_legacy_unsigned_overflow",
+      "LAB02_v1_unsigned_overflow",
+      "LAB03_v1_required_accounts"
+    ]
+  }
+]

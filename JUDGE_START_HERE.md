@@ -1,25 +1,25 @@
 # Raven — judge start
 
-Raven helps Solana apps test transaction readers against stated rules and verify offline receipts before agents act.
+Raven checks how Solana transaction readers handle tricky bytes, and lets an agent verify a signed receipt offline before it acts.
 
 ## Two minutes, nothing to install
 
-Open [Raven Conformance](https://raven-worldsfair-2026.vercel.app/). Select **Solana transaction versions** and **SOL_BROKEN_SUBTLE**; click **Run Conformance (live)**. Inspect three differences. Run **SOL_CONFORMANT_REFERENCE**, then **Replay report**.
+Open [Raven Conformance](https://raven-worldsfair-2026.vercel.app/). Select **Solana transaction versions** and **SOL_BROKEN_SUBTLE**; click **Run Conformance (live)**. The three differences are V03 and V16 (new v1 transactions), and V10 (a non-canonical length). Run **SOL_CONFORMANT_REFERENCE**, then **Replay report**.
 
 ## Agent Trust, offline
 
-In a recursive clone (setup below), run this command; the second fixture changes one finding code without resigning:
+From this guide's recursive checkout (setup below):
 
 ```sh
-NODE_OPTIONS=--experimental-strip-types node --input-type=module -e 'import {runMachineExchange} from "./apps/worldsfair-agent-trust/src/lib/runSlice.js"; for (const path of ["path_a_verified", "path_b_tampered"]) console.log(`${path}: ${(await runMachineExchange(path)).outcome}`)'
+npm run demo
 ```
 
 | Run | Expected output |
 | --- | --- |
-| Broken demo reader | DIVERGENT: 27 match, 3 differ — V03, V10, V16 |
+| Broken demo reader | DIVERGENT: 27 match, 3 differ — V03/V16 v1; V10 non-canonical length |
 | Reference demo reader | CONFORMANT: 30/30; report replay matches |
-| Agent Trust valid fixture | `path_a_verified: PROCEED` |
-| Agent Trust one-field tamper | `path_b_tampered: REFUSE` |
+| Agent Trust valid fixture | `Valid receipt: PROCEED` |
+| Agent Trust one-field tamper | `One-field tamper: REFUSE` |
 
 ## Scope and limits
 
@@ -27,12 +27,24 @@ The hosted Conformance page runs Raven-owned demo targets. The experimental 30-v
 
 Reviews are internal and bounded, not external audits. Neither hosted page runs code a visitor uploads; a customer's decoder requires a local adapter and scoped engineering. **Disclosure / Build Info** asserts the hosted build commit but does not prove the served bytes.
 
+### Agent Trust setup
+
+Use Node **22.18.0**. Clone recursively into a new folder, then run the first-screen command from the repository root:
+
+```sh
+git clone --recurse-submodules https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git
+cd raven-worldsfair-2026
+npm run demo
+```
+
+Use the checkout containing this guide and `scripts/agent-trust-demo.mjs`; the older corpus pin below predates this convenience command. No npm install is needed. The command runs the actual pinned verifier on both retained fixtures and fails without printing the success pair if either expected outcome is absent. The fixtures differ only at `findings[0].code`, without a new signature. PROCEED is Agent A's fixture policy outcome, not permission to transact or proof of current token state.
+
 ### Conformance walkthrough
 
 No wallet, sign-in or transaction fetch is needed.
 
 1. Select **Solana transaction versions** (Experimental). Check that the scope shows **30 vectors**, corpus **1.4**.
-2. Select **SOL_BROKEN_SUBTLE**, then **Run Conformance (live)**. Expect **DIVERGENT**, with 27 matching rows and three divergences: `V03_valid_v1`, `V10_noncanonical_shortvec_sigcount`, and `V16_valid_v1_two_instructions`.
+2. Select **SOL_BROKEN_SUBTLE**, then **Run Conformance (live)**. Expect **DIVERGENT**, with 27 matching rows and three divergences: `V03_valid_v1`, [`V10_noncanonical_shortvec_sigcount`](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md#v10-and-the-separate-non-minimal-length-finding), and `V16_valid_v1_two_instructions`. V03/V16 are new v1 transactions; V10 is a non-canonical length.
 3. Inspect the first divergence. It compares a named profile's expected decision with the demo target's observed decision; it is not a security score.
 4. Select **SOL_CONFORMANT_REFERENCE** and run again. Expect **CONFORMANT**, 30 matching rows and no divergence.
 5. Under **Download & reproduce**, select **Replay report**. Expect **Replay matched**, with **bundle yes** and **semantics yes**. Download the report and keep it for local reproduction.
@@ -41,16 +53,16 @@ The deliberately broken reader is Raven's demonstration fixture. This does not e
 
 At the 10 October 2026 dry run, the hosted page asserted build `dba22af0006faa2be9c45268b33534e2d19a543c`; the reproduction pin `2cb12875b2a0f65b8a59999ffa33807e35a81e43` has identical product code because the intervening merge changed only `README.md` and `JUDGE_START_HERE.md`.
 
-If the hosted page is unavailable, reproduce the same corpus locally with the commands below. This recursive clone also supplies Agent Trust's pinned verifier. Start in a new folder:
+If the hosted page is unavailable, reproduce the same corpus locally in a **separate** checkout. This older pin reproduces Conformance; it does not contain the new Agent Trust convenience command:
 
 ```sh
-git clone --recurse-submodules https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git
-cd raven-worldsfair-2026
+git clone --recurse-submodules https://github.com/billybotticelli4u-collab/raven-worldsfair-2026.git raven-conformance-reproduction
+cd raven-conformance-reproduction
 git checkout --detach 2cb12875b2a0f65b8a59999ffa33807e35a81e43
 git submodule update --init --recursive
 ```
 
-Use Node **22.18.0** for the recorded reproduction. The pinned commit's old guide says 27 rows; corpus 1.4 and the retained results here have 30. From this repository root, the Agent Trust command on the first screen prints PROCEED then REFUSE. Its valid and tampered fixtures differ only at `findings[0].code`; the signature is unchanged. No npm install is required for Agent Trust or the Conformance CLI. The verifier is supplied by the submodule, not npm.
+Use Node **22.18.0** for the recorded reproduction. No npm install is required for the Conformance CLI. Continue with [Conformance corpus](#conformance-corpus) below.
 
 ### Other workflows and source access
 
@@ -87,7 +99,7 @@ cd apps/raven-conformance
 node src/server.js
 ```
 
-Open http://127.0.0.1:8791 and select **Solana transaction versions**. If port 8791 is busy, choose a free port with `PORT=<free-port> node src/server.js` and open that address instead. The reference should match 30/30. The intentionally broken subtle target passes 27 rows and differs at V03, V10 and V16: three rows covering two defect classes. Rows 28 to 30 were added in corpus 1.4; the original 27-row corpus file is preserved in the repository. These are Raven-owned offline demonstration targets, not evidence that a customer's SDK is defective.
+Open http://127.0.0.1:8791 and select **Solana transaction versions**. If port 8791 is busy, choose a free port with `PORT=<free-port> node src/server.js` and open that address instead. The reference should match 30/30. The intentionally broken subtle target passes 27 rows and differs at V03, V10 and V16: three rows covering two defect classes. These are Raven-owned offline demonstration targets, not evidence that a customer's SDK is defective.
 
 For command-line reproduction:
 
@@ -102,11 +114,11 @@ The reproduce commands printed by the app and packaged in each report clone this
 
 ### Delivery details and provenance
 
-Replay uses the legacy inspector and registered adapters from SDK dbcee545. It cannot save Solana version1 results. The separate reviewed version1 CLI successor is not integrated here. Conformance has its own version1 fixtures and policies; its result is not Replay version1 support. Customer parsers require scoped engineering.
+Local saved-case Replay cannot save Solana v1 results. Conformance has separate v1 fixtures and policies; its results do not establish v1 support in saved-case Replay. Customer parsers require scoped engineering. Technical lineage and review history are in the [provenance appendix](docs/hackathon/worldsfair-2026/JUDGE_PROVENANCE_APPENDIX.md).
 
 Reports are unsigned. MATCH means the retained expectation reproduced, not that a transaction is safe. Exported cases contain input bytes; detailed reports can expose reconstructible input. Use synthetic or public, non-sensitive inputs. No wallet, signing or RPC is required for these examples. Installing dependencies requires registry access or a complete cache. A subprocess is not a sandbox.
 
-This repository's main-branch Vercel configuration hosts Conformance, not the local Replay prototype in `apps/raven-replay`. To inspect hosted Replay, use the immutable source link above. In a **separate clone**, fetch and check out its recorded source:
+This repository's main-branch Vercel configuration hosts Conformance, not the local Replay prototype in `apps/raven-replay`. To inspect hosted Replay, use the [public hosted Replay source](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). In a **separate clone**, fetch and check out its recorded source:
 
 ```sh
 git fetch origin codex/hosted-replay-source-recovery-51b60b7-20261003
@@ -117,4 +129,8 @@ Then read `apps/raven-replay-hosted/README.md` and `DEPLOYMENT.md`. This checkou
 
 A push to this repository may trigger hosting automation. SDK package metadata and the SDK-local LICENSE record Apache-2.0, matching the repository license. The existing pre-Fair foundation disclosure remains in README.md. This document does not certify contest eligibility, portal submission or final media readiness.
 
-**Third-party decoder result:** pending. The 30-row demonstration above has not been represented as a result against an unmodified third-party decoder.
+### Third-party decoder measurements
+
+On the **13 structural rows** of Raven's 30-vector experimental corpus, unmodified published decoders matched as follows: Kit 8.4.0 and 8.3.0 each 11/13; Kit 4.0.0 9/13; Kit 3.0.3 8/13; web3.js 1.99.0 (`VersionedTransaction.deserialize`) 12/13; solders 0.29.0 11/13. The Node adapters ran in Raven's official sandboxed runner; solders used a separate harness. These are not quality rankings: three other rows test adapter JSON/base64 handling and fourteen test sanitize/policy rules the decoders do not claim to enforce. Older Kit versions can score higher overall merely by refusing every v1 transaction. Structural differences concern unsupported v1 layouts, a version check fixed in Kit 4.0.0, and trailing-byte tolerance. A separate standalone check showed Kit 3.0.3, 4.0.0, 8.3.0 and 8.4.0, and web3.js 1.99.0 accepting a non-minimal account-count encoding (`82 00` for 2), while solders rejected it. Impact is unassessed. V10 hints at this only on older versions; **no current corpus row isolates that behavior**. Both valid v1 vectors were made with Kit 8.3.0 and accepted by web3.js and solders, supporting rather than proving the experimental layout.
+
+Read the [full measured results and V10/standalone-reproducer distinction](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md). KIMI confirmed the summary against retained evidence; the decoder campaign itself remains Billy's executed evidence.
