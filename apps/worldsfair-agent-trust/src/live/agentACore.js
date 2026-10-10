@@ -97,7 +97,12 @@ export function createAgentA({
     if (!s || s.mintAddress !== subject.mintAddress || s.tokenProgramAddress !== subject.tokenProgramAddress || s.chain !== subject.chain) {
       return refuse(candidate.agentId, "claim", "claim_subject_not_requested");
     }
-    const evidenceRequest = createEvidenceRequest(claimMessage);
+    let evidenceRequest;
+    try {
+      evidenceRequest = createEvidenceRequest(claimMessage);
+    } catch {
+      return refuse(candidate.agentId, "claim", "invalid_claim");
+    }
     const nonce = randomBytes(32).toString("hex");
     const issuedAt = clock().toISOString();
     evidenceRequest.challenge = {
