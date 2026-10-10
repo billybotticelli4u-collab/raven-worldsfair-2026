@@ -37,14 +37,14 @@ cd raven-worldsfair-2026
 npm run demo
 ```
 
-Use the checkout containing this guide and `scripts/agent-trust-demo.mjs`; the older corpus pin below predates this convenience command. No npm install is needed. The command runs the actual pinned verifier on both retained fixtures and fails without printing the success pair if either expected outcome is absent. The fixtures differ only at `findings[0].code`, without a new signature. PROCEED is Agent A's fixture policy outcome, not permission to transact or proof of current token state.
+Use the checkout containing this guide and `scripts/agent-trust-demo.mjs`; the older corpus pin below predates this convenience command. No npm install is needed. The command runs the actual pinned verifier on both retained fixtures and fails without printing the success pair if either expected outcome is absent. The fixtures differ only at `findings[0].code`, without a new signature. To check the command and its refusal cases, run `npm --prefix apps/worldsfair-agent-trust test` (43 tests in the reviewed parent). PROCEED is Agent A's fixture policy outcome, not permission to transact or proof of current token state.
 
 ### Conformance walkthrough
 
 No wallet, sign-in or transaction fetch is needed.
 
 1. Select **Solana transaction versions** (Experimental). Check that the scope shows **30 vectors**, corpus **1.4**.
-2. Select **SOL_BROKEN_SUBTLE**, then **Run Conformance (live)**. Expect **DIVERGENT**, with 27 matching rows and three divergences: `V03_valid_v1`, [`V10_noncanonical_shortvec_sigcount`](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md#v10-and-the-separate-non-minimal-length-finding), and `V16_valid_v1_two_instructions`. V03/V16 are new v1 transactions; V10 is a non-canonical length.
+2. Select **SOL_BROKEN_SUBTLE**, then **Run Conformance (live)**. Expect **DIVERGENT**, with 27 matching rows and three divergences: `V03_valid_v1`, [`V10_noncanonical_shortvec_sigcount`](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md#v10-interpretation), and `V16_valid_v1_two_instructions`. V03/V16 are new v1 transactions; V10 is a non-canonical length.
 3. Inspect the first divergence. It compares a named profile's expected decision with the demo target's observed decision; it is not a security score.
 4. Select **SOL_CONFORMANT_REFERENCE** and run again. Expect **CONFORMANT**, 30 matching rows and no divergence.
 5. Under **Download & reproduce**, select **Replay report**. Expect **Replay matched**, with **bundle yes** and **semantics yes**. Download the report and keep it for local reproduction.
@@ -131,6 +131,12 @@ A push to this repository may trigger hosting automation. SDK package metadata a
 
 ### Third-party decoder measurements
 
-On the **13 structural rows** of Raven's 30-vector experimental corpus, unmodified published decoders matched as follows: Kit 8.4.0 and 8.3.0 each 11/13; Kit 4.0.0 9/13; Kit 3.0.3 8/13; web3.js 1.99.0 (`VersionedTransaction.deserialize`) 12/13; solders 0.29.0 11/13. The Node adapters ran in Raven's official sandboxed runner; solders used a separate harness. These are not quality rankings: three other rows test adapter JSON/base64 handling and fourteen test sanitize/policy rules the decoders do not claim to enforce. Older Kit versions can score higher overall merely by refusing every v1 transaction. Structural differences concern unsupported v1 layouts, a version check fixed in Kit 4.0.0, and trailing-byte tolerance. A separate standalone check showed Kit 3.0.3, 4.0.0, 8.3.0 and 8.4.0, and web3.js 1.99.0 accepting a non-minimal account-count encoding (`82 00` for 2), while solders rejected it. Impact is unassessed. V10 hints at this only on older versions; **no current corpus row isolates that behavior**. Both valid v1 vectors were made with Kit 8.3.0 and accepted by web3.js and solders, supporting rather than proving the experimental layout.
+On the **13 structural rows** of Raven's 30-vector experimental corpus, unmodified published decoders matched as follows: Kit 8.4.0 and 8.3.0 each 11/13; Kit 4.0.0 9/13; Kit 3.0.3 8/13; web3.js 1.99.0 (`VersionedTransaction.deserialize`) 12/13; solders 0.29.0 11/13. The Node adapters ran in Raven's official sandboxed runner; solders used a separate harness.
 
-Read the [full measured results and V10/standalone-reproducer distinction](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md). KIMI confirmed the summary against retained evidence; the decoder campaign itself remains Billy's executed evidence.
+These are not quality rankings. Three other rows test adapter JSON/base64 handling; fourteen test sanitize/policy rules these decoders do not claim to enforce. The corpus is synthetic and its v1 interpretation experimental; agreement by other decoders supports rather than proves that interpretation. KIMI confirmed the summary from retained evidence without rerunning the decoder campaign.
+
+Read the [structural results and V10 interpretation](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md). The decoder campaign itself remains Billy's executed evidence; no fresh decoder execution is claimed by this docs successor.
+
+### Submission copy and recording scripts
+
+Use the [one reconciled submission set](docs/hackathon/worldsfair-2026/submission/README.md): one card, one portal field set, one product demo and one founder pitch. The drafts are not portal submissions or recorded videos.

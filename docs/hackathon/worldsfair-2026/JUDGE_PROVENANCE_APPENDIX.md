@@ -4,7 +4,7 @@ Technical history retained below the judge-facing walkthrough. These records are
 
 ## Corpus and source pins
 
-At the 10 October dry run the hosted page asserted `dba22af0006faa2be9c45268b33534e2d19a543c`. Conformance's reproduction pin is `2cb12875b2a0f65b8a59999ffa33807e35a81e43`; the intervening merge changed only README.md and JUDGE_START_HERE.md. That old guide said 27 rows, but corpus 1.4 contains 30. The new `npm run demo` convenience command is introduced by the current guide successor, not by that old corpus pin.
+At the 10 October dry run the hosted page asserted `dba22af0006faa2be9c45268b33534e2d19a543c`. Conformance's reproduction pin is `2cb12875b2a0f65b8a59999ffa33807e35a81e43`; the intervening merge changed only README.md and JUDGE_START_HERE.md. Corpus 1.4 contains 30 vectors. The new `npm run demo` convenience command is introduced by the current guide successor, not by that old corpus pin.
 
 Local saved-case Replay uses the legacy inspector and registered adapters from SDK `dbcee545`. It cannot save Solana version1 results. A separate reviewed version1 CLI successor is not integrated here. Conformance's version1 fixtures do not expand saved-case Replay's scope.
 
