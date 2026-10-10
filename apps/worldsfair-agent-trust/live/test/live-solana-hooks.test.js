@@ -7,6 +7,7 @@ import test from "node:test";
 import { startRegistry } from "../../src/live/registryServer.js";
 import { startAgentB } from "../../src/live/agentBServer.js";
 import { createAgentA } from "../../src/live/agentACore.js";
+import { CHALLENGE_BINDING_SKEW_MS } from "../../src/live/constants.js";
 import { createLiveEvidenceProvider, liveVerifyEvidence } from "../agentHooks.js";
 import { createCallBudget } from "../liveSolana.js";
 import { startStub } from "./stubServer.js";
@@ -16,14 +17,20 @@ import { FIXTURE, FIXTURE_BYTES, TAMPERED_BYTES, TEST_API_KEY, at, replay } from
 /** Agent A's transport clock stays real; only receipt evaluation time is pinned. */
 const verifyAt = (clock) => (args) => liveVerifyEvidence({ ...args, now: clock() });
 
-async function world(t, respond, { verifyEvidence = verifyAt(at(5)), budget } = {}) {
+// These cases replay a REAL 2026-07 production-signed receipt (the only kind
+// the pinned key accepts), so Billy 2's live challenge binding is relaxed here
+// explicitly; the default 5 s binding is exercised in live-binding.test.js and
+// in the "replayed old genuine receipt" case below.
+const REPLAY_BINDING_SKEW_MS = 400 * 24 * 3600 * 1000;
+
+async function world(t, respond, { verifyEvidence = verifyAt(at(5)), budget, challengeBindingSkewMs = REPLAY_BINDING_SKEW_MS } = {}) {
   const stub = await startStub(t, respond);
   const reg = await startRegistry();
   t.after(() => reg.close());
   const evidenceProvider = createLiveEvidenceProvider({ apiKey: TEST_API_KEY, apiBase: stub.base, budget });
   const b = await startAgentB({ variant: "honest", registryUrl: reg.url }, { evidenceProvider });
   t.after(() => b.close());
-  const a = createAgentA({ registryUrl: reg.url, verifyEvidence });
+  const a = createAgentA({ registryUrl: reg.url, verifyEvidence, challengeBindingSkewMs });
   return { stub, a, evidenceProvider, b };
 }
 
@@ -127,4 +134,12 @@ test("integration (Billy 2): card advertises the live source, never retained_fix
   const r = await a.run({ targetAgentId: "agent-b-honest" });
   assert.equal(r.discovery[0].advertisedEvidenceSource, "hosted_receipt_api_loopback_stub");
   assert.equal(r.attempts[0].advertisedEvidenceSource, "hosted_receipt_api_loopback_stub");
+});
+
+test("integration (Billy 2): replayed old genuine receipt with default 5 s binding -> REFUSE receipt_predates_challenge", async (t) => {
+  const { a } = await world(t, replay(FIXTURE_BYTES), { challengeBindingSkewMs: CHALLENGE_BINDING_SKEW_MS });
+  const r = await a.run({ targetAgentId: "agent-b-honest" });
+  assert.equal(r.outcome, "REFUSE");
+  assert.equal(r.attempts[0].reason, "receipt_predates_challenge");
+  assert.equal(r.attempts[0].stage, "challenge_binding");
 });

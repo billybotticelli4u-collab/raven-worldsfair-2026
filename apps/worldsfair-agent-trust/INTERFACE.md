@@ -37,8 +37,8 @@ import { startAgentB, VARIANTS } from "./src/live/agentBServer.js";
 //   startAgentB(config, { evidenceProvider?, claimProvider? }) -> { url, port, server, close(), agentId, card, cardSha256 }
 //   config: { variant, agentId?, registryUrl?, port?, subject?, claimEndpoint? (impostor), evidenceSourceLabel? }
 import { createAgentA } from "./src/live/agentACore.js";
-//   createAgentA({ registryUrl, agentId="agent-a", verifyEvidence?, requestTimeoutMs=5000,
-//                  windowMs=30000, clock=()=>new Date() })
+//   createAgentA({ registryUrl, agentId="agent-a", verifyEvidence?, challengeBindingSkewMs=5000,
+//                  requestTimeoutMs=5000, windowMs=30000, clock=()=>new Date() })
 //   -> { discover(), exchange(candidate,{subject}), acceptResponse(req,resp), run({targetAgentId?,subject?}), consumedNonces }
 import { startAgentA } from "./src/live/agentAServer.js";        // (config{registryUrl,port?}) -> HTTP wrapper of run()
 import { createFleet, pidAlive } from "./src/live/orchestrator.js"; // start(role,{config}) / stopAll() -> [{role,agentId,pid,url,exited}]
@@ -129,6 +129,15 @@ Acceptance (`acceptResponse`, in order): echo present → nonce not already cons
 `issuedAt` and not older than `windowMs` (30 s) by Agent A's clock → not more than 30 s in the future. On success the nonce
 is consumed (single use).
 
+**Live challenge binding.** This applies only when `verifyEvidence` is injected (the live verifier) or the response
+says `source.liveAcquisition === true`. The default offline fixture path and `npm run demo` never apply it. After the
+transport checks pass and before verification, the signed receipt-v1 body field `timestamp` (issuance/observation time)
+must parse and must satisfy `timestamp >= challenge.issuedAt - challengeBindingSkewMs`. The default tolerance is
+`CHALLENGE_BINDING_SKEW_MS` = 5000 ms. Otherwise the result is REFUSE at stage `challenge_binding`, with
+`receipt_predates_challenge` or `receipt_timestamp_invalid`, plus `binding: { receiptTimestamp, challengeIssuedAt, skewMs }`.
+A non-number or negative tolerance throws `challenge_binding_skew_invalid`. The Agent A CLI process always uses 5000.
+Future-dated receipts are left to the live verifier's gates (Billy 1: at most 60 s in the future).
+
 ## 7. Refusal codes (`attempt.stage` / `attempt.reason`)
 - `discovery`: `unknown_agent`, `capability_missing`, `verifier_pin_mismatch`, `role_not_provider`,
   `subject_not_offered`, `registry_hash_mismatch`, plus any card shape reason
@@ -138,6 +147,7 @@ is consumed (single use).
 - `transport`: `invalid_evidence_response`, `challenge_echo_missing`, `nonce_replayed`, `nonce_mismatch_replay`,
   `nonce_not_outstanding`, `provider_mismatch`, `request_mismatch`, `responded_at_invalid`, `stale_response`,
   `response_from_future`
+- `challenge_binding` (live path only): `receipt_predates_challenge`, `receipt_timestamp_invalid`
 - `verification`: the existing Day-2 policy reasons (e.g. `integrity_or_malformed`, `untrusted_key`, `stale`,
   `subject_mismatch`, `subject_unavailable_or_invalid`, `missing_evidence`, `verifier_exception`,
   `verification_correlation_failed`); `decided` / `verified` on PROCEED

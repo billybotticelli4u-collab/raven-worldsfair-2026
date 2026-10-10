@@ -26,3 +26,10 @@ export const FIXTURE_SOURCE_LABEL = "retained_fixture";
 export const LIVE_HOSTED_SOURCE_LABEL = "hosted_receipt_api_live";
 export const LOOPBACK_STUB_SOURCE_LABEL = "hosted_receipt_api_loopback_stub";
 export const CUSTOM_SOURCE_LABEL = "custom_evidence_provider";
+
+/**
+ * Live-path challenge binding: a receipt whose signed `timestamp` (receipt-v1
+ * body field) is earlier than challenge.issuedAt minus this tolerance was not
+ * acquired for this request and is refused (receipt_predates_challenge).
+ */
+export const CHALLENGE_BINDING_SKEW_MS = 5_000;

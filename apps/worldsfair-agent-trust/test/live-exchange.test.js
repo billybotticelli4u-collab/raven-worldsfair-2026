@@ -162,9 +162,18 @@ test("extension points: injected evidenceProvider and verifyEvidence are used; t
     const { ravenVerifyEvidenceResponse, BONK_FIXTURE_NOW } = await import("../src/lib/ravenVerify.js");
     return ravenVerifyEvidenceResponse({ ...args, now: BONK_FIXTURE_NOW });
   } });
-  assert.equal((await one(a2, "agent-b-custom")).outcome, "REFUSE");
+  // An injected verifier switches on the live challenge binding: the old
+  // fixture receipt predates the challenge and is refused before verification.
+  assert.equal((await one(a2, "agent-b-custom")).reason, "receipt_predates_challenge");
+  assert.equal(verified, 0);
+  const a3 = createAgentA({ registryUrl: reg.url, challengeBindingSkewMs: 400 * 864e5, verifyEvidence: async (args) => {
+    verified++;
+    const { ravenVerifyEvidenceResponse, BONK_FIXTURE_NOW } = await import("../src/lib/ravenVerify.js");
+    return ravenVerifyEvidenceResponse({ ...args, now: BONK_FIXTURE_NOW });
+  } });
+  assert.equal((await one(a3, "agent-b-custom")).reason, "integrity_or_malformed");
   assert.equal((await one(a, "agent-b-custom")).advertisedEvidenceSource, "custom_source");
-  assert.equal(provided, 3);
+  assert.equal(provided, 4);
   assert.equal(verified, 1);
 });
 

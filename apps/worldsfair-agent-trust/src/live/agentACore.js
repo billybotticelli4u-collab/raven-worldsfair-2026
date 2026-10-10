@@ -25,6 +25,7 @@ import { BONK_FIXTURE_NOW, BONK_SUBJECT, ravenVerifyEvidenceResponse } from "../
 import { isProtocolMessage } from "../lib/protocol.js";
 import { cardSha256, evaluateProviderCard } from "./cards.js";
 import {
+  CHALLENGE_BINDING_SKEW_MS,
   CLOCK_SKEW_MS,
   EVIDENCE_CAPABILITY,
   LIVE_PROTOCOL,
@@ -36,10 +37,14 @@ export function createAgentA({
   registryUrl,
   agentId = "agent-a",
   verifyEvidence = null,
+  challengeBindingSkewMs = CHALLENGE_BINDING_SKEW_MS,
   requestTimeoutMs = 5_000,
   windowMs = RESPONSE_FRESHNESS_WINDOW_MS,
   clock = () => new Date(),
 } = {}) {
+  if (typeof challengeBindingSkewMs !== "number" || !(challengeBindingSkewMs >= 0)) {
+    throw new Error("challenge_binding_skew_invalid");
+  }
   const consumedNonces = new Set();
   const outstanding = new Map();
 
@@ -132,6 +137,19 @@ export function createAgentA({
       return refuse(candidate.agentId, "transport", transport.reason, { nonce, transport });
     }
 
+    // 4b. Live path only: the receipt must have been issued for THIS challenge.
+    // Applied when a live verifier is injected or the response claims live
+    // acquisition; the default offline fixture path is untouched.
+    if (verifyEvidence || evidenceResponse.source?.liveAcquisition === true) {
+      const binding = checkChallengeBinding(evidenceRequest, evidenceResponse);
+      if (!binding.ok) {
+        return refuse(candidate.agentId, "challenge_binding", binding.reason, {
+          nonce, transport, binding, advertisedEvidenceSource: candidate.card?.evidenceSource ?? null,
+          evidenceSource: evidenceResponse.source ?? null,
+        });
+      }
+    }
+
     // 5. Verify with the pinned verifier, then the unchanged Day-2 policy.
     const verificationResponse = verifyEvidence
       ? await verifyEvidence({ evidenceRequest, evidenceResponse, now: clock() })
@@ -178,6 +196,26 @@ export function createAgentA({
     consumedNonces.add(echo.nonce);
     outstanding.delete(echo.nonce);
     return { ok: true, reason: "accepted", respondedAt: echo.respondedAt, windowMs };
+  }
+
+  /**
+   * receipt-v1 `timestamp` (signed body field, issuance/observation time) must
+   * be >= challenge.issuedAt - challengeBindingSkewMs (default 5 s). Missing
+   * evidence is left to the verifier (missing_evidence). The Agent A CLI
+   * process (agentAServer.js) always uses the default.
+   */
+  function checkChallengeBinding(evidenceRequest, evidenceResponse) {
+    const receipt = evidenceResponse.evidence;
+    if (evidenceResponse.status !== "supplied" || receipt == null) return { ok: true, reason: "not_applicable" };
+    const issuedAt = Date.parse(evidenceRequest.challenge?.issuedAt);
+    const ts = typeof receipt.timestamp === "string" ? Date.parse(receipt.timestamp) : Number.NaN;
+    const facts = { receiptTimestamp: typeof receipt.timestamp === "string" ? receipt.timestamp : null,
+      challengeIssuedAt: evidenceRequest.challenge?.issuedAt ?? null, skewMs: challengeBindingSkewMs };
+    if (!Number.isFinite(ts)) return { ok: false, reason: "receipt_timestamp_invalid", ...facts };
+    if (!Number.isFinite(issuedAt) || ts < issuedAt - challengeBindingSkewMs) {
+      return { ok: false, reason: "receipt_predates_challenge", ...facts };
+    }
+    return { ok: true, reason: "issued_after_challenge", ...facts };
   }
 
   /** Discovery -> try eligible candidates in registry order -> first PROCEED. */
