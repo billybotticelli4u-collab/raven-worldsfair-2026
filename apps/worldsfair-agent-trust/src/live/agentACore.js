@@ -14,12 +14,10 @@
  * 5. Verify the receipt with the pinned verifier (unchanged) and let the
  *    existing Day-2 policy (../lib/agentA.js) decide PROCEED / REFUSE.
  *
- * Evidence policy:
- *   "fixture" — retained fixture; receipt freshness evaluated at the
- *               disclosed fixture time (liveAcquisition:false), exactly as the
- *               offline demo. Transport freshness/nonce use the real clock.
- *   "live"    — receipt freshness at the real clock + issued-after-challenge
- *               binding (Feature 3).
+ * Verification: default is the existing ravenVerifyEvidenceResponse at the
+ * disclosed fixture time (liveAcquisition:false), exactly as the offline
+ * demo. Transport freshness/nonce use the real clock. A caller may inject
+ * `verifyEvidence` (same signature/shape) — see INTERFACE.md.
  */
 import { randomBytes } from "node:crypto";
 import { applyDecisionPolicy, createEvidenceRequest } from "../lib/agentA.js";
@@ -37,12 +35,11 @@ import { loopbackJson } from "./http.js";
 export function createAgentA({
   registryUrl,
   agentId = "agent-a",
-  evidencePolicy = "fixture",
+  verifyEvidence = null,
+  requestTimeoutMs = 5_000,
   windowMs = RESPONSE_FRESHNESS_WINDOW_MS,
   clock = () => new Date(),
-  trustedKeysOverride = null,
 } = {}) {
-  if (evidencePolicy !== "fixture" && evidencePolicy !== "live") throw new Error("evidence_policy_invalid");
   const consumedNonces = new Set();
   const outstanding = new Map();
 
@@ -117,7 +114,7 @@ export function createAgentA({
       wire = await loopbackJson(`${candidate.endpoint}/v0/evidence-request`, {
         method: "POST",
         body: { protocol: LIVE_PROTOCOL, request: evidenceRequest },
-        timeoutMs: evidencePolicy === "live" ? 75_000 : 5_000,
+        timeoutMs: requestTimeoutMs,
       });
     } catch {
       outstanding.delete(nonce);
@@ -130,8 +127,8 @@ export function createAgentA({
     }
 
     // 5. Verify with the pinned verifier, then the unchanged Day-2 policy.
-    const verificationResponse = evidencePolicy === "live"
-      ? await (await import("./liveVerify.js")).verifyLiveEvidenceResponse({ evidenceRequest, evidenceResponse, now: clock(), trustedKeysOverride })
+    const verificationResponse = verifyEvidence
+      ? await verifyEvidence({ evidenceRequest, evidenceResponse, now: clock() })
       : await ravenVerifyEvidenceResponse({ evidenceRequest, evidenceResponse, now: BONK_FIXTURE_NOW });
     const decision = applyDecisionPolicy({ claimMessage, evidenceRequest, verificationResponse });
     return {
@@ -191,7 +188,6 @@ export function createAgentA({
     return {
       protocol: LIVE_PROTOCOL,
       agentId,
-      evidencePolicy,
       discovery: discovery.candidates.map(({ card: _card, ...rest }) => rest),
       attempts,
       selectedAgentId: selected?.agentId ?? null,

@@ -27,7 +27,7 @@ export async function runLiveDemo({ json = false, out = console.log } = {}) {
     bs.impostor = await fleet.start("agent-b", {
       config: { variant: "impostor", registryUrl: registry.url, claimEndpoint: bs.honest.url },
     });
-    const a = await fleet.start("agent-a", { config: { registryUrl: registry.url, evidencePolicy: "fixture" } });
+    const a = await fleet.start("agent-a", { config: { registryUrl: registry.url } });
 
     const selection = (await loopbackJson(`${a.url}/v0/run`, { method: "POST", body: {}, timeoutMs: 20_000 })).json;
     const replay = (await loopbackJson(`${a.url}/v0/run`, { method: "POST", body: { targetAgentId: "agent-b-replayer" } })).json;

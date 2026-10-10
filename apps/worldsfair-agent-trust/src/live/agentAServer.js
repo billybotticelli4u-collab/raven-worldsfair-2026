@@ -1,8 +1,9 @@
 /**
  * Agent A as a standalone HTTP process on 127.0.0.1.
  *   POST /v0/run { targetAgentId?, subject? } -> discovery + exchange transcript
- * Config via RAVEN_LIVE_AGENT_CONFIG: { registryUrl, evidencePolicy }.
- * There is deliberately no way to inject trusted keys into this process.
+ * Config via RAVEN_LIVE_AGENT_CONFIG: { registryUrl, port? }.
+ * The CLI process uses the default verifier (pinned, unchanged); there is no
+ * way to inject keys or a different verifier into it.
  */
 import { pathToFileURL } from "node:url";
 import { createAgentA } from "./agentACore.js";
@@ -10,7 +11,7 @@ import { listenLoopback, readJsonBody, sendJson } from "./http.js";
 import { runAsChildProcess } from "./childProcess.js";
 
 export async function startAgentA(config) {
-  const agent = createAgentA({ registryUrl: config.registryUrl, evidencePolicy: config.evidencePolicy ?? "fixture" });
+  const agent = createAgentA({ registryUrl: config.registryUrl });
   const handle = await listenLoopback(async (req, res) => {
     try {
       const url = new URL(req.url ?? "/", "http://127.0.0.1");
@@ -26,7 +27,7 @@ export async function startAgentA(config) {
     } catch (err) {
       return sendJson(res, 500, { error: "agent_a_error", message: err instanceof Error ? err.message : "error" });
     }
-  });
+  }, config.port);
   return { ...handle, agentId: "agent-a" };
 }
 

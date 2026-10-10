@@ -6,12 +6,23 @@ import {
   MAX_BODY_BYTES,
 } from "./constants.js";
 
-/** Listen on 127.0.0.1 with an ephemeral port. The host is not configurable. */
-export function listenLoopback(handler) {
+/**
+ * Listen on 127.0.0.1. The HOST is not configurable. The port is: explicit
+ * `port` argument, else env RAVEN_LIVE_PORT, else 0 (ephemeral).
+ */
+export function resolvePort(port) {
+  const raw = port ?? process.env.RAVEN_LIVE_PORT ?? 0;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < 0 || n > 65535) throw new Error("port_invalid");
+  return n;
+}
+
+export function listenLoopback(handler, port) {
+  const listenPort = resolvePort(port);
   const server = http.createServer(handler);
   return new Promise((resolve, reject) => {
     server.once("error", reject);
-    server.listen(0, LOOPBACK_HOST, () => {
+    server.listen(listenPort, LOOPBACK_HOST, () => {
       const addr = server.address();
       if (!addr || typeof addr !== "object" || addr.address !== LOOPBACK_HOST) {
         server.close();

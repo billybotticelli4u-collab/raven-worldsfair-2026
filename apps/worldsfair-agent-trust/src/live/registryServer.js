@@ -14,7 +14,7 @@ import { runAsChildProcess } from "./childProcess.js";
 
 const MAX_AGENTS = 32;
 
-export async function startRegistry() {
+export async function startRegistry({ port } = {}) {
   const entries = new Map();
   const handle = await listenLoopback(async (req, res) => {
     try {
@@ -47,13 +47,14 @@ export async function startRegistry() {
     } catch {
       return sendJson(res, 400, { error: "bad_request" });
     }
-  });
+  }, port);
   return { ...handle, entries };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   runAsChildProcess("registry", async () => {
-    const reg = await startRegistry();
+    const config = JSON.parse(process.env.RAVEN_LIVE_AGENT_CONFIG ?? "{}");
+    const reg = await startRegistry({ port: config.port });
     return { url: reg.url, agentId: "registry", close: reg.close };
   });
 }

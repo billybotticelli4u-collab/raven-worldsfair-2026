@@ -13,25 +13,24 @@ const ENTRY = {
   "agent-b": path.join(HERE, "agentBServer.js"),
 };
 
-/** Minimal environment for a child: no inherited secrets unless asked. */
-function childEnv({ config, apiKey }) {
+/** Minimal environment for a child: nothing inherited but PATH. */
+function childEnv({ config }) {
   const env = {
     PATH: process.env.PATH ?? "",
     RAVEN_LIVE_AGENT_CONFIG: JSON.stringify(config ?? {}),
     RAVEN_LIVE_MAX_LIFETIME_MS: process.env.RAVEN_LIVE_MAX_LIFETIME_MS ?? "120000",
   };
-  if (apiKey) env.RAVEN_API_KEY = apiKey;
   return env;
 }
 
 export function createFleet({ startTimeoutMs = 15_000 } = {}) {
   const children = [];
 
-  function start(role, { config, apiKey } = {}) {
+  function start(role, { config } = {}) {
     const child = spawn(
       process.execPath,
       ["--experimental-strip-types", "--disable-warning=ExperimentalWarning", ENTRY[role]],
-      { stdio: ["pipe", "pipe", "pipe"], env: childEnv({ config, apiKey }) },
+      { stdio: ["pipe", "pipe", "pipe"], env: childEnv({ config }) },
     );
     const record = { role, child, pid: child.pid, exited: false, stderr: "" };
     children.push(record);

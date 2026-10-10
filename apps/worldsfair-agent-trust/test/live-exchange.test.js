@@ -139,3 +139,43 @@ test("non-loopback peers are refused by the client", async () => {
   await assert.rejects(loopbackJson("http://example.com/x"), /non_loopback_target_refused/);
   await assert.rejects(loopbackJson("http://localhost:1/x"), /non_loopback_target_refused/);
 });
+
+test("extension points: injected evidenceProvider and verifyEvidence are used; transport checks still apply", async (t) => {
+  const { agentBHandleEvidenceRequest } = await import("../src/lib/agentB.js");
+  const reg = await startRegistry();
+  t.after(() => reg.close());
+  let provided = 0;
+  const b = await startAgentB({ variant: "honest", agentId: "agent-b-custom", registryUrl: reg.url, evidenceSourceLabel: "custom_source" }, {
+    evidenceProvider: async (request) => { provided++; return agentBHandleEvidenceRequest(request, "tampered").evidenceResponse; },
+  });
+  t.after(() => b.close());
+  assert.equal(b.card.evidenceSource, "custom_source");
+  const a = createAgentA({ registryUrl: reg.url });
+  assert.equal((await one(a, "agent-b-custom")).reason, "integrity_or_malformed");
+  let verified = 0;
+  const a2 = createAgentA({ registryUrl: reg.url, verifyEvidence: async (args) => {
+    verified++;
+    assert.ok(args.now instanceof Date);
+    const { ravenVerifyEvidenceResponse, BONK_FIXTURE_NOW } = await import("../src/lib/ravenVerify.js");
+    return ravenVerifyEvidenceResponse({ ...args, now: BONK_FIXTURE_NOW });
+  } });
+  assert.equal((await one(a2, "agent-b-custom")).outcome, "REFUSE");
+  assert.equal(provided, 2);
+  assert.equal(verified, 1);
+});
+
+test("port is configurable (explicit or RAVEN_LIVE_PORT); host is always 127.0.0.1", async (t) => {
+  const probe = await startRegistry();
+  const port = probe.port;
+  await probe.close();
+  const reg = await startRegistry({ port });
+  t.after(() => reg.close());
+  assert.equal(reg.port, port);
+  assert.equal(reg.server.address().address, "127.0.0.1");
+  const { resolvePort } = await import("../src/live/http.js");
+  assert.throws(() => resolvePort("abc"), /port_invalid/);
+  assert.throws(() => resolvePort(70000), /port_invalid/);
+  process.env.RAVEN_LIVE_PORT = "0";
+  t.after(() => { delete process.env.RAVEN_LIVE_PORT; });
+  assert.equal(resolvePort(undefined), 0);
+});
