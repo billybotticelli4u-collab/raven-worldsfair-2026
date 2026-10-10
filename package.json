@@ -8,6 +8,7 @@
   },
   "scripts": {
     "demo": "node --experimental-strip-types scripts/agent-trust-demo.mjs",
+    "demo:live-solana": "node --experimental-strip-types --disable-warning=ExperimentalWarning apps/worldsfair-agent-trust/live/demo-live-solana.mjs",
     "demo:live-local": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/agent-trust-live-demo.mjs",
     "check:demo-unchanged": "node --experimental-strip-types scripts/check-demo-unchanged.mjs",
     "vercel:smoke": "node scripts/vercel-adapter-smoke.mjs",
