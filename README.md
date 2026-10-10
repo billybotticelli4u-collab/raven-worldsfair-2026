@@ -1,28 +1,14 @@
-> **Judges: [start here](JUDGE_START_HERE.md).** This repository is public. It contains Raven Conformance (30-row Solana transaction-version corpus, hosted at https://raven-worldsfair-2026.vercel.app/) and a local Raven Replay prototype under `apps/raven-replay/`.
->
-> **Start with Conformance:** choose **Solana transaction versions**, run **SOL_BROKEN_SUBTLE** (27 matches, 3 divergences), then **SOL_CONFORMANT_REFERENCE** (30 matches), and replay its report. These are deliberately constructed Raven-owned demonstration targets, not a third-party vulnerability claim.
->
-> **Two different things are called Replay.** The prototype in this checkout runs locally on Node v22.18.0: [Replay judge walkthrough](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md). The separate hosted page is https://raven-replay.vercel.app. Its [source at commit 51b60b7b](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted) is public on the unmerged branch `codex/hosted-replay-source-recovery-51b60b7-20261003`, not on `main` (checked 9 October 2026). Source availability does not establish which server bytes are running or that hosted execution is available. Reports from both are unsigned; MATCH is not a safety verdict.
->
-> Sections below that describe earlier candidates and their reviews are kept as history and are labelled with the commits they refer to.
+# Raven × Crypto World's Fair 2026
 
-# Raven Conformance × Crypto World's Fair 2026
+Raven helps Solana apps test transaction readers against stated rules and verify offline receipts before agents act. [**Judges: start here.**](JUDGE_START_HERE.md)
 
-Earlier Fair Agent Trust demo: Agent A refuses blind trust, requires Raven-verified Solana
-receipt-v1 evidence from Agent B, then PROCEED / REFUSE fail-closed.
-Day-2 adds an explicit deterministic `raven-agent-trust/1` machine exchange,
-truth disclosure (`liveAcquisition:false`, deterministic fixture/demo
-evaluation time), and fail-closed refusal on malformed evaluation time.
+In two minutes, [Raven Conformance](https://raven-worldsfair-2026.vercel.app/) shows a Raven-owned reader diverging on V03, V10 and V16 (27 match, 3 differ), then the reference matching 30/30. The separate **Agent Trust** offline fixture shows Agent A PROCEED with a valid receipt and REFUSE after one finding code changes without a new signature. Both paths and their expected output are in the judge guide.
 
-**Live Conformance page:** https://raven-worldsfair-2026.vercel.app/
-(its Disclosure / Build Info shows the commit the platform asserts).
-Landing page: https://ravenattest.com/worldsfair
+## Scope and limits
 
-**This repository has recorded Vercel Preview and Production deployments.**
-A push may trigger hosting automation. That does not authorize a change to
-ravenattest.com. The Replay browser app in this repository is local only;
-the hosted Raven Replay source is on the separate public branch linked above.
-That branch does not provide a provisioned execution snapshot or service credentials.
+At the 10 October 2026 dry run, the hosted page asserted build `dba22af0`; local reproduction pins `2cb12875`, whose product code is identical because the intervening merge changed only two docs. Conformance reports are unsigned and a match is not a safety verdict. Agent Trust uses a deterministic fixture (`liveAcquisition:false`), not live Solana acquisition. The hosted page runs Raven-owned demonstration readers, not visitor uploads. [Local saved-case Replay](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md) and [hosted Raven Replay](https://raven-replay.vercel.app) are separate applications; hosted source is [public on an unmerged branch at `51b60b7b`](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). Source availability does not prove deployed bytes or hosted execution.
+
+Sections below retain the recorded attribution and bounded review history. This repository has recorded Vercel Preview and Production deployments; a push may trigger hosting automation and does not authorize a change to ravenattest.com. The hosted Replay branch does not provide a provisioned execution snapshot or service credentials.
 
 ---
 
@@ -116,10 +102,10 @@ The linked verifier submodule remains labeled **PRE-EXISTING RAVEN FOUNDATION
 
 ---
 
-## Historical Agent Trust quickstart
+## Agent Trust local quickstart (retained Fair demo)
 
-For the current Conformance demonstration and its local reproduction, use
-[Judge start](JUDGE_START_HERE.md). This older Agent Trust workflow is separate.
+For the Conformance demonstration and its local reproduction, use
+[Judge start](JUDGE_START_HERE.md). Agent Trust is a separate offline fixture demo.
 
 Use **Node.js 22.18.0** for the recorded environment.
 
