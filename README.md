@@ -2,19 +2,19 @@
 
 Raven checks how Solana transaction readers handle tricky bytes, and lets an agent verify a signed receipt offline before it acts. [**Judges: start here.**](JUDGE_START_HERE.md)
 
-In two minutes, [Raven Conformance](https://raven-worldsfair-2026.vercel.app/) shows a Raven-owned reader diverging on V03/V16 (new v1 transactions) and V10 (a non-canonical length): 27 match, 3 differ, then the reference matching 30/30. The separate **Agent Trust** offline fixture shows Agent A PROCEED with a valid receipt and REFUSE after one finding code changes without a new signature. From a recursive checkout, run `npm run demo`. Both paths and their expected output are in the judge guide.
+In two minutes, [Raven Conformance](https://raven-worldsfair-2026.vercel.app/) shows a Raven-owned reader diverging on V03/V16 (proposed v1, SIMD-0385) and V10 (a non-canonical length): 27 match, 3 differ, then the reference matching 30/30. The separate **Agent Trust** offline fixture shows Agent A PROCEED with a valid receipt and REFUSE after one finding code changes without a new signature. From a recursive checkout, run `npm run demo`. Both paths and their expected output are in the judge guide.
 
 ## Scope and limits
 
-At the 10 October 2026 dry run, the hosted page asserted build `dba22af0`; local reproduction pins `2cb12875`, whose product code is identical because the intervening merge changed only two docs. Conformance reports are unsigned and a match is not a safety verdict. Agent Trust uses a deterministic fixture (`liveAcquisition:false`), not live Solana acquisition; PROCEED is a fixture policy result, not permission to transact. The hosted page runs Raven-owned demonstration readers, not visitor uploads. [Local saved-case Replay](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md) and [Hosted saved-case Replay](https://raven-replay.vercel.app) are separate applications; hosted source is [public on an unmerged branch at `51b60b7b`](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). Source availability does not prove deployed bytes or hosted execution.
+The hosted page's Build Info asserts build `1db786e6` (current `main`; an unverified platform assertion, not proof of served bytes). The Conformance reproduction pin `2cb12875` has byte-identical Conformance product code (`apps/raven-conformance` unchanged) and reproduces the same corpus, though it predates the Agent Trust `npm run demo` command. Conformance reports are unsigned and a match is not a safety verdict. Agent Trust uses a deterministic fixture (`liveAcquisition:false`), not live Solana acquisition; PROCEED is a fixture policy result, not permission to transact. The hosted page runs Raven-owned demonstration readers, not visitor uploads. [Local saved-case Replay](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md) and [Hosted saved-case Replay](https://raven-replay.vercel.app) are separate applications; hosted source is [public on an unmerged branch at `51b60b7b`](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). Source availability does not prove deployed bytes or hosted execution.
 
-The [third-party decoder measurements](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md) lead with 13 structural rows and distinguish them from adapter and policy rows. KIMI confirmed the summary against retained evidence, without rerunning the decoders.
+The [third-party decoder measurements](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md) lead with 13 structural rows and distinguish them from adapter and policy rows. The scores remain Billy's retained measurements; KIMI's later independent reconciliation leaves one Kit row unresolved and corrects the V10 interpretation. Kit's trailing-byte tolerance is a documented maintainer-accepted tradeoff (kit#1963); impact unassessed.
 
 The [canonical submission set](docs/hackathon/worldsfair-2026/submission/README.md) contains one card, portal field set, product demo and founder pitch, all drafts awaiting go-ahead. Sections below retain the required attribution; technical history is in the [provenance appendix](docs/hackathon/worldsfair-2026/JUDGE_PROVENANCE_APPENDIX.md). This repository has recorded Vercel Preview and Production deployments; a push may trigger hosting automation and does not authorize a change to ravenattest.com. The hosted Replay branch does not provide a provisioned execution snapshot or service credentials.
 
 ---
 
-## Required disclosures (Owner Glen Frank Dean FINAL AUTH)
+## Disclosures
 
 ### 1. Raven existed before Fair
 

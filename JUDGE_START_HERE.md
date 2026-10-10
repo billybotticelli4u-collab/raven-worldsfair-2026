@@ -1,14 +1,14 @@
-# Raven — judge start
+# Raven
 
 Raven checks how Solana transaction readers handle tricky bytes, and lets an agent verify a signed receipt offline before it acts.
 
-## Two minutes, nothing to install
+## 2 minutes, nothing to install
 
-Open [Raven Conformance](https://raven-worldsfair-2026.vercel.app/). Select **Solana transaction versions** and **SOL_BROKEN_SUBTLE**; click **Run Conformance (live)**. The three differences are V03 and V16 (new v1 transactions), and V10 (a non-canonical length). Run **SOL_CONFORMANT_REFERENCE**, then **Replay report**.
+[Conformance](https://raven-worldsfair-2026.vercel.app/): **Solana transaction versions** → **SOL_BROKEN_SUBTLE** → **Run Conformance (live)**. The three differences are V03 and V16 — the proposed, experimental v1 layout (SIMD-0385), which a conformant reader may not yet accept — and V10, a non-canonical length. Then **SOL_CONFORMANT_REFERENCE** → **Run Conformance (live)** → **Replay report**.
 
 ## Agent Trust, offline
 
-From this guide's recursive checkout (setup below):
+Recursive checkout (setup below):
 
 ```sh
 npm run demo
@@ -16,10 +16,10 @@ npm run demo
 
 | Run | Expected output |
 | --- | --- |
-| Broken demo reader | DIVERGENT: 27 match, 3 differ — V03/V16 v1; V10 non-canonical length |
-| Reference demo reader | CONFORMANT: 30/30; report replay matches |
 | Agent Trust valid fixture | `Valid receipt: PROCEED` |
 | Agent Trust one-field tamper | `One-field tamper: REFUSE` |
+
+`npm run demo` prints only the two Agent Trust lines above; the 27/30 and 30/30 Conformance results come from the hosted run in the previous section, not from this command.
 
 ## Scope and limits
 
@@ -44,14 +44,14 @@ Use the checkout containing this guide and `scripts/agent-trust-demo.mjs`; the o
 No wallet, sign-in or transaction fetch is needed.
 
 1. Select **Solana transaction versions** (Experimental). Check that the scope shows **30 vectors**, corpus **1.4**.
-2. Select **SOL_BROKEN_SUBTLE**, then **Run Conformance (live)**. Expect **DIVERGENT**, with 27 matching rows and three divergences: `V03_valid_v1`, [`V10_noncanonical_shortvec_sigcount`](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md#v10-interpretation), and `V16_valid_v1_two_instructions`. V03/V16 are new v1 transactions; V10 is a non-canonical length.
+2. Select **SOL_BROKEN_SUBTLE**, then **Run Conformance (live)**. Expect **DIVERGENT**, with 27 matching rows and three divergences: `V03_valid_v1`, [`V10_noncanonical_shortvec_sigcount`](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md#v10-interpretation), and `V16_valid_v1_two_instructions`. V03/V16 use proposed v1 (SIMD-0385); V10 is a non-canonical length. This reader is broken against Raven's experimental v1 profile (SIMD-0385); V10 is a genuine non-canonical-length miss.
 3. Inspect the first divergence. It compares a named profile's expected decision with the demo target's observed decision; it is not a security score.
 4. Select **SOL_CONFORMANT_REFERENCE** and run again. Expect **CONFORMANT**, 30 matching rows and no divergence.
 5. Under **Download & reproduce**, select **Replay report**. Expect **Replay matched**, with **bundle yes** and **semantics yes**. Download the report and keep it for local reproduction.
 
-The deliberately broken reader is Raven's demonstration fixture. This does not establish a defect in a customer's decoder. The experimental profile is not a claim of universal transaction correctness.
+The reader broken against Raven's experimental v1 profile (SIMD-0385) is Raven's demonstration fixture. This does not establish a defect in a customer's decoder. The experimental profile is not a claim of universal transaction correctness.
 
-At the 10 October 2026 dry run, the hosted page asserted build `dba22af0006faa2be9c45268b33534e2d19a543c`; the reproduction pin `2cb12875b2a0f65b8a59999ffa33807e35a81e43` has identical product code because the intervening merge changed only `README.md` and `JUDGE_START_HERE.md`.
+The hosted page's **Disclosure / Build Info** asserts build `1db786e63766cc2671209331a555b0d9c58c3cbb` (current `main`; an unverified platform assertion, not proof of the served bytes). The Conformance reproduction pin `2cb12875b2a0f65b8a59999ffa33807e35a81e43` has byte-identical Conformance product code (`apps/raven-conformance` unchanged between the two commits), so it reproduces the same corpus; it predates the Agent Trust `npm run demo` command added after it.
 
 If the hosted page is unavailable, reproduce the same corpus locally in a **separate** checkout. This older pin reproduces Conformance; it does not contain the new Agent Trust convenience command:
 
@@ -73,7 +73,7 @@ Use Node **22.18.0** for the recorded reproduction. No npm install is required f
 
 ### Local saved-case Replay
 
-Use exactly Node22.18.0 and npm10.9.3. Confirm both versions; the Node installation's npm may have been replaced. From the repository root:
+Use exactly Node 22.18.0 and npm 10.9.3. Confirm both versions; the Node installation's npm may have been replaced. From the repository root:
 
 ```sh
 node --version
@@ -99,14 +99,14 @@ cd apps/raven-conformance
 node src/server.js
 ```
 
-Open http://127.0.0.1:8791 and select **Solana transaction versions**. If port 8791 is busy, choose a free port with `PORT=<free-port> node src/server.js` and open that address instead. The reference should match 30/30. The intentionally broken subtle target passes 27 rows and differs at V03, V10 and V16: three rows covering two defect classes. These are Raven-owned offline demonstration targets, not evidence that a customer's SDK is defective.
+Open http://127.0.0.1:8791 and select **Solana transaction versions**. If port 8791 is busy, choose a free port with `PORT=<free-port> node src/server.js` and open that address instead. The reference should match 30/30. The subtle target is broken against Raven's experimental v1 profile (SIMD-0385); V10 is a genuine non-canonical-length miss. It matches 27 rows and differs at V03, V10 and V16: proposed-v1 scope differences plus the non-canonical-length miss. These are Raven-owned offline demonstration targets, not evidence that a customer's SDK is defective.
 
 For command-line reproduction:
 
 ```sh
 node src/cli.js --profile solana --target SOL_CONFORMANT_REFERENCE --run-id judge-reference
 node src/cli.js --profile solana --target SOL_BROKEN_SUBTLE --run-id judge-subtle
-# The deliberately divergent run returns exit1.
+# The deliberately divergent run returns exit 1.
 node src/bin/replay.js --report reports/judge-reference.json
 ```
 
@@ -133,9 +133,9 @@ A push to this repository may trigger hosting automation. SDK package metadata a
 
 On the **13 structural rows** of Raven's 30-vector experimental corpus, unmodified published decoders matched as follows: Kit 8.4.0 and 8.3.0 each 11/13; Kit 4.0.0 9/13; Kit 3.0.3 8/13; web3.js 1.99.0 (`VersionedTransaction.deserialize`) 12/13; solders 0.29.0 11/13. The Node adapters ran in Raven's official sandboxed runner; solders used a separate harness.
 
-These are not quality rankings. Three other rows test adapter JSON/base64 handling; fourteen test sanitize/policy rules these decoders do not claim to enforce. The corpus is synthetic and its v1 interpretation experimental; agreement by other decoders supports rather than proves that interpretation. KIMI confirmed the summary from retained evidence without rerunning the decoder campaign.
+These are not quality rankings. Three other rows test adapter JSON/base64 handling; fourteen test sanitize/policy rules these decoders do not claim to enforce. The corpus is synthetic and its v1 interpretation experimental; agreement by other decoders supports rather than proves that interpretation. KIMI's initial summary check used retained evidence; a later independent reconciliation confirmed web3.js's runner total but left one Kit row unresolved. The displayed structural scores remain Billy's retained measurements, not a claim of identical independent row results.
 
-Read the [structural results and V10 interpretation](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md). The decoder campaign itself remains Billy's executed evidence; no fresh decoder execution is claimed by this docs successor.
+Read the [structural results and V10 interpretation](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md). Kit 4.0.0 and 8.4.0 accept V10; the modern/legacy API split applies to web3.js only. Kit's trailing-byte tolerance is a documented maintainer-accepted tradeoff (kit#1963). Impact is unassessed. The decoder campaign itself remains Billy's executed evidence; no fresh decoder execution is claimed by this docs successor.
 
 ### Submission copy and recording scripts
 

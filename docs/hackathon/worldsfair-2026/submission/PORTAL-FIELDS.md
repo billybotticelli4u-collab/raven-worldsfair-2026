@@ -11,20 +11,20 @@ All blocks below are the selected plain-text values, not alternatives. A2 is ide
 
 <a id="field-a2"></a>
 
-## A2 Brief description — 453/500 characters
+## A2 Brief description — 495/500 characters
 
 ```text
-Raven checks Solana transaction readers against tricky bytes and lets an agent verify a signed receipt offline before acting. Our broken demo reader matches 27/30 rows; the reference matches 30/30. On 13 structural rows, Kit 8.4.0 matches 11/13, web3.js 1.99.0 12/13, solders 0.29.0 11/13 (not a ranking). Agent Trust's fixed fixture gives PROCEED, then REFUSE after a one-field tamper. Conformance reports are unsigned; matches are not safety verdicts.
+Raven checks Solana transaction readers against tricky bytes and lets an agent verify a signed receipt offline before acting. Our demo reader, broken only against our experimental v1 profile (proposed v1, SIMD-0385), matches 27/30 rows; the reference matches 30/30. On 13 structural rows, Kit 8.4.0 11/13, web3.js 1.99.0 12/13, solders 0.29.0 11/13 (not a ranking). Agent Trust's fixture gives PROCEED, then REFUSE after a one-field tamper. Reports are unsigned; matches are not safety verdicts.
 ```
 
 <a id="field-a4"></a>
 
-## A4 What are you building — 933/1000 characters
+## A4 What are you building — 968/1000 characters
 
 ```text
 Raven is for teams whose Solana parsers, SDKs, explorers, indexers or wallets others rely on, and for agents checking evidence before acting.
 
-Conformance compares a reader with a stated experimental profile on 30 synthetic vectors. Our broken demo reader matches 27/30; V03/V16 are v1 transactions and V10 has a non-canonical length. The reference matches 30/30. Reports replay and are unsigned.
+Conformance compares a reader with a stated experimental profile on 30 synthetic vectors. Our reader, broken against our experimental profile, matches 27/30; V03/V16 use proposed v1 (SIMD-0385); V10 has a non-canonical length. The reference matches 30/30. Reports replay and are unsigned.
 
 Published decoders ran unmodified through local adapters. On 13 structural rows: Kit 8.4.0 11/13, web3.js 1.99.0 12/13, solders 0.29.0 11/13. Not a ranking; solders used a separate harness.
 
@@ -77,10 +77,10 @@ Current repo: raven-worldsfair-2026. Conformance's 30-row reproduction pin is 2c
 
 <a id="field-b7"></a>
 
-## B7 Access instructions — 1103 characters; no stated limit
+## B7 Access instructions — 1106 characters; no stated limit
 
 ```text
-No login. Open https://raven-worldsfair-2026.vercel.app/, select Solana transaction versions and SOL_BROKEN_SUBTLE, then Run Conformance (live). Expect DIVERGENT: 27 matching rows and 3 differences (V03/V16: new v1 transactions; V10: non-canonical length). Run SOL_CONFORMANT_REFERENCE: 30/30. Click Replay report: Replay matched, bundle yes, semantics yes. Reports are unsigned.
+No login. Open https://raven-worldsfair-2026.vercel.app/, select Solana transaction versions and SOL_BROKEN_SUBTLE, then Run Conformance (live). Expect DIVERGENT: 27 matching rows and 3 differences (V03/V16: proposed v1, SIMD-0385; V10: non-canonical length). Run SOL_CONFORMANT_REFERENCE: 30/30. Click Replay report: Replay matched, bundle yes, semantics yes. Reports are unsigned.
 
 For Agent Trust, use Node 22.18.0 and a recursive clone of https://github.com/billybotticelli4u-collab/raven-worldsfair-2026. From its root run npm run demo; no npm install is needed. Expect Valid receipt: PROCEED and One-field tamper: REFUSE. The receipt is signed; the fixed fixture and evaluation clock are not live chain acquisition or permission to transact.
 
@@ -97,6 +97,6 @@ The Conformance report and the separate saved-case Replay report are unsigned; A
 
 Separate workflows retain separate names: **Replay report** is Conformance's report check; **Local saved-case Replay** is `apps/raven-replay`; **Hosted saved-case Replay** is the separate hosted app whose source is on an unmerged branch. This set leads with Conformance and Agent Trust. It does not certify hosted Replay's snapshot, deployed bytes, distribution clearance or execution readiness.
 
-Third-party headlines use only the 13 structural rows. The three adapter-prelude rows and fourteen sanitize/policy rows are not claims these libraries promise to enforce; solders used a separate harness. KIMI confirmed the retained summary, not a fresh decoder campaign. No standalone length-encoding follow-up is part of this copy.
+Third-party headlines use only the 13 structural rows. The three adapter-prelude rows and fourteen sanitize/policy rows are not claims these libraries promise to enforce; solders used a separate harness. These are Billy's retained structural scores. KIMI's initial check confirmed the summary; its later independent reconciliation left one Kit row unresolved. The row taxonomy is derived, and the two mappings differ at V17/V19. The technical results page records that limit, the web3.js-only V10 API split and Kit's documented maintainer-accepted trailing-byte tradeoff (kit#1963). Impact unassessed. No standalone length-encoding follow-up is part of this copy.
 
 [Source decisions and hashes](SOURCE-MAP.md) preserve the revision lineage. Earlier submitted weekly links were reported as locked in Billy's packet; that portal behavior was not rechecked here. This set corrects the current GitHub field and does not claim to edit those earlier links.

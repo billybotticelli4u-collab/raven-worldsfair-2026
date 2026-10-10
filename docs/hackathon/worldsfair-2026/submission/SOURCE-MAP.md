@@ -38,11 +38,11 @@ This reconciliation leaves the script, package.json, its tests, app source and s
 | Output | Retained source and editorial change |
 | --- | --- |
 | Judge guide | C1's first screen, one-sentence pitch, exact outputs, fixed-clock and unsigned-report limits retained. T1's structural counts adopted, confirmed in K1; the headline excludes raw totals and the separate encoding follow-up. Corpus 1.4 is 30 vectors. Legitimate 27-matching-row results and historical provenance are not converted into a false 30/30 broken-reader result. |
-| Card / portal A2 | C3's concrete two-demo pitch and receipt/report distinction, B1/B2's structural-row evidence. One 453-character value reused byte-for-byte. Exact decoder versions included. |
+| Card / portal A2 | C3's concrete two-demo pitch and receipt/report distinction, B1/B2's structural-row evidence. The reviewed successor uses Claude's exact 495-character replacement byte-for-byte in the card and A2. Exact decoder versions included. |
 | Portal A4 | B2's reader/profile/result flow and audience; C1/C3's fixed signed receipt, deterministic clock and no-authorization limits. The claim that v1 is live on Solana is not carried: the measured corpus interpretation remains experimental. No new network-history claim is substituted. |
 | Portal A5/A6/A8 | R9's motivation, technologies and separate workflow disclosures, updated to match the primary two demos. Conformance does not verify signatures; the separate Agent Trust fixture does. Hosted saved-case Replay facts remain provider-reported and its source access is not hosted readiness. |
 | Portal A14 | B2 and C2/C3: receipt verifier, trust anchors, hosted verifier, BONK fixture and raven-site are pre-Fair; Fair orchestration and Conformance are attributed separately. Internal bounded reviews are not external audits. |
-| Portal B3/B7 and links | B1/B2's corrected public repository and no-login access; C1's single command and exact outputs. Old 2cb12875-as-current-main claims are removed. The dated dba22af0/2cb12875 Conformance equivalence is explained in the guide; 1db786e6 contains the convenience command. No claim this unpushed successor is on public main. |
+| Portal B3/B7 and links | B1/B2's corrected public repository and no-login access; C1's single command and exact outputs. Old 2cb12875-as-current-main claims are removed. Claude's recorded hosted assertion 1db786e6 and the older 2cb12875 Conformance reproduction pin are distinguished in the guide; Conformance code alone is byte-identical, and 1db786e6 contains the convenience command. No claim this unpushed successor is on public main. |
 | Product demo | B3's 2:45 sequence: hosted Conformance → structural table → Agent Trust. C4's pitch, exact retained output, signed/unsigned, fixed fixture, pre-Fair and no-customer wording. Drops B3's fallback command and optional follow-up beat. Changes “recorded transactions” to synthetic vectors and removes the unsupported story that the demo reader predates v1. |
 | Founder pitch | B4's engineer/one-ticket framing, plain problem statement and ask for three teams; C5's signed fixture, fixed clock, pre-Fair foundation, no live acquisition/permission, unsigned Conformance and no outside pilot claims. Unconfirmed personal biography and “every miss has a known cause” are not turned into new claims. One script, with a 2:00 target rather than a promised measured duration. |
 
@@ -51,7 +51,7 @@ The former `CARD-COPY.md`, `PRODUCT-DEMO.md` and `FOUNDER-PITCH.md` drafts are r
 ## Limits carried into the selected set
 
 - Finite 30-vector, synthetic, experimental profile; not universal parser correctness or a safety score.
-- The three demo differences are V03/V16 v1 transactions and V10 non-canonical length. V10 does not isolate the separately recorded current-decoder length behavior.
+- The three demo differences are V03/V16 proposed v1 (SIMD-0385) scope differences and V10 non-canonical length. V10 does not isolate the separately recorded current-decoder length behavior.
 - Structural denominator 13 only; fourteen sanitize/policy and three adapter-prelude rows have different responsibilities. Exact published versions and API named; solders used a separate harness. Counts are not SDK quality rankings.
 - K1 is confirmation against retained evidence, not independent decoder execution. The separate follow-up is absent from the headline, card, portal, demo and pitch. Original measured evidence remains preserved below the technical results page; no security impact or upstream novelty is claimed.
 - Conformance and saved-case Replay reports unsigned. Agent Trust's receipt signed, with one finding changed and no new signature for the tamper.
@@ -65,3 +65,16 @@ The former `CARD-COPY.md`, `PRODUCT-DEMO.md` and `FOUNDER-PITCH.md` drafts are r
 ## Review state
 
 The parent demo's C0 review and T1 summary's K1 review retain exactly their old scopes. This merged editorial successor has not received a new non-author review. Repeated command/tests from a fresh local clone are author verification, recorded in its sealed delivery packet. No push, portal edit, upload, signing or publication occurs here.
+
+## Docs-only review correction on d19ded96
+
+The append-only Git successor is based on `d19ded963a748a21c15ab7cd08f8b545d9f47fd1`; that commit and all sealed packets remain intact. The initial editorial history above is retained, with the active copy corrected as follows.
+
+| Review input | SHA-256 | Applied change |
+| --- | --- | --- |
+| Claude `CLAUDE-SUBMISSION-RECONCILIATION-D19DED96-REVIEW-2026-10-10/REVIEW.md` | `7e938d401ccbe81e4053587edd074a1ba60ab63acfa318a0db00ec51820eccc0` | 4a: Agent Trust-only command table and exact note. 4b: exact hosted-build/reproduction replacements, no two-docs-only claim. 6: proposed-v1 label, scoped broken-reader wording and exact 495-character card/A2. 7: Disclosures heading. Version/exit spacing corrected. |
+| KIMI `KIMI-THIRD-PARTY-DECODER-RECONCILIATION-2026-10-10/REVIEW.md` | `b73be56f3a00c25dfb81d08fc78ab5a2ebc2757b76069be03795d73c9e2e34fb` | V10 modern/legacy split is web3.js-only; Kit 4.0.0 and 8.4.0 accept V10. Kit trailing-byte tolerance is a documented maintainer-accepted tradeoff (kit#1963). Impact unassessed; no SDK defect/security claim. |
+
+KIMI's later execution does not supersede Billy's raw evidence files: Kit's 15/30 versus retained 16/30 is unresolved, and the derived row mappings differ at V17/V19 despite the same structural totals. The technical results page discloses both. The selected card uses Claude's exact text; the surrounding scope identifies the unsigned reports as Conformance reports and the signed receipt as Agent Trust's fixture. No separate encoding finding is promoted into the headline.
+
+Only documentation changes. The single demo command, every runtime blob, submodule, fixture, lockfile, retained decoder table and JSON are unchanged from d19ded96. Fresh-clone command/link/field checks are author verification, not Claude's re-review. The successor is stopped for Glen; Claude must re-review the new exact identity.

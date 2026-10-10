@@ -1,6 +1,6 @@
 # Founder pitch — one recording draft, target 2:00
 
-Not recorded or uploaded. Glen delivers this in his own voice. The selected spoken text is 239 words. Aim for 2:00, and confirm the live portal label before recording: older sources disagree between “up to two minutes” and “two to three minutes.” Timing below is a speaking target, not measured media. No unconfirmed biography is included.
+Not recorded or uploaded. Glen delivers this in his own voice. The selected spoken text is 256 words. Aim for 2:00, and confirm the live portal label before recording: older sources disagree between “up to two minutes” and “two to three minutes.” Timing below is a speaking target, not measured media. No unconfirmed biography is included.
 
 ## Selected spoken text
 
@@ -8,7 +8,7 @@ I'm Glen. I build Raven for teams whose software reads Solana transactions, and 
 
 Picture an engineer with one ticket: support a new transaction version without silently changing earlier behavior. A reader can return a plausible answer and still disagree with the rules. Raven makes that difference visible.
 
-Our Conformance demo runs thirty synthetic vectors against a stated experimental profile. A deliberately broken reader matches twenty-seven; three differ. The reference matches all thirty. Each result names its row and can be replayed.
+Our Conformance demo runs thirty synthetic vectors against a stated experimental profile. A reader broken against our experimental v1 profile matches twenty-seven; three differ. The v1 layout is proposed (SIMD-0385); rejecting it need not be a defect. The reference matches all thirty. Each result names its row and can be replayed.
 
 We also ran published decoders unmodified through local adapters. On thirteen structural rows, Kit matched eleven, web3.js twelve and solders eleven, at the versions in our table. Those are not quality rankings; solders used a separate harness.
 

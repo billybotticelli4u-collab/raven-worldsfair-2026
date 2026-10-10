@@ -2,10 +2,10 @@
 
 One about-text, shared byte-for-byte with A2 in [PORTAL-FIELDS.md](PORTAL-FIELDS.md). This is the selected copy for Glen's go-ahead; no portal write is part of this successor.
 
-## About text — 453/500 characters
+## About text — 495/500 characters
 
 ```text
-Raven checks Solana transaction readers against tricky bytes and lets an agent verify a signed receipt offline before acting. Our broken demo reader matches 27/30 rows; the reference matches 30/30. On 13 structural rows, Kit 8.4.0 matches 11/13, web3.js 1.99.0 12/13, solders 0.29.0 11/13 (not a ranking). Agent Trust's fixed fixture gives PROCEED, then REFUSE after a one-field tamper. Conformance reports are unsigned; matches are not safety verdicts.
+Raven checks Solana transaction readers against tricky bytes and lets an agent verify a signed receipt offline before acting. Our demo reader, broken only against our experimental v1 profile (proposed v1, SIMD-0385), matches 27/30 rows; the reference matches 30/30. On 13 structural rows, Kit 8.4.0 11/13, web3.js 1.99.0 12/13, solders 0.29.0 11/13 (not a ranking). Agent Trust's fixture gives PROCEED, then REFUSE after a one-field tamper. Reports are unsigned; matches are not safety verdicts.
 ```
 
 | Field | Selected value |
