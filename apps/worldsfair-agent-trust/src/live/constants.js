@@ -20,3 +20,9 @@ export const CLOCK_SKEW_MS = 30_000;
 
 export const DEFAULT_HTTP_TIMEOUT_MS = 5_000;
 export const MAX_BODY_BYTES = 65_536;
+
+/** Card evidenceSource labels. */
+export const FIXTURE_SOURCE_LABEL = "retained_fixture";
+export const LIVE_HOSTED_SOURCE_LABEL = "hosted_receipt_api_live";
+export const LOOPBACK_STUB_SOURCE_LABEL = "hosted_receipt_api_loopback_stub";
+export const CUSTOM_SOURCE_LABEL = "custom_evidence_provider";

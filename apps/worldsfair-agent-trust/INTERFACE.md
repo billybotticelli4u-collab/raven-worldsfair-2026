@@ -73,6 +73,14 @@ import { runLiveDemo } from "./src/live/liveDemo.js";            // ({ json?, ou
   "evidenceSource": "retained_fixture"
 }
 ```
+`evidenceSource` labels: `retained_fixture` (default fixture path only), `hosted_receipt_api_live` (Billy 1's
+`createLiveEvidenceProvider` against the hosted API), `hosted_receipt_api_loopback_stub` (the same provider against a
+127.0.0.1 stub), `custom_evidence_provider` (any other injected `evidenceProvider` without a label). Precedence:
+`config.evidenceSourceLabel` > `evidenceProvider.evidenceSourceLabel` > `custom_evidence_provider` when a provider is
+plugged in, else `retained_fixture`. A card is never labeled `retained_fixture` when an `evidenceProvider` is in use,
+unless the caller sets that label explicitly. Agent A copies the label into `discovery[].advertisedEvidenceSource` and
+`attempts[].advertisedEvidenceSource`. The actual `evidence.response.source` stays in `attempts[].evidenceSource`.
+
 `cardSha256` = SHA-256 hex of the pinned verifier's `canonicalJson(card)`. Served by Agent B at `GET /.well-known/raven-agent.json`.
 Agent A eligibility (`evaluateProviderCard`): shape OK, role `evidence-provider`, capability present, pin equal, subject offered.
 
@@ -109,9 +117,9 @@ Response = the existing `evidence.response` (`status`, `evidence` = receipt-v1, 
 `POST /v0/run { "targetAgentId"?: string, "subject"?: {chain,mintAddress,tokenProgramAddress} }` →
 ```json
 { "protocol":"raven-agent-trust-live/0", "agentId":"agent-a",
-  "discovery":[{ "agentId","endpoint","cardSha256","eligible","reasons":[] }],
+  "discovery":[{ "agentId","endpoint","cardSha256","advertisedEvidenceSource","eligible","reasons":[] }],
   "attempts":[{ "agentId","outcome":"PROCEED|REFUSE","stage","reason","nonce?","transport?",
-                "evidenceSource?","disclosure?","evidenceIdentity?","exchange?":[claim,request,response,verification] }],
+                "advertisedEvidenceSource?","evidenceSource?","disclosure?","evidenceIdentity?","exchange?":[claim,request,response,verification] }],
   "selectedAgentId": "agent-b-honest" | null, "outcome": "PROCEED|REFUSE" }
 ```
 Without a target, every registered card is attempted in registry order, and the first PROCEED is selected.

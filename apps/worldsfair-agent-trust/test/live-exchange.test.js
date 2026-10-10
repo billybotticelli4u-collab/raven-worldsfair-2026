@@ -150,6 +150,9 @@ test("extension points: injected evidenceProvider and verifyEvidence are used; t
   });
   t.after(() => b.close());
   assert.equal(b.card.evidenceSource, "custom_source");
+  const b2 = await startAgentB({ variant: "honest", agentId: "agent-b-unlabeled", registryUrl: reg.url }, { evidenceProvider: async () => null });
+  t.after(() => b2.close());
+  assert.equal(b2.card.evidenceSource, "custom_evidence_provider", "a plugged-in provider never advertises retained_fixture");
   const a = createAgentA({ registryUrl: reg.url });
   assert.equal((await one(a, "agent-b-custom")).reason, "integrity_or_malformed");
   let verified = 0;
@@ -160,7 +163,8 @@ test("extension points: injected evidenceProvider and verifyEvidence are used; t
     return ravenVerifyEvidenceResponse({ ...args, now: BONK_FIXTURE_NOW });
   } });
   assert.equal((await one(a2, "agent-b-custom")).outcome, "REFUSE");
-  assert.equal(provided, 2);
+  assert.equal((await one(a, "agent-b-custom")).advertisedEvidenceSource, "custom_source");
+  assert.equal(provided, 3);
   assert.equal(verified, 1);
 });
 

@@ -24,7 +24,7 @@ async function world(t, respond, { verifyEvidence = verifyAt(at(5)), budget } = 
   const b = await startAgentB({ variant: "honest", registryUrl: reg.url }, { evidenceProvider });
   t.after(() => b.close());
   const a = createAgentA({ registryUrl: reg.url, verifyEvidence });
-  return { stub, a, evidenceProvider };
+  return { stub, a, evidenceProvider, b };
 }
 
 test("provider refuses to construct without a key (before any call)", () => {
@@ -119,4 +119,12 @@ test("provider never defaults the subject: invalid requested subject -> unavaila
   });
   assert.equal(wsol.status, "supplied");
   assert.equal(JSON.parse(stub.requests[0].body).mintAddress, "So11111111111111111111111111111111111111112");
+});
+
+test("integration (Billy 2): card advertises the live source, never retained_fixture", async (t) => {
+  const { a, b } = await world(t, replay(FIXTURE_BYTES));
+  assert.equal(b.card.evidenceSource, "hosted_receipt_api_loopback_stub");
+  const r = await a.run({ targetAgentId: "agent-b-honest" });
+  assert.equal(r.discovery[0].advertisedEvidenceSource, "hosted_receipt_api_loopback_stub");
+  assert.equal(r.attempts[0].advertisedEvidenceSource, "hosted_receipt_api_loopback_stub");
 });

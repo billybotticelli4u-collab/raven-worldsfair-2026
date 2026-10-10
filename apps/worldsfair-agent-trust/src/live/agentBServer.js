@@ -22,7 +22,7 @@ import { pathToFileURL } from "node:url";
 import { agentBHandleEvidenceRequest, agentBMakeClaimMessage } from "../lib/agentB.js";
 import { isProtocolMessage } from "../lib/protocol.js";
 import { BONK_SUBJECT } from "../lib/ravenVerify.js";
-import { EVIDENCE_CAPABILITY, LIVE_PROTOCOL, VERIFIER_PIN } from "./constants.js";
+import { CUSTOM_SOURCE_LABEL, EVIDENCE_CAPABILITY, FIXTURE_SOURCE_LABEL, LIVE_PROTOCOL, VERIFIER_PIN } from "./constants.js";
 import { makeCard, cardSha256 } from "./cards.js";
 import { listenLoopback, loopbackJson, readJsonBody, sendJson } from "./http.js";
 import { runAsChildProcess } from "./childProcess.js";
@@ -110,7 +110,9 @@ export async function startAgentB(config, { evidenceProvider = null, claimProvid
       : [EVIDENCE_CAPABILITY],
     verifierPin: config.variant === "bad-pin" ? OTHER_PIN : VERIFIER_PIN,
     subjects: [subjectFor(config)],
-    evidenceSource: config.evidenceSourceLabel ?? "retained_fixture",
+    // Never advertise the fixture when another evidence source is plugged in.
+    evidenceSource: config.evidenceSourceLabel ??
+      (evidenceProvider ? (evidenceProvider.evidenceSourceLabel ?? CUSTOM_SOURCE_LABEL) : FIXTURE_SOURCE_LABEL),
   });
 
   if (config.registryUrl) {

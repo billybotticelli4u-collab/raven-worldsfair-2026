@@ -67,6 +67,10 @@ export function createLiveEvidenceProvider(opts = {}) {
     }
   }
   Object.defineProperty(liveEvidenceProvider, "budget", { value: budget });
+  // Billy 2 integration: Agent B's card advertises this instead of "retained_fixture".
+  Object.defineProperty(liveEvidenceProvider, "evidenceSourceLabel", {
+    value: cfg.loopback ? "hosted_receipt_api_loopback_stub" : "hosted_receipt_api_live",
+  });
   return liveEvidenceProvider;
 }
 
