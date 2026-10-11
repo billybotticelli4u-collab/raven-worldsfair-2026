@@ -98,33 +98,42 @@ export async function startAgentB(config, { evidenceProvider = null, claimProvid
     }
   }, config.port);
 
-  const declaredEndpoint = config.variant === "impostor" && config.claimEndpoint
-    ? config.claimEndpoint
-    : handle.url;
-  card = makeCard({
-    agentId,
-    role: "evidence-provider",
-    endpoint: declaredEndpoint,
-    capabilities: config.variant === "wrong-capability"
-      ? ["evidence.request:other.attestation"]
-      : [EVIDENCE_CAPABILITY],
-    verifierPin: config.variant === "bad-pin" ? OTHER_PIN : VERIFIER_PIN,
-    subjects: [subjectFor(config)],
-    // Never advertise the fixture when another evidence source is plugged in.
-    evidenceSource: config.evidenceSourceLabel ??
-      (evidenceProvider ? (evidenceProvider.evidenceSourceLabel ?? CUSTOM_SOURCE_LABEL) : FIXTURE_SOURCE_LABEL),
-  });
+  // Everything after listen runs under this try: any failure (card build,
+  // registry transport error, non-201 registration such as 409 agent_id_taken
+  // or 429 registry_full) closes the listener we just opened before rethrowing,
+  // so a rejected startAgentB never leaves an unreachable server alive.
+  try {
+    const declaredEndpoint = config.variant === "impostor" && config.claimEndpoint
+      ? config.claimEndpoint
+      : handle.url;
+    card = makeCard({
+      agentId,
+      role: "evidence-provider",
+      endpoint: declaredEndpoint,
+      capabilities: config.variant === "wrong-capability"
+        ? ["evidence.request:other.attestation"]
+        : [EVIDENCE_CAPABILITY],
+      verifierPin: config.variant === "bad-pin" ? OTHER_PIN : VERIFIER_PIN,
+      subjects: [subjectFor(config)],
+      // Never advertise the fixture when another evidence source is plugged in.
+      evidenceSource: config.evidenceSourceLabel ??
+        (evidenceProvider ? (evidenceProvider.evidenceSourceLabel ?? CUSTOM_SOURCE_LABEL) : FIXTURE_SOURCE_LABEL),
+    });
 
-  if (config.registryUrl) {
-    const reg = await loopbackJson(`${config.registryUrl}/v0/register`, { method: "POST", body: { card } });
-    if (reg.status !== 201) throw new Error(`registration_failed_${reg.status}`);
+    if (config.registryUrl) {
+      const reg = await loopbackJson(`${config.registryUrl}/v0/register`, { method: "POST", body: { card } });
+      if (reg.status !== 201) throw new Error(`registration_failed_${reg.status}`);
+    }
+    return {
+      ...handle,
+      agentId,
+      card,
+      cardSha256: await cardSha256(card),
+    };
+  } catch (err) {
+    await handle.close().catch(() => {}); // cleanup-on-startup-failure
+    throw err;
   }
-  return {
-    ...handle,
-    agentId,
-    card,
-    cardSha256: await cardSha256(card),
-  };
 }
 
 function stripChallenge(request) {

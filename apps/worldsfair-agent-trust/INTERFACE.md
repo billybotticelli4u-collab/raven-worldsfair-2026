@@ -35,6 +35,8 @@ Env: `RAVEN_LIVE_AGENT_CONFIG` (JSON config below), `RAVEN_LIVE_PORT` (port fall
 import { startRegistry } from "./src/live/registryServer.js";   // ({ port? }) -> { url, port, server, close(), entries }
 import { startAgentB, VARIANTS } from "./src/live/agentBServer.js";
 //   startAgentB(config, { evidenceProvider?, claimProvider? }) -> { url, port, server, close(), agentId, card, cardSha256 }
+//   If startAgentB rejects after listening (e.g. registration_failed_409 / _429, registry transport
+//   error, non_loopback_target_refused), it has already closed its own listener; nothing to clean up.
 //   config: { variant, agentId?, registryUrl?, port?, subject?, claimEndpoint? (impostor), evidenceSourceLabel? }
 import { createAgentA } from "./src/live/agentACore.js";
 //   createAgentA({ registryUrl, agentId="agent-a", verifyEvidence?, challengeBindingSkewMs=5000,
@@ -173,7 +175,7 @@ npm test                     # root 16
 npm --prefix apps/worldsfair-agent-trust test   # 43 original + live-*.test.js
 npm run demo:live-local
 npm run test:adversarial     # KIMI adversarial pack (19), not part of the app npm test
-npm run test:all             # root 16 + app 130 (incl. Billy 1 live stub tests) + adversarial 19
+npm run test:all             # root 16 + app 135 (incl. Billy 1 live stub tests) + adversarial 19
 ```
 
 Red controls: `node --experimental-strip-types apps/worldsfair-agent-trust/live/test/red-controls.mjs` (Billy 1, 26) and
