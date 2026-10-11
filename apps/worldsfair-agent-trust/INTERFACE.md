@@ -186,6 +186,6 @@ npm run test:all             # root 16 + app 144 (incl. Billy 1 live stub tests)
 ```
 
 Red controls: `node --experimental-strip-types apps/worldsfair-agent-trust/live/test/red-controls.mjs` (Billy 1, 26) and
-`node --experimental-strip-types apps/worldsfair-agent-trust/test/live-flow-adversarial/red-controls.mjs` (KIMI, 14; set
+`node --experimental-strip-types apps/worldsfair-agent-trust/test/live-flow-adversarial/red-controls.mjs` (KIMI, 15; set
 `RED_CONTROL_LOGDIR` to keep per-case logs, otherwise a private temp dir is used and removed).
 App `package.json` is a guarded judge-path file (byte-identical to 33f5486b), so the new scripts live in the root `package.json`.
