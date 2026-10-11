@@ -7,8 +7,9 @@
  *
  * The provider fetches a fresh receipt-v1 for the subject Agent A requested
  * (never a default subject), through the same capped / timed / redacted
- * client as `npm run demo:live-solana`. One call budget (hard cap 20) is
- * shared by every request the provider serves. It never decides PROCEED:
+ * client as `npm run demo:live-solana`. One call budget (default 3, settable
+ * via maxCalls up to the hard cap 20, never above) is shared by every request
+ * the provider serves. It never decides PROCEED:
  * Agent A verifies with liveVerifyEvidence (pinned key + live gates at the
  * real clock) and the unchanged Day-2 applyDecisionPolicy decides.
  */
@@ -31,13 +32,15 @@ function isRequestedSubject(requested) {
 }
 
 /**
- * @param {{ apiKey: string, apiBase?: string, timeoutMs?: number,
+ * @param {{ apiKey: string, apiBase?: string, timeoutMs?: number, maxCalls?: number,
  *           budget?: ReturnType<typeof createCallBudget>, fetchImpl?: typeof fetch }} opts
  * Throws LiveError (kind "config") BEFORE any network call if the key or base is unusable.
  */
 export function createLiveEvidenceProvider(opts = {}) {
-  const cfg = prepareLiveConfig({ apiKey: opts.apiKey, apiBase: opts.apiBase, timeoutMs: opts.timeoutMs });
-  const budget = opts.budget ?? createCallBudget();
+  const cfg = prepareLiveConfig({
+    apiKey: opts.apiKey, apiBase: opts.apiBase, timeoutMs: opts.timeoutMs, maxCalls: opts.maxCalls,
+  });
+  const budget = opts.budget ?? createCallBudget(cfg.maxCalls);
   const source = Object.freeze({
     mode: LIVE_SOURCE_MODE,
     fixture: null,

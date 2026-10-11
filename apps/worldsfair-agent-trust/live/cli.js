@@ -14,6 +14,7 @@ import { parseArgs } from "node:util";
 
 import {
   DEFAULT_API_BASE,
+  DEFAULT_CALL_BUDGET,
   DEFAULT_REPORT_DIR,
   DEFAULT_SUBJECT,
   FRESHNESS_MAX_AGE_SECONDS,
@@ -26,11 +27,14 @@ import {
   writeRunReport,
 } from "./liveSolana.js";
 
-const USAGE = `Usage: RAVEN_API_KEY=... npm run demo:live-solana [-- --mint <address>] [--token-program <address>] [--timeout-ms <ms>]
+const USAGE = `Usage: RAVEN_API_KEY=... npm run demo:live-solana [-- --mint <address>] [--token-program <address>]
+         [--timeout-ms <ms>] [--max-calls <1-${MAX_HTTP_CALLS_PER_RUN}>] [--api-base <origin>]
 
   Fetches ONE fresh Raven receipt-v1 for the mint (default: BONK, the fixture mint),
   verifies it offline against the pinned Raven key, and runs Agent A's policy.
-  Environment: RAVEN_API_KEY (required), RAVEN_API_BASE (optional, default ${DEFAULT_API_BASE}),
+  HTTP calls: default budget ${DEFAULT_CALL_BUDGET} per run; --max-calls may raise it up to the hard cap ${MAX_HTTP_CALLS_PER_RUN}, never above.
+  API base allowlist: ${DEFAULT_API_BASE} (default) or a local http://127.0.0.1 / localhost / [::1] stub only.
+  Environment: RAVEN_API_KEY (required), RAVEN_API_BASE (optional; --api-base wins),
                RAVEN_LIVE_REPORT_DIR (optional, default apps/worldsfair-agent-trust/live/runs/).`;
 
 const CHECK_LABELS = [
@@ -75,6 +79,8 @@ export async function runLiveSolanaCli(io = {}) {
         mint: { type: "string" },
         "token-program": { type: "string" },
         "timeout-ms": { type: "string" },
+        "max-calls": { type: "string" },
+        "api-base": { type: "string" },
         help: { type: "boolean", short: "h" },
       },
       strict: true,
@@ -82,7 +88,7 @@ export async function runLiveSolanaCli(io = {}) {
     }));
   } catch {
     // Never echo the offending argument: it could be a pasted key.
-    err("Unrecognised arguments (not shown). Only --mint, --token-program, --timeout-ms and --help are accepted.");
+    err("Unrecognised arguments (not shown). Only --mint, --token-program, --timeout-ms, --max-calls, --api-base and --help are accepted.");
     err(USAGE);
     return 2;
   }
@@ -98,7 +104,9 @@ export async function runLiveSolanaCli(io = {}) {
     return 2;
   }
 
-  const apiBaseOverride = typeof env.RAVEN_API_BASE === "string" && env.RAVEN_API_BASE !== "";
+  const apiBaseInput = values["api-base"] !== undefined ? values["api-base"]
+    : (typeof env.RAVEN_API_BASE === "string" && env.RAVEN_API_BASE !== "" ? env.RAVEN_API_BASE : undefined);
+  const apiBaseOverride = apiBaseInput !== undefined;
   const mint = values.mint ?? DEFAULT_SUBJECT.mintAddress;
   const tokenProgram = values["token-program"] ?? DEFAULT_SUBJECT.tokenProgramAddress;
 
@@ -113,11 +121,12 @@ export async function runLiveSolanaCli(io = {}) {
   let result;
   try {
     result = await fetchAndVerifyLiveReceipt({
-      apiBase: env.RAVEN_API_BASE,
+      apiBase: apiBaseInput,
       apiKey: rawKey,
       mint,
       tokenProgram,
       timeoutMs: values["timeout-ms"],
+      maxCalls: values["max-calls"],
       clock: io.clock,
       fetchImpl: io.fetchImpl,
     });
@@ -135,7 +144,7 @@ export async function runLiveSolanaCli(io = {}) {
   out(`Raven Agent Trust - LIVE Solana check${stub ? "  [LOCAL STUB - not the hosted Raven API]" : ""}`);
   out(`  Token mint:     ${mint}${values.mint ? "" : " (BONK, the fixture mint)"}`);
   out(`  Token program:  ${tokenProgram}`);
-  out(`  Raven API:      ${apiBaseOverride ? env.RAVEN_API_BASE : DEFAULT_API_BASE}${RECEIPT_PATH}${apiBaseOverride ? "  (RAVEN_API_BASE override)" : ""}`);
+  out(`  Raven API:      ${result.report?.api?.base ?? DEFAULT_API_BASE}${RECEIPT_PATH}${apiBaseOverride ? "  (base override)" : ""}`);
   out(`  Pinned signer:  ${pin.keyId} (from the repo's pinned verifier; not fetched live)`);
   out("");
 
@@ -154,7 +163,7 @@ export async function runLiveSolanaCli(io = {}) {
   if (result.error) {
     out("Live receipt from Raven API: NOT OBTAINED -> no PROCEED");
     err(`FAILED: ${result.error.message}`);
-    out(`HTTP calls used: ${result.httpCalls} of ${MAX_HTTP_CALLS_PER_RUN} (hard cap).`);
+    out(`HTTP calls used: ${result.httpCalls} of ${result.report?.http?.cap ?? DEFAULT_CALL_BUDGET} (budget; hard cap ${MAX_HTTP_CALLS_PER_RUN}).`);
     if (reportPath) out(`Run report (unsigned): ${relative(reportPath)}`);
     return 4;
   }
@@ -173,7 +182,7 @@ export async function runLiveSolanaCli(io = {}) {
   const t = result.tamperControl;
   out(`Same receipt, one field changed (${t.field} ${t.from} -> ${t.to}): ${t.decision}${t.decision === "REFUSE" ? `  (reason: ${t.reason})` : ""}`);
   out("");
-  out(`HTTP calls used: ${result.httpCalls} of ${MAX_HTTP_CALLS_PER_RUN} (hard cap).`);
+  out(`HTTP calls used: ${result.httpCalls} of ${result.report?.http?.cap ?? DEFAULT_CALL_BUDGET} (budget; hard cap ${MAX_HTTP_CALLS_PER_RUN}).`);
   if (reportPath) out(`Run report (unsigned): ${relative(reportPath)}`);
   out("Limits: a valid signature is evidence, not authorization; this is one token's measured scope, not a safety verdict; the Raven API is alpha.");
 

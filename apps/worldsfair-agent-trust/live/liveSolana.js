@@ -6,9 +6,11 @@
  * Boundaries (enforced in code, see LIVE-SOLANA.md):
  *  - the API key comes from the caller (CLI: RAVEN_API_KEY env only); it is
  *    sent only as the x-api-key header and never printed, logged or written;
- *  - exactly one endpoint: POST <base>/receipt/v1. No /pubkey, no liquidity,
+ *  - exactly one endpoint: POST <base>/receipt/v1, where <base> is the hosted
+ *    Raven origin or a loopback stub (allowlist). No /pubkey, no liquidity,
  *    no Solana RPC, no signing, no SOL spent;
- *  - hard cap of MAX_HTTP_CALLS_PER_RUN calls per run, per-request timeout,
+ *  - default budget of DEFAULT_CALL_BUDGET calls per run, configurable up to
+ *    the hard cap MAX_HTTP_CALLS_PER_RUN and never above; per-request timeout,
  *    at most one retry (only on timeout / network error / HTTP 5xx);
  *  - trust comes from the pinned key in vendor/raven-receipt-verifier, never
  *    from a key fetched at run time.
@@ -42,7 +44,10 @@ import { isCanonicalSolanaAddress } from "../../../vendor/raven-receipt-verifier
 /** Hosted Raven API base, as published in apps/raven-site/agents.json and ravenattest.com. */
 export const DEFAULT_API_BASE = "https://raven-hosted-verifier.onrender.com";
 export const RECEIPT_PATH = "/receipt/v1";
+/** Hard cap: no run may ever make more HTTP calls than this. */
 export const MAX_HTTP_CALLS_PER_RUN = 20;
+/** Default per-run budget (a normal run uses 1; 2 with the single retry). */
+export const DEFAULT_CALL_BUDGET = 3;
 export const MAX_RETRIES = 1;
 export const DEFAULT_TIMEOUT_MS = 20_000;
 export const MIN_TIMEOUT_MS = 100;
@@ -113,13 +118,26 @@ export function pinnedSigner() {
 /* --------------------------------------------------------------- budget */
 
 /**
- * Per-run HTTP call counter. The cap can be lowered, never raised above
- * MAX_HTTP_CALLS_PER_RUN. take() throws BEFORE a call would exceed it.
+ * Validate a per-run call budget: an integer 1..MAX_HTTP_CALLS_PER_RUN.
+ * Anything above the hard cap (or malformed) is REFUSED, never clamped.
  */
-export function createCallBudget(limit = MAX_HTTP_CALLS_PER_RUN) {
-  const max = Number.isSafeInteger(limit) && limit >= 0
-    ? Math.min(limit, MAX_HTTP_CALLS_PER_RUN)
-    : MAX_HTTP_CALLS_PER_RUN;
+export function validateMaxCalls(raw) {
+  if (raw === undefined || raw === null || raw === "") return DEFAULT_CALL_BUDGET;
+  const n = typeof raw === "number" ? raw : (/^[0-9]+$/.test(String(raw)) ? Number(raw) : Number.NaN);
+  if (!Number.isSafeInteger(n) || n < 1 || n > MAX_HTTP_CALLS_PER_RUN) {
+    throw new LiveError("call_budget_out_of_range", "config",
+      `--max-calls must be an integer from 1 to ${MAX_HTTP_CALLS_PER_RUN} (hard cap); nothing was sent.`);
+  }
+  return n;
+}
+
+/**
+ * Per-run HTTP call counter. Default DEFAULT_CALL_BUDGET; may be set up to
+ * the hard cap MAX_HTTP_CALLS_PER_RUN, never above (throws). take() throws
+ * BEFORE a call would exceed it.
+ */
+export function createCallBudget(limit = DEFAULT_CALL_BUDGET) {
+  const max = validateMaxCalls(limit);
   let used = 0;
   return Object.freeze({
     get max() { return max; },
@@ -127,7 +145,7 @@ export function createCallBudget(limit = MAX_HTTP_CALLS_PER_RUN) {
     take() {
       if (used >= max) {
         throw new LiveError("call_cap_exceeded", "cap",
-          `HTTP call cap reached (${max} per run); no further calls made.`);
+          `HTTP call budget reached (${max} per run; hard cap ${MAX_HTTP_CALLS_PER_RUN}); no further calls made.`);
       }
       used += 1;
       return used;
@@ -170,10 +188,14 @@ export function validateApiKey(raw) {
 }
 
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
+/** The only non-loopback origin the key may ever be sent to. */
+export const ALLOWED_REMOTE_ORIGINS = Object.freeze([DEFAULT_API_BASE]);
 
 /**
- * Base URL: https only, or plain http to loopback (local stub). No
- * credentials, path, query or fragment. Returns { origin, loopback }.
+ * Base URL allowlist: exactly the hosted Raven origin (https), or plain http
+ * to a loopback stub (127.0.0.1 / localhost / ::1). No credentials, path,
+ * query or fragment. Anything else is refused before any request, so the key
+ * is never sent. Returns { origin, loopback }.
  */
 export function validateApiBase(raw) {
   const value = raw === undefined || raw === null || raw === "" ? DEFAULT_API_BASE : String(raw);
@@ -183,15 +205,15 @@ export function validateApiBase(raw) {
   } catch {
     throw new LiveError("api_base_invalid", "config", "RAVEN_API_BASE is not a valid URL; nothing was sent.");
   }
-  const httpsOk = url.protocol === "https:";
-  const loopback = url.protocol === "http:" && LOOPBACK_HOSTS.has(url.hostname);
-  if (!httpsOk && !loopback) {
-    throw new LiveError("api_base_insecure", "config",
-      "RAVEN_API_BASE must be https:// (plain http is only allowed for a local 127.0.0.1 stub); nothing was sent.");
-  }
   if (url.username || url.password || url.search || url.hash || (url.pathname !== "/" && url.pathname !== "")) {
     throw new LiveError("api_base_invalid", "config",
-      "RAVEN_API_BASE must be a bare origin like https://host (no credentials, path or query); nothing was sent.");
+      "RAVEN_API_BASE / --api-base must be a bare origin (no credentials, path, query or fragment); nothing was sent.");
+  }
+  const remoteOk = ALLOWED_REMOTE_ORIGINS.includes(url.origin);
+  const loopback = url.protocol === "http:" && LOOPBACK_HOSTS.has(url.hostname);
+  if (!remoteOk && !loopback) {
+    throw new LiveError("api_base_not_allowlisted", "config",
+      `RAVEN_API_BASE / --api-base is not allowed: only ${DEFAULT_API_BASE} or a local http://127.0.0.1 stub; nothing was sent.`);
   }
   return { origin: url.origin, loopback };
 }
@@ -566,6 +588,7 @@ function buildReport({ startedAt, finishedAt, apiBase, loopback, subject, receip
     http: {
       calls: budget.used,
       cap: budget.max,
+      hardCap: MAX_HTTP_CALLS_PER_RUN,
       maxRetries: MAX_RETRIES,
       timeoutMs,
       finalStatus: httpStatus ?? null,
@@ -595,8 +618,9 @@ export function prepareLiveConfig(opts = {}) {
   const { origin: apiBase, loopback } = validateApiBase(opts.apiBase);
   const subject = validateSubject({ mint: opts.mint, tokenProgram: opts.tokenProgram });
   const timeoutMs = validateTimeoutMs(opts.timeoutMs);
+  const maxCalls = validateMaxCalls(opts.maxCalls);
   pinnedSigner();
-  return { apiKey, apiBase, loopback, subject, timeoutMs };
+  return { apiKey, apiBase, loopback, subject, timeoutMs, maxCalls };
 }
 
 /**
@@ -608,6 +632,7 @@ export function prepareLiveConfig(opts = {}) {
  * @param {string} [opts.mint]     default BONK fixture mint
  * @param {string} [opts.tokenProgram] default fixture token program
  * @param {number|string} [opts.timeoutMs]
+ * @param {number|string} [opts.maxCalls] per-run budget, default 3, 1..20 (hard cap)
  * @param {() => Date} [opts.clock] evaluation clock (default wall clock)
  * @param {typeof fetch} [opts.fetchImpl]
  * @param {ReturnType<typeof createCallBudget>} [opts.budget] share a cap across calls
@@ -617,7 +642,7 @@ export function prepareLiveConfig(opts = {}) {
  */
 export async function fetchAndVerifyLiveReceipt(opts = {}) {
   const clock = typeof opts.clock === "function" ? opts.clock : () => new Date();
-  const budget = opts.budget ?? createCallBudget();
+  let budget = opts.budget ?? null;
   const secrets = secretsFor(opts.apiKey);
   const startedAt = clock().toISOString();
   const fail = (err, extra = {}) => ({
@@ -629,7 +654,7 @@ export async function fetchAndVerifyLiveReceipt(opts = {}) {
     tamperControl: null,
     report: null,
     error: { code: err.code, kind: err.kind, message: redact(err.message, secrets) },
-    httpCalls: budget.used,
+    httpCalls: budget ? budget.used : 0,
     ...extra,
   });
 
@@ -641,6 +666,7 @@ export async function fetchAndVerifyLiveReceipt(opts = {}) {
     return fail(new LiveError("internal_error", "internal", "Unexpected error during setup."));
   }
   const { apiKey, apiBase, loopback, subject, timeoutMs } = cfg;
+  if (!budget) budget = createCallBudget(cfg.maxCalls);
 
   let fetched;
   try {

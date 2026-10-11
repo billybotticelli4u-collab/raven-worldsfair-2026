@@ -29,7 +29,8 @@ RAVEN_API_KEY=... npm run demo:live-solana
 Other token: `npm run demo:live-solana -- --mint <mint address>`
 (add `--token-program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb` for a Token-2022 mint;
 the default is the SPL Token program). Slow first answer (hosted service waking up):
-`-- --timeout-ms 45000`.
+`-- --timeout-ms 45000`. More calls for this run (default 3, at most 20):
+`-- --max-calls 5`.
 
 ## What you should see
 
@@ -38,7 +39,7 @@ Live receipt from Raven API: VERIFIED -> PROCEED
   receiptId:   raven-receipt-v1:sha256:...
   ...
 Same receipt, one field changed (slot N -> N+1): REFUSE  (reason: integrity_or_malformed)
-HTTP calls used: 1 of 20 (hard cap).
+HTTP calls used: 1 of 3 (budget; hard cap 20).
 Run report (unsigned): apps/worldsfair-agent-trust/live/runs/live-solana-....json
 ```
 
@@ -69,11 +70,20 @@ these live checks, each shown as OK / FAIL:
 - Exactly one endpoint: `POST https://raven-hosted-verifier.onrender.com/receipt/v1`
   with body `{"mintAddress","tokenProgramAddress"}`. Nothing else: no liquidity
   or other endpoints, no Solana RPC, no wallet, no signing, no SOL spent.
-- At most 20 HTTP calls per run (counter in code); a normal run makes 1.
-  One retry at most, only after a timeout, network error or HTTP 5xx.
-  Per-request timeout (20 s default, 60 s max). Redirects are not followed.
-- `RAVEN_API_BASE` may override the base (https only; plain http only to
-  127.0.0.1, which is how the tests use a local stub). Output says so clearly.
+- **Call budget: 3 HTTP calls per run by default** (a normal run makes 1, or 2
+  with the single retry). `--max-calls N` may raise it up to the **hard cap of
+  20**; any value above 20 (or 0, or not a whole number) is refused before
+  any call — it is never silently clamped. One retry at most, only after a
+  timeout, network error or HTTP 5xx. Per-request timeout (20 s default, 60 s
+  max). Redirects are not followed.
+- **API base allowlist.** `--api-base` (or `RAVEN_API_BASE`; the flag wins)
+  accepts only `https://raven-hosted-verifier.onrender.com` (the default) or
+  plain `http://` to a local stub on `127.0.0.1`, `localhost` or `[::1]`
+  (which is how the tests run). Any other host — including lookalikes such as
+  `raven-hosted-verifier.onrender.com.evil.tld`, other ports, `http://` to the
+  real host, and user-info tricks like `https://raven-hosted-verifier.onrender.com@evil.tld`
+  — is refused with a clear message before any request, so the key is never
+  sent. The output says when an override is in use.
 
 ## Limits of what the result means
 
@@ -85,10 +95,10 @@ these live checks, each shown as OK / FAIL:
 
 ## For developers
 
-- Module: `live/liveSolana.js` — `fetchAndVerifyLiveReceipt({ apiKey, apiBase?, mint?, tokenProgram?, timeoutMs?, clock?, fetchImpl?, budget? })`
+- Module: `live/liveSolana.js` — `fetchAndVerifyLiveReceipt({ apiKey, apiBase?, mint?, tokenProgram?, timeoutMs?, maxCalls?, clock?, fetchImpl?, budget? })`
   returns `{ ok, decision, reason, receipt, verification, tamperControl, report, error, httpCalls }`.
 - Live-local hooks (`../INTERFACE.md`): `live/agentHooks.js` —
-  `createLiveEvidenceProvider({ apiKey, apiBase?, timeoutMs?, budget? })` for
+  `createLiveEvidenceProvider({ apiKey, apiBase?, timeoutMs?, maxCalls?, budget? })` (default budget 3, shared by all requests it serves) for
   `startAgentB(config, { evidenceProvider })`, and `liveVerifyEvidence` for
   `createAgentA({ verifyEvidence })`.
 - Tests: `live/test/*.test.js` (registered via `test/live-solana.test.js`, so

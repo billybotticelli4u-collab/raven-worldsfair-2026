@@ -9,6 +9,7 @@ import test from "node:test";
 
 import {
   DEFAULT_API_BASE,
+  DEFAULT_CALL_BUDGET,
   FRESHNESS_MAX_AGE_SECONDS,
   MAX_HTTP_CALLS_PER_RUN,
   PUBLISHED_SIGNER_CROSS_CHECK,
@@ -98,7 +99,7 @@ test("malformed key / base / mint / program / flags -> exit 2, no call", async (
   const cases = [
     [{ RAVEN_API_KEY: "short" }, [], /malformed/],
     [{ RAVEN_API_KEY: "has space inside key" }, [], /malformed/],
-    [{ RAVEN_API_BASE: "http://example.com" }, [], /must be https/],
+    [{ RAVEN_API_BASE: "http://example.com" }, [], /not allowed/],
     [{ RAVEN_API_BASE: "https://user:pw@example.com" }, [], /bare origin/],
     [{ RAVEN_API_BASE: "https://example.com/receipt/v1" }, [], /bare origin/],
     [{ RAVEN_API_BASE: "not a url" }, [], /not a valid URL/],
@@ -131,7 +132,7 @@ test("valid genuine receipt -> VERIFIED -> PROCEED; tamper -> REFUSE; report wri
   assert.match(r.stdout, /LOCAL STUB - not the hosted Raven API/);
   assert.match(r.stdout, /^Receipt from LOCAL STUB: VERIFIED -> PROCEED$/m);
   assert.match(r.stdout, /^Same receipt, one field changed \(slot 430410160 -> 430410161\): REFUSE {2}\(reason: integrity_or_malformed\)$/m);
-  assert.match(r.stdout, /HTTP calls used: 1 of 20/);
+  assert.match(r.stdout, /HTTP calls used: 1 of 3 \(budget; hard cap 20\)/);
   assert.equal(r.stderr, "");
 
   assert.equal(stub.requests.length, 1);
@@ -157,7 +158,8 @@ test("valid genuine receipt -> VERIFIED -> PROCEED; tamper -> REFUSE; report wri
   assert.equal(report.request.mintAddress, FIXTURE.mintAddress);
   assert.equal(report.tamperControl.decision, "REFUSE");
   assert.equal(report.http.calls, 1);
-  assert.equal(report.http.cap, 20);
+  assert.equal(report.http.cap, 3);
+  assert.equal(report.http.hardCap, 20);
   assert.equal(report.api.loopbackStub, true);
   assert.ok(report.startedAt && report.finishedAt);
   assert.ok(!rep.text.includes(TEST_API_KEY));
@@ -386,7 +388,7 @@ test("500 then 200 -> the single retry succeeds -> PROCEED (2 calls)", async (t)
   const stub = await startStub(t, (i) => (i === 0 ? { status: 500, body: "{}" } : { body: FIXTURE_BYTES }));
   const r = await runInProcess({ env: env(stub, reportDir(t)), clock: at(5) });
   assert.equal(r.code, 0, r.stderr);
-  assert.match(r.stdout, /HTTP calls used: 2 of 20/);
+  assert.match(r.stdout, /HTTP calls used: 2 of 3/);
   assert.equal(stub.requests.length, 2);
 });
 
@@ -428,16 +430,22 @@ test("malformed receipt object -> REFUSE, exit 3", async (t) => {
 
 /* ----------------------------------------------------------- call cap */
 
-test("call cap: 20 per run, cannot be raised, enforced before the call", async (t) => {
+test("call budget: default 3, settable up to the hard cap 20, never above, enforced before the call", async (t) => {
   assert.equal(MAX_HTTP_CALLS_PER_RUN, 20);
-  const b = createCallBudget();
+  assert.equal(DEFAULT_CALL_BUDGET, 3);
+  const d = createCallBudget();
+  assert.equal(d.max, 3);
+  for (let i = 1; i <= 3; i += 1) assert.equal(d.take(), i);
+  assert.throws(() => d.take(), { code: "call_cap_exceeded" });
+  const b = createCallBudget(20);
   for (let i = 1; i <= 20; i += 1) assert.equal(b.take(), i);
   assert.throws(() => b.take(), { code: "call_cap_exceeded" });
   assert.equal(b.used, 20);
-  assert.equal(createCallBudget(1000).max, 20);
-  assert.equal(createCallBudget(-1).max, 20);
-  assert.equal(createCallBudget(Number.NaN).max, 20);
+  for (const bad of [21, 1000, 0, -1, Number.NaN, 2.5, "21", "abc"]) {
+    assert.throws(() => createCallBudget(bad), { code: "call_budget_out_of_range" }, String(bad));
+  }
   assert.equal(createCallBudget(2).max, 2);
+  assert.equal(createCallBudget("20").max, 20);
 
   const stub = await startStub(t, () => ({ status: 500, body: "{}" }));
   const exhausted = await fetchAndVerifyLiveReceipt({ apiKey: TEST_API_KEY, apiBase: stub.base, budget: b, fetchImpl: fetch });
@@ -450,6 +458,113 @@ test("call cap: 20 per run, cannot be raised, enforced before the call", async (
   const blockedRetry = await fetchAndVerifyLiveReceipt({ apiKey: TEST_API_KEY, apiBase: stub.base, budget: oneLeft, fetchImpl: fetch });
   assert.equal(blockedRetry.reason, "call_cap_exceeded");
   assert.equal(stub.requests.length, 1, "the retry was blocked by the cap");
+});
+
+test("CLI --max-calls: default 3; 20 accepted; above 20 / 0 / junk refused before any call", async (t) => {
+  const stub = await startStub(t, () => ({ status: 500, body: "{}" }));
+  const def = await runInProcess({ env: env(stub, reportDir(t)), clock: at(5) });
+  assert.equal(def.code, 4);
+  assert.match(def.stdout, /HTTP calls used: 2 of 3 \(budget; hard cap 20\)/);
+  const twenty = await runInProcess({ env: env(stub, reportDir(t)), argv: ["--max-calls", "20"], clock: at(5) });
+  assert.equal(twenty.code, 4);
+  assert.match(twenty.stdout, /HTTP calls used: 2 of 20 \(budget; hard cap 20\)/);
+  const one = await runInProcess({ env: env(stub, reportDir(t)), argv: ["--max-calls", "1"], clock: at(5) });
+  assert.equal(one.code, 4);
+  assert.match(one.stderr, /budget reached \(1 per run; hard cap 20\)/);
+  const before = stub.requests.length;
+  assert.equal(before, 2 + 2 + 1);
+  for (const v of ["21", "100", "0", "-1", "3.5", "abc"]) {
+    const r = await runInProcess({ env: env(stub, reportDir(t)), argv: [`--max-calls=${v}`], clock: at(5) });
+    assert.equal(r.code, 2, v);
+    assert.match(r.stderr, /--max-calls must be an integer from 1 to 20 \(hard cap\)/);
+  }
+  assert.equal(stub.requests.length, before, "refused budgets make no call");
+  // Programmatic API refuses too (no clamping).
+  const api = await fetchAndVerifyLiveReceipt({ apiKey: TEST_API_KEY, apiBase: stub.base, maxCalls: 21, fetchImpl: fetch });
+  assert.equal(api.reason, "call_budget_out_of_range");
+  assert.equal(api.httpCalls, 0);
+  assert.equal(stub.requests.length, before);
+});
+
+test("API base allowlist: only the hosted Raven origin or loopback; others refused with zero calls, key never sent", async (t) => {
+  const refused = [
+    "https://example.com",
+    "https://api.raven.example",
+    "https://raven-hosted-verifier.onrender.com.evil.tld",
+    "https://raven-hosted-verifier-onrender.com",
+    "https://evil-raven-hosted-verifier.onrender.com",
+    "https://raven-hosted-verifier.onrender.com:8443",
+    "http://raven-hosted-verifier.onrender.com",
+    "https://raven-hosted-verifier.onrender.com@evil.tld",
+    "https://raven-hosted-verifier.onrender.com:x@evil.tld",
+    "https://user:pw@raven-hosted-verifier.onrender.com",
+    "https://evil.tld#@raven-hosted-verifier.onrender.com",
+    "https://evil.tld/?h=raven-hosted-verifier.onrender.com",
+    "https://evil.tld\\@raven-hosted-verifier.onrender.com",
+    "http://127.0.0.1.evil.tld",
+    "http://localhost.evil.tld:8080",
+    "http://10.0.0.1:8080",
+    "http://0.0.0.0:8080",
+    "https://127.0.0.1",
+    "ftp://127.0.0.1",
+    "file:///etc/passwd",
+  ];
+  let calls = 0;
+  const countingFetch = () => { calls += 1; throw new Error("must not be called"); };
+  for (const base of refused) {
+    for (const how of ["env", "flag"]) {
+      const e = { RAVEN_API_KEY: TEST_API_KEY, RAVEN_LIVE_REPORT_DIR: reportDir(t) };
+      const argv = [];
+      if (how === "env") e.RAVEN_API_BASE = base; else argv.push("--api-base", base);
+      const r = await runInProcess({ env: e, argv, clock: at(5), fetchImpl: countingFetch });
+      assert.equal(r.code, 2, `${how} ${base}`);
+      assert.match(r.stderr, /REFUSED before any network call: RAVEN_API_BASE \/ --api-base (is not allowed|must be a bare origin)|not a valid URL/, `${how} ${base}`);
+      assert.equal(r.stdout, "");
+      assert.ok(!r.stderr.includes(TEST_API_KEY));
+    }
+    const api = await fetchAndVerifyLiveReceipt({ apiKey: TEST_API_KEY, apiBase: base, fetchImpl: countingFetch });
+    assert.equal(api.decision, "REFUSE", base);
+    assert.equal(api.error.kind, "config", base);
+    assert.equal(api.httpCalls, 0);
+  }
+  assert.equal(calls, 0, "the key was never sent anywhere");
+
+  // Real entrypoint, arbitrary https host: refused before any request.
+  const sub = await runCli(t, { env: { RAVEN_API_KEY: TEST_API_KEY, RAVEN_API_BASE: "https://example.com" } });
+  assert.equal(sub.code, 2);
+  assert.match(sub.stderr, /is not allowed: only https:\/\/raven-hosted-verifier\.onrender\.com/);
+
+  // The default hosted origin is accepted (fake fetch, no network) ...
+  for (const base of [undefined, "https://raven-hosted-verifier.onrender.com", "https://raven-hosted-verifier.onrender.com/",
+    "https://RAVEN-HOSTED-VERIFIER.onrender.com:443"]) {
+    const seen = [];
+    const fake = async (url) => { seen.push(url); return new Response(FIXTURE_BYTES, { status: 200 }); };
+    const r = await fetchAndVerifyLiveReceipt({ apiKey: TEST_API_KEY, apiBase: base, clock: at(5), fetchImpl: fake });
+    assert.equal(r.decision, "PROCEED", String(base));
+    assert.deepEqual(seen, ["https://raven-hosted-verifier.onrender.com/receipt/v1"]);
+  }
+  // ... and loopback stubs still work, by env and by flag.
+  const stub = await startStub(t, replay(FIXTURE_BYTES));
+  const port = new URL(stub.base).port;
+  const viaEnv = await runInProcess({ env: env(stub, reportDir(t)), clock: at(5) });
+  assert.equal(viaEnv.code, 0, viaEnv.stderr);
+  const viaFlag = await runInProcess({
+    env: { RAVEN_API_KEY: TEST_API_KEY, RAVEN_LIVE_REPORT_DIR: reportDir(t), RAVEN_API_BASE: "https://example.com" },
+    argv: ["--api-base", stub.base], clock: at(5),
+  });
+  assert.equal(viaFlag.code, 0, "--api-base wins over RAVEN_API_BASE");
+  assert.ok(stub.requests.length >= 2);
+  // localhost and [::1] are accepted as loopback (fake fetch: the stub binds 127.0.0.1 only).
+  for (const base of [`http://localhost:${port}`, `http://[::1]:${port}`]) {
+    const seen = [];
+    const r = await fetchAndVerifyLiveReceipt({
+      apiKey: TEST_API_KEY, apiBase: base, clock: at(5),
+      fetchImpl: async (url) => { seen.push(url); return new Response(FIXTURE_BYTES); },
+    });
+    assert.equal(r.decision, "PROCEED", base);
+    assert.equal(r.report.api.loopbackStub, true);
+    assert.deepEqual(seen, [`${base}/receipt/v1`]);
+  }
 });
 
 /* ------------------------------------------------------- key secrecy */

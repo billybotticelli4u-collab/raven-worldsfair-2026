@@ -39,7 +39,7 @@ const MUTATIONS = [
   ["live: call cap disabled", L, "if (used >= max) {", "if (false) {"],
   ["live: more than one retry", L, "attempt <= 1 + MAX_RETRIES", "attempt <= 3 + MAX_RETRIES"],
   ["live: follow redirects", L, 'redirect: "manual",', 'redirect: "follow",'],
-  ["live: allow plain http to any host", L, "if (!httpsOk && !loopback) {", "if (false) {"],
+  ["live: allow any API base (allowlist off)", L, "if (!remoteOk && !loopback) {", "if (false) {"],
   ["live: accept a missing key", L, 'if (typeof raw !== "string" || raw.trim().length === 0) {', "if (false) {"],
   ["hooks: provider defaults the subject", H, "if (!isRequestedSubject(requested)) {", "if (false) {"],
 ];
@@ -59,7 +59,7 @@ function scratch() {
 
 function runTests(dir) {
   const app = path.join(dir, "apps/worldsfair-agent-trust");
-  const r = spawnSync(process.execPath, ["--experimental-strip-types", "--disable-warning=ExperimentalWarning", "--test",
+  const r = spawnSync(process.execPath, ["--experimental-strip-types", "--disable-warning=ExperimentalWarning", "--test", "--test-reporter=tap",
     "live/test/live-solana.test.js", "live/test/live-solana-hooks.test.js"],
   { cwd: app, encoding: "utf8", timeout: 180_000, env: { PATH: process.env.PATH } });
   const failed = [...r.stdout.matchAll(/^not ok \d+ - (.*)$/gm)].map((m) => m[1]);

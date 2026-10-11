@@ -37,7 +37,11 @@ async function world(t, respond, { verifyEvidence = verifyAt(at(5)), budget, cha
 test("provider refuses to construct without a key (before any call)", () => {
   assert.throws(() => createLiveEvidenceProvider({}), { code: "api_key_missing" });
   assert.throws(() => createLiveEvidenceProvider({ apiKey: TEST_API_KEY, apiBase: "http://example.com" }),
-    { code: "api_base_insecure" });
+    { code: "api_base_not_allowlisted" });
+  assert.throws(() => createLiveEvidenceProvider({ apiKey: TEST_API_KEY, apiBase: "https://raven-hosted-verifier.onrender.com.evil.tld" }),
+    { code: "api_base_not_allowlisted" });
+  assert.throws(() => createLiveEvidenceProvider({ apiKey: TEST_API_KEY, maxCalls: 21 }),
+    { code: "call_budget_out_of_range" });
 });
 
 test("Agent B with the live provider + Agent A live verifier -> PROCEED over the live-local exchange", async (t) => {
@@ -96,7 +100,7 @@ test("hosted API 401 -> evidence unavailable -> REFUSE missing_evidence", async 
 
 test("provider shares one call budget: hard cap 20 across requests", async (t) => {
   const stub = await startStub(t, replay(FIXTURE_BYTES));
-  const budget = createCallBudget();
+  const budget = createCallBudget(20);
   const provider = createLiveEvidenceProvider({ apiKey: TEST_API_KEY, apiBase: stub.base, budget });
   const request = {
     protocolVersion: "raven-agent-trust/1", type: "evidence.request", messageId: "m", claimId: "c",
@@ -109,6 +113,21 @@ test("provider shares one call budget: hard cap 20 across requests", async (t) =
   assert.equal(results[20].status, "unavailable");
   assert.equal(results[20].unavailableReason, "call_cap_exceeded");
   assert.equal(provider.budget.used, 20);
+});
+
+test("provider default budget is 3 calls (hard cap 20 only when asked)", async (t) => {
+  const stub = await startStub(t, replay(FIXTURE_BYTES));
+  const provider = createLiveEvidenceProvider({ apiKey: TEST_API_KEY, apiBase: stub.base });
+  assert.equal(provider.budget.max, 3);
+  const request = {
+    protocolVersion: "raven-agent-trust/1", type: "evidence.request", messageId: "m", claimId: "c",
+    requirements: { subject: { chain: "solana-mainnet", mintAddress: FIXTURE.mintAddress, tokenProgramAddress: FIXTURE.tokenProgramAddress } },
+  };
+  const results = [];
+  for (let i = 0; i < 4; i += 1) results.push(await provider(request));
+  assert.equal(stub.requests.length, 3);
+  assert.equal(results[3].unavailableReason, "call_cap_exceeded");
+  assert.equal(createLiveEvidenceProvider({ apiKey: TEST_API_KEY, apiBase: stub.base, maxCalls: 20 }).budget.max, 20);
 });
 
 test("provider never defaults the subject: invalid requested subject -> unavailable, no call", async (t) => {
