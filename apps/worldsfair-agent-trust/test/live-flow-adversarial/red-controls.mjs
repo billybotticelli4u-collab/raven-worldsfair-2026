@@ -14,7 +14,8 @@
  * or directly:
  *   node --experimental-strip-types test/live-flow-adversarial/red-controls.mjs
  *
- * Env: RED_CONTROL_LOGDIR (default: <os-tmp>/red-control-logs-<pid>)
+ * Env: RED_CONTROL_LOGDIR (keeps per-case TAP logs there). If unset, logs go to
+ *      a private mkdtemp directory that is removed when the run finishes.
  */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -28,7 +29,8 @@ const REPO = path.resolve(PKG, "../../");                        // repo root
 const VENDOR_SRC = path.join(REPO, "vendor", "raven-receipt-verifier");
 const TRANSPORT = "cases-01-02-03-09-10-transport.test.js";
 const IDENTITY = "cases-04-05-06-07-08-identity.test.js";
-const LOGDIR = process.env.RED_CONTROL_LOGDIR ?? mkdtempSync(path.join(tmpdir(), "red-control-logs-"));
+const KEEP_LOGS = Boolean(process.env.RED_CONTROL_LOGDIR);
+const LOGDIR = KEEP_LOGS ? process.env.RED_CONTROL_LOGDIR : mkdtempSync(path.join(tmpdir(), "red-control-logs-"));
 mkdirSync(LOGDIR, { recursive: true });
 
 const SPECS = [
@@ -164,6 +166,7 @@ writeFileSync(path.join(LOGDIR, "red-controls-results.json"), JSON.stringify({ a
 for (const r of results) {
   console.log(`${r.mode === "pristine" ? "GREEN" : r.red ? "RED  " : "FAIL "} ${r.id.padEnd(5)} case ${r.cased} (exit ${r.status}${r.error ? `, ${r.error}` : ""}${r.timedOut ? ", timed out as expected" : ""})`);
 }
-console.log(`\nlogdir: ${LOGDIR}`);
+if (KEEP_LOGS) console.log(`\nlogdir: ${LOGDIR}`);
+else { rmSync(LOGDIR, { recursive: true, force: true }); console.log("\nlogdir: removed (set RED_CONTROL_LOGDIR to keep logs)"); }
 console.log(allRed ? "ALL RED CONTROLS OK: every removed check lets the adversary through" : "SOME RED CONTROLS DID NOT FAIL — INVESTIGATE");
 process.exit(allRed ? 0 : 1);

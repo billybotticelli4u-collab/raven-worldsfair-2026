@@ -172,4 +172,11 @@ npm run check:demo-unchanged # byte-identity vs 33f5486b
 npm test                     # root 16
 npm --prefix apps/worldsfair-agent-trust test   # 43 original + live-*.test.js
 npm run demo:live-local
+npm run test:adversarial     # KIMI adversarial pack (19), not part of the app npm test
+npm run test:all             # root 16 + app 130 (incl. Billy 1 live stub tests) + adversarial 19
 ```
+
+Red controls: `node --experimental-strip-types apps/worldsfair-agent-trust/live/test/red-controls.mjs` (Billy 1, 26) and
+`node --experimental-strip-types apps/worldsfair-agent-trust/test/live-flow-adversarial/red-controls.mjs` (KIMI, 12; set
+`RED_CONTROL_LOGDIR` to keep per-case logs, otherwise a private temp dir is used and removed).
+App `package.json` is a guarded judge-path file (byte-identical to 33f5486b), so the new scripts live in the root `package.json`.
