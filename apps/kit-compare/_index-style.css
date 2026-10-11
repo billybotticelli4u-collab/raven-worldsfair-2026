@@ -49,3 +49,4 @@
 /* Green is reserved for accepted decoder outcomes. */
 .reader-result .accepted{color:#176b3c}
 .hero-band .reader-result .accepted{color:#80db9e}
+.footer-social{display:inline-flex;align-items:center;gap:10px}.footer-social svg{width:16px;height:16px;fill:currentColor;flex:0 0 auto}

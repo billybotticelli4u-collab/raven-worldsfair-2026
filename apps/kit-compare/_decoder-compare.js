@@ -1,6 +1,21 @@
 'use strict';
 (() => {
   const $ = id => document.getElementById(id);
+  function renderDetail(cell,result) {
+    if(result.decision!=='REJECT'){cell.textContent=result.detail;return;}
+    const explanations={
+      5663021:'This reader does not support this transaction message version.',
+      8078001:'There are not enough bytes for a field this reader expected.'
+    };
+    const explanation=document.createElement('p');
+    explanation.className='decoder-explanation';
+    explanation.textContent=explanations[result.code] || 'This reader could not decode these bytes. Inspect its raw error for details.';
+    const raw=document.createElement('details');raw.className='decoder-raw';
+    const summary=document.createElement('summary');
+    summary.textContent=result.code==null?'Raw decoder error':`Raw decoder error #${result.code}`;
+    const diagnostic=document.createElement('pre');diagnostic.textContent=result.detail;
+    raw.append(summary,diagnostic);cell.append(explanation,raw);
+  }
   function unlockInput(){ $('input-bytes').disabled=false; $('encoding').disabled=false; }
   let cases = {}, report = null, worker = null, timer = null, generation = 0;
   function cancel() { generation++; worker?.terminate(); worker=null; clearTimeout(timer); report=null; $('download').disabled=true; }
@@ -29,7 +44,17 @@
       worker.onmessage=event=>{
         if(current!==generation)return;clearTimeout(timer);worker.terminate();worker=null;
         report={schema:'raven-browser-kit-comparison/v1',observedAt:new Date().toISOString(),inputHex:Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join(''),inputSha256:hash,byteLength:bytes.length,api:['getTransactionDecoder().decode(bytes)','getCompiledTransactionMessageDecoder().decode(transaction.messageBytes)'],scope:'Local parse comparison only; unsigned; synthetic examples or user-supplied bytes; no signature or safety validation',results:event.data};
-        for(const result of report.results){ const row=document.createElement('tr'); for(const value of [`${result.library} ${result.version}`,result.decision,result.decodedVersion===null?'—':String(result.decodedVersion),result.detail]){const cell=document.createElement('td');cell.textContent=value;if(value===result.decision)cell.className=result.decision.toLowerCase();row.append(cell);} $('results').append(row); }
+        for(const result of report.results){
+          const row=document.createElement('tr');row.setAttribute('role','row');
+          const values=[`${result.library} ${result.version}`,result.decision,result.decodedVersion===null?'—':String(result.decodedVersion),result.detail];
+          const labels=['Library','Decision','Decoded version','Details'];
+          for(let i=0;i<values.length;i++){
+            const cell=document.createElement('td');cell.setAttribute('role','cell');cell.dataset.label=labels[i];
+            if(i===3)renderDetail(cell,result);else cell.textContent=values[i];
+            if(i===1)cell.className=result.decision.toLowerCase();row.append(cell);
+          }
+          $('results').append(row);
+        }
         const distinct=new Set(report.results.map(r=>JSON.stringify([r.decision,r.decodedVersion]))).size;
         $('status').textContent=distinct>1?'Disagreement reproduced. Inspect each library’s decision below.':'All three produced the same decision and version. This is not a safety verdict.';
         $('run').disabled=false; $('download').disabled=false;

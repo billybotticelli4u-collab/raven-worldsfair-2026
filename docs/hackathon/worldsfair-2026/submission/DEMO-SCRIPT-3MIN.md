@@ -1,3 +1,5 @@
+> **Historical draft — superseded.** This earlier Conformance-first draft is retained for provenance, not current submission instructions. Use the [current canonical submission set](README.md): **Raven**, **https://ravenattest.com/**, with **Compare real Kit versions** first. This file does not establish portal submission or completed media.
+
 # Product demo — one recording draft, target 2:45
 
 Not recorded or uploaded. This is the selected cut; no optional beat or alternate command. It combines the retained Conformance → third-party table → Agent Trust sequence with the reviewed command and receipt/report distinctions. Confirm the live portal cap before recording; 2:45 is a target, not a measured video.

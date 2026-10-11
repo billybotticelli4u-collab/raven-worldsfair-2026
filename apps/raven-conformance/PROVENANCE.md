@@ -19,7 +19,7 @@ Those target bytes are unchanged from the source demo. Fixture-generation claims
 
 - Source corpus file SHA-256: `edf533bd64bac1eb00de78833614edd94e190bef437c7f73b80b100e7ea5540e`
 - Source corpus declared content digest: `c463a23b9ee3d1e91204e1d2bc9b1a3bf121e97ca9ba00e7a970b8fd97c5aa1a`
-- Selection record review-package path: `REVIEWS/RAVEN_SOLANA_PROFILE_PROVENANCE_AND_SELECTION_KIMI_2026_09_20.md`
+- Selection record review-package path: (private archive record; identified by the adjacent hash)
 - Selection record SHA-256: `4586542b491668478167ddc83cb4087e9097ccc4936860ccd7e50c5e50497ee6`
 
 The integrated corpus is version `1.3.0` with new bytes and a new content digest. Review of the source corpus does not approve the integrated corpus.

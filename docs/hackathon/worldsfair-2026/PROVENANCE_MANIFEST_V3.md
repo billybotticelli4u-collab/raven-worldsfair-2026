@@ -1,5 +1,7 @@
 # Raven combined-candidate provenance manifest V3
 
+Public attribution uses stable role labels: contributor A (integration/packaging), contributor B (frontend/documentation and internal review), contributor C (decoder measurements/Linux operations), contributor D (recording/reconstruction), and reviewer E (backup/decoder review). These are AI-assisted internal contributors and reviews, not external audits. Role labels preserve author/reviewer separation; historical commits and sealed evidence remain unchanged. Private packet filenames are omitted here; retained hashes identify the exact records.
+
 Date: 2026-09-28
 
 Class: **AUTHOR-SIDE DOCUMENTATION SUCCESSOR — NON-AUTHOR REVIEW REQUIRED**
@@ -23,7 +25,7 @@ ancestor, grant publication authority or transfer any review verdict to new byte
   `9db5e65d92b7e663c808ef9a10e3c1bbba45e316d09f933779a24d346481439d`.
 - Combined-candidate review SHA-256
   `f2f48e8f0b5be969a927768dee75047e587a752f1ae51da52432f92794c1ad5a`.
-- Billy 1 Linux freeze-packet tarball SHA-256
+- contributor C Linux freeze-packet tarball SHA-256
   `9cde5f3bdc9dad56a40cf5b91cd43f10fbfde697cfedaf558f299463432c8979`.
 - Owner SDK-rights statement SHA-256
   `d2b4f0e0551ae615b4cad77c76a79963c2e0ccac6acbbf69cd75158b46b00d78`.
@@ -99,25 +101,25 @@ their labels as follows:
 
 ## Authorship and review separation
 
-- Combined candidate and packaging: CODEX author; Claude non-author review,
+- Combined candidate and packaging: contributor A author; contributor B non-author review,
   bounded to Darwin/local/unpublished evidence.
-- Replay browser UI: Claude author; CODEX performed a bounded frontend review
+- Replay browser UI: contributor B author; contributor A performed a bounded frontend review
   on the preserved UI bytes.
-- Solana repair `9f6aaf77020ebc7d56c0ff272f157320d156ccd2`: CODEX author; Claude reviewed
+- Solana repair `9f6aaf77020ebc7d56c0ff272f157320d156ccd2`: contributor A author; contributor B reviewed
   it unchanged inside the combined candidate.
-- Freeze packet/Linux measurements: Billy 1 operator and packet author; not
+- Freeze packet/Linux measurements: contributor C operator and packet author; not
   an independent product-acceptance reviewer.
-- Local recording: Billy 2 operator; not an acceptance review.
-- Claude authored the Replay browser UI, so Claude's review of this
+- Local recording: contributor D operator; not an acceptance review.
+- contributor B authored the Replay browser UI, so contributor B's review of this
   documentation commit is non-author for these docs but touches text about
-  Claude's own work.
-- Claude authored submission-copy REV2 and REV3.
-- KIMI backup's licence verdict on `d93cab02…` and Claude's verdict on
-  `d39517a…` are separate scopes. KIMI backup's verdict of record is CHANGES;
+  contributor B's own work.
+- contributor B authored submission-copy REV2 and REV3.
+- reviewer E backup's licence verdict on `d93cab02…` and contributor B's verdict on
+  `d39517a…` are separate scopes. reviewer E backup's verdict of record is CHANGES;
   the failing checksum condition is closed in `d39517a…`. This
   review-recording and manifest-completion successor requires its own
   non-author review. None of those reviews approves the combined release.
-- Four Claude PASS lanes are four scopes from one reviewer, not four
+- Four contributor B PASS lanes are four scopes from one reviewer, not four
   independent reviewers.
 
 ## Licence state
@@ -129,7 +131,7 @@ their labels as follows:
   SHA-256 `d2b4f0e0551ae615b4cad77c76a79963c2e0ccac6acbbf69cd75158b46b00d78`
   and selects Apache-2.0 option (a).
 - Ancestor `d93cab02…` carries Apache-2.0 in the nested SDK package metadata and
-  an SDK-local LICENSE byte-identical to the root LICENSE. KIMI backup's
+  an SDK-local LICENSE byte-identical to the root LICENSE. reviewer E backup's
   verdict of record on exactly those four changed paths is CHANGES, bound to
   HEAD `d93cab02758ee8a0b0f92accb0cfe78c37b6497b`, TREE
   `22dcc1eb62664340326c4a52eea02cb02a926cdf`, and report SHA-256
@@ -139,7 +141,7 @@ their labels as follows:
   The review did not adjudicate ownership or authorize release.
 - Preserved `4be5ff78…` still declares the nested SDK `UNLICENSED`; it has not
   been modified.
-- No whole-tree "wholly open source" claim is made here. KIMI backup's review
+- No whole-tree "wholly open source" claim is made here. reviewer E backup's review
   is limited to the four-path licence delta; the remaining third-party and
   history limitations must stay visible.
 
@@ -149,7 +151,7 @@ The Conformance Darwin run registers 217 tests (211 pass, 6 skip); the Linux
 run registers 214 (212 pass, 2 skip). The extra three Darwin tests are the
 subtests of `N1 real Seatbelt` at
 `apps/raven-conformance/test/disclosure-regressions.test.js:25`. They register
-only when that Darwin-only test runs. Claude reproduced the Darwin count on
+only when that Darwin-only test runs. contributor B reproduced the Darwin count on
 2026-09-28 with Node 22.18.0 and name-diffed it against the Linux transcript;
 exactly those three names differ.
 
@@ -181,7 +183,7 @@ behavior or the scope of any prior review.
 - The live site serves the 12-vector public Solana slice. The 27-row corpus and
   Replay browser remain local and unpublished.
 - Linux package measurements do not establish the unrun Linux browser harness,
-  KIMI stranger test, Windows behavior or deployment behavior.
+  reviewer E stranger test, Windows behavior or deployment behavior.
 
 No push, PR mutation, merge, deploy, publication, repository-visibility
 change, outreach, upload, form submission or paid action is authorized by this

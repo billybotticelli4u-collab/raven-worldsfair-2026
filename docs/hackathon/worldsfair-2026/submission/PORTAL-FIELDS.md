@@ -1,3 +1,5 @@
+> **Historical draft — superseded.** This earlier Conformance-first draft is retained for provenance, not current submission instructions. Use the [current canonical submission set](README.md): **Raven**, **https://ravenattest.com/**, with **Compare real Kit versions** first. This file does not establish portal submission or completed media.
+
 # Portal fields — one canonical set, not submitted
 
 All blocks below are the selected plain-text values, not alternatives. A2 is identical to the card's about-text. Counts include line breaks. Limits are inherited from REV9-S8 and the retained submission packet; the live portal labels were not rechecked in this local reconciliation. Glen must check those labels before pasting. No prices, terms, customer or release readiness is implied.

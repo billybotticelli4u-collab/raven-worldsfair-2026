@@ -2,3 +2,14 @@
 select,textarea{color:#172925;background:#fffdf7;border-color:#7b9183}.controls .secondary{background:transparent;color:#172925}.controls .secondary:hover{background:#173e35;color:white}.accept{color:#116245}.reject{color:#b32e26}
 select,textarea{color:#17191c;border-color:#83929d}.controls .secondary{color:#17191c}.controls .secondary:hover{background:#15181c;color:white}.accept{color:#086886}
 .accept{color:#176b3c}
+.decoder-explanation{margin:0 0 10px}.decoder-raw summary{cursor:pointer;text-decoration:underline;text-underline-offset:3px}.decoder-raw summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.decoder-raw pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 monospace;margin-top:12px}
+@media(max-width:600px){
+  .comparison .table-scroll{overflow:visible}
+  .comparison table,.comparison tbody,.comparison tr,.comparison td{display:block;width:100%}
+  .comparison caption{display:block;width:100%}
+  .comparison thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .comparison tr{border:1px solid var(--line);margin-bottom:16px;padding:8px 16px}
+  .comparison td{border:0;min-width:0;padding:10px 0;overflow-wrap:anywhere}
+  .comparison td::before{content:attr(data-label);display:block;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+  .comparison td:last-child{border-top:1px solid var(--line)}
+}

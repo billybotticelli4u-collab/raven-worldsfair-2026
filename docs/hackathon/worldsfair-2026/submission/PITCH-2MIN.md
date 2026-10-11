@@ -1,3 +1,5 @@
+> **Historical draft — superseded.** This earlier Conformance-first draft is retained for provenance, not current submission instructions. Use the [current canonical submission set](README.md): **Raven**, **https://ravenattest.com/**, with **Compare real Kit versions** first. This file does not establish portal submission or completed media.
+
 # Founder pitch — one recording draft, target 2:00
 
 Not recorded or uploaded. Glen delivers this in his own voice. The selected spoken text is 256 words. Aim for 2:00, and confirm the live portal label before recording: older sources disagree between “up to two minutes” and “two to three minutes.” Timing below is a speaking target, not measured media. No unconfirmed biography is included.

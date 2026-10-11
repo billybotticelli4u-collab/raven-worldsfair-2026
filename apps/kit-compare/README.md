@@ -11,7 +11,7 @@ cd apps/kit-compare
 python3 -m http.server 8080 --bind 127.0.0.1
 ```
 
-Open http://127.0.0.1:8080/compare.html and click **Run real comparison**. Stop with Ctrl-C. Use a different port if 8080 is occupied. The page's home links point to `/`; when serving only this folder, that is the directory listing, not the hosted Raven homepage.
+Open http://127.0.0.1:8080/compare.html and click **Run real comparison**. Stop with Ctrl-C. Use a different port if 8080 is occupied. The page's home and privacy links belong to the hosted Raven site; when serving only this folder, `/` is the directory listing and `privacy.html` is not included. Visit https://ravenattest.com/privacy.html for the current notice.
 
 | Synthetic example | Kit 3.0.3 | Kit 4.0.0 | Kit 8.3.0 |
 | --- | --- | --- | --- |
@@ -44,6 +44,6 @@ The tests verify all three bundle hashes and execute their actual decoder calls 
 
 ## Source and attribution
 
-The comparison page, worker, styles, examples, logo, manifest, bundles and font assets are copied byte-for-byte from `apps/raven-site` at source commit `05f11778dbd57a5c67a95cf4b19871a3d1c9ea18`. The comparison implementation first appears in that history at `a796a85d0e77ea8809e156c6104cbd51bcb1b73c`; this is a history statement, not proof of invention. Site styling, branding and fonts are reused foundations; Kit is third-party software, not Raven-authored. Each Kit version's MIT licence is retained in `decoder-vendor/LICENSE-*`; the Manrope and Barlow Condensed font licences are retained in `fonts/*-OFL.txt`. The existing [component provenance](../../docs/hackathon/worldsfair-2026/PROVENANCE_MANIFEST_V3.md) remains applicable to the other demonstrations.
+The comparison page and its three presentation files (`compare.html`, `_decoder-compare.js`, `_decoder-compare.css`, `_index-style.css`) are synchronized with the 11 October site correction. The worker, examples, logo, manifest, bundles and font assets retain their byte-for-byte source at commit `05f11778dbd57a5c67a95cf4b19871a3d1c9ea18`. Those four files are byte-identical to `apps/raven-site` at source commit `d5292174f84d32c66cb6c55809afe7bc96e3fbbc`. The comparison implementation first appears in that history at `a796a85d0e77ea8809e156c6104cbd51bcb1b73c`; this is a history statement, not proof of invention. Site styling, branding and fonts are reused foundations; Kit is third-party software, not Raven-authored. Each Kit version's MIT licence is retained in `decoder-vendor/LICENSE-*`; the Manrope and Barlow Condensed font licences are retained in `fonts/*-OFL.txt`. The existing [component provenance](../../docs/hackathon/worldsfair-2026/PROVENANCE_MANIFEST_V3.md) remains applicable to the other demonstrations.
 
 Serving this folder does not deploy the comparison on the Conformance site's root configuration. No live-page/source identity, external audit, customer usage or release clearance follows from putting these files in the public repository.

@@ -1,3 +1,5 @@
+> **Historical draft — superseded.** This earlier Conformance-first draft is retained for provenance, not current submission instructions. Use the [current canonical submission set](README.md): **Raven**, **https://ravenattest.com/**, with **Compare real Kit versions** first. This file does not establish portal submission or completed media.
+
 # Colosseum card — canonical draft, not applied
 
 One about-text, shared byte-for-byte with A2 in [PORTAL-FIELDS.md](PORTAL-FIELDS.md). This is the selected copy for Glen's go-ahead; no portal write is part of this successor.
