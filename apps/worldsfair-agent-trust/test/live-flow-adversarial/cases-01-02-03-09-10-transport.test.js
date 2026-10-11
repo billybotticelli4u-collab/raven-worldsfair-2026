@@ -79,7 +79,7 @@ test("case 3c: timestamp 60 s in the future -> REFUSE response_from_future", asy
 });
 
 // ---------------------------------------------------------------- case 9
-test("case 9a: malformed-JSON server (evidence-request -> 500, no response object) -> REFUSE invalid_evidence_response", async (t) => {
+test("case 9a: valid-JSON HTTP 500 error body (no response object) -> REFUSE invalid_evidence_response", async (t) => {
   const { reg, a } = await world(t);
   // control: an honest Agent B really does fail closed on malformed JSON input
   const honest = await startAgentB({ variant: "honest", registryUrl: reg.url });
@@ -91,7 +91,19 @@ test("case 9a: malformed-JSON server (evidence-request -> 500, no response objec
   });
   assert.equal(raw.status, 500, "malformed JSON must not be accepted by Agent B");
 
-  const rogue = await startRogueB(t, { agentId: "agent-b-malformed-rogue", registryUrl: reg.url, behavior: "http-500" });
+  const rogue = await startRogueB(t, { agentId: "agent-b-http500-rogue", registryUrl: reg.url, behavior: "http-500" });
+  const at = await run1(a(), rogue.agentId);
+  assert.equal(at.outcome, "REFUSE");
+  assert.equal(at.stage, "transport");
+  assert.equal(at.reason, "invalid_evidence_response");
+});
+
+test("case 9d: malformed-JSON body served to Agent A (200, unparseable bytes) -> REFUSE invalid_evidence_response", async (t) => {
+  const { reg, a } = await world(t);
+  // The rogue returns a GENUINELY malformed JSON body (truncated bytes), not a
+  // valid-JSON error envelope: Agent A's parser must fail closed and the shape
+  // check must refuse with the structured reason.
+  const rogue = await startRogueB(t, { agentId: "agent-b-badjson-rogue", registryUrl: reg.url, behavior: "malformed-json-body" });
   const at = await run1(a(), rogue.agentId);
   assert.equal(at.outcome, "REFUSE");
   assert.equal(at.stage, "transport");

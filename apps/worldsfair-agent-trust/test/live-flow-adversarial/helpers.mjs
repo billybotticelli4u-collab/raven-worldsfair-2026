@@ -78,8 +78,21 @@ function honestEvidenceResponse(request) {
  *   "echo-future"         fresh response, respondedAt 60 s in the future
  *   "field-flip"          first response's receipt gets ONE field altered
  *                         without re-signing, then replayed to every request
- *   "http-500"            evidence-request -> 500 agent_b_error (malformed-JSON
- *                         server behavior; Agent A sees no response object)
+ *   "http-500"            evidence-request -> 500 agent_b_error (VALID JSON error
+ *                         body; Agent A sees an error object, no response object)
+ *   "malformed-json-body" evidence-request -> 200 with a GENUINELY MALFORMED JSON
+ *                         body (truncated bytes, JSON content-type); Agent A's
+ *                         parser must fail closed on the unparseable bytes
+ *   "live-predated-receipt"    response claims liveAcquisition:true and the
+ *                         receipt timestamp is 60 s BEFORE challenge.issuedAt
+ *                         (live-path challenge-binding gate must refuse)
+ *   "live-invalid-receipt-timestamp" response claims liveAcquisition:true and
+ *                         the receipt timestamp is unparseable
+ *   "fixture-card-claims-live" response claims liveAcquisition:true while the
+ *                         card (and Agent A's transcript) says retained_fixture;
+ *                         receipt timestamp moved just AFTER the challenge so
+ *                         the binding gate passes and the tampered receipt
+ *                         reaches verification
  *   "oversized-response"  evidence-request -> 200 with a >64 KiB JSON body
  * cardTamper: if set, the /.well-known card is the registered card with these
  * fields changed after listing (capability / endpoint / verifierPin variants).
@@ -118,10 +131,37 @@ export async function startRogueB(t, { agentId, registryUrl, behavior, cardTampe
       if (behavior === "http-500") {
         return sendJson(res, 500, { error: "agent_b_error" });
       }
+      if (behavior === "malformed-json-body") {
+        // Status 200 and a JSON content-type, but the body is truncated,
+        // unparseable bytes — a genuinely malformed JSON response to Agent A.
+        res.writeHead(200, {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+        });
+        return res.end('{"protocol":"raven-agent-trust-live/0","response":{"challengeEcho":{"nonce":"deadbeef');
+      }
       if (behavior === "oversized-response") {
         const payload = JSON.stringify({ protocol: "raven-agent-trust-live/0", response: honestEvidenceResponse(request), padding: "x".repeat(70 * 1024) });
         res.writeHead(200, { "content-type": "application/json" });
         return res.end(payload);
+      }
+      if (behavior === "live-predated-receipt" ||
+          behavior === "live-invalid-receipt-timestamp" ||
+          behavior === "fixture-card-claims-live") {
+        // Live-path rogues (Billy 2's challenge-binding gate, 005c84a): the
+        // response CLAIMS live acquisition; the receipt timestamp is moved
+        // relative to THIS request's challenge.issuedAt.
+        const response = honestEvidenceResponse(request);
+        const issuedMs = Date.parse(request.challenge?.issuedAt ?? "");
+        if (behavior === "live-predated-receipt") {
+          response.evidence = { ...response.evidence, timestamp: new Date(issuedMs - 60_000).toISOString() };
+        } else if (behavior === "live-invalid-receipt-timestamp") {
+          response.evidence = { ...response.evidence, timestamp: "not-a-time" };
+        } else {
+          response.evidence = { ...response.evidence, timestamp: new Date(issuedMs + 1_000).toISOString() };
+        }
+        response.source = { ...(response.source ?? {}), liveAcquisition: true };
+        return sendJson(res, 200, { protocol: "raven-agent-trust-live/0", response });
       }
       if (behavior === "replay-same-nonce" && firstResponse) {
         return sendJson(res, 200, { protocol: "raven-agent-trust-live/0", response: firstResponse });
