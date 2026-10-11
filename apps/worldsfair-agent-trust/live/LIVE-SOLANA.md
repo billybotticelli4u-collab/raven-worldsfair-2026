@@ -68,14 +68,17 @@ these live checks, each shown as OK / FAIL:
   `x-api-key` header; never printed, logged or written (all output and the
   report are redacted). Arguments are never echoed.
 - Exactly one endpoint: `POST https://raven-hosted-verifier.onrender.com/receipt/v1`
-  with body `{"mintAddress","tokenProgramAddress"}`. Nothing else: no liquidity
+  with body `{"mintAddress","tokenProgramAddress"}` (the API's optional `commitment`
+  defaults to `finalized` per its public OpenAPI schema). Nothing else: no liquidity
   or other endpoints, no Solana RPC, no wallet, no signing, no SOL spent.
 - **Call budget: 3 HTTP calls per run by default** (a normal run makes 1, or 2
   with the single retry). `--max-calls N` may raise it up to the **hard cap of
   20**; any value above 20 (or 0, or not a whole number) is refused before
   any call — it is never silently clamped. One retry at most, only after a
   timeout, network error or HTTP 5xx. Per-request timeout (20 s default, 60 s
-  max). Redirects are not followed.
+  max). Redirects are not followed. Programmatic callers that share a budget
+  (`budget:` option) must pass one made by `createCallBudget`; any other object
+  is refused (`call_budget_not_authentic`) before any call (Billy 2, CODEX F-2).
 - **API base allowlist.** `--api-base` (or `RAVEN_API_BASE`; the flag wins)
   accepts only `https://raven-hosted-verifier.onrender.com` (the default) or
   plain `http://` to a local stub on `127.0.0.1`, `localhost` or `[::1]`

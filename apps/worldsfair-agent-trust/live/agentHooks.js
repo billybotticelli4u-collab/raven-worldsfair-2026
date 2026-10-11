@@ -19,6 +19,8 @@ import {
   LiveError,
   SOLANA_MAINNET,
   createCallBudget,
+  forgedBudgetError,
+  isAuthenticCallBudget,
   prepareLiveConfig,
   requestReceipt,
   validateSubject,
@@ -40,6 +42,8 @@ export function createLiveEvidenceProvider(opts = {}) {
   const cfg = prepareLiveConfig({
     apiKey: opts.apiKey, apiBase: opts.apiBase, timeoutMs: opts.timeoutMs, maxCalls: opts.maxCalls,
   });
+  // Billy 2 integration fix (CODEX 755269e4 F-2): only a createCallBudget budget is accepted.
+  if (opts.budget !== undefined && opts.budget !== null && !isAuthenticCallBudget(opts.budget)) throw forgedBudgetError();
   const budget = opts.budget ?? createCallBudget(cfg.maxCalls);
   const source = Object.freeze({
     mode: LIVE_SOURCE_MODE,

@@ -131,6 +131,9 @@ export function validateMaxCalls(raw) {
   return n;
 }
 
+/** Budgets made by createCallBudget (module-private brand; see isAuthenticCallBudget). */
+const AUTHENTIC_BUDGETS = new WeakSet();
+
 /**
  * Per-run HTTP call counter. Default DEFAULT_CALL_BUDGET; may be set up to
  * the hard cap MAX_HTTP_CALLS_PER_RUN, never above (throws). take() throws
@@ -139,7 +142,7 @@ export function validateMaxCalls(raw) {
 export function createCallBudget(limit = DEFAULT_CALL_BUDGET) {
   const max = validateMaxCalls(limit);
   let used = 0;
-  return Object.freeze({
+  const budget = Object.freeze({
     get max() { return max; },
     get used() { return used; },
     take() {
@@ -151,6 +154,25 @@ export function createCallBudget(limit = DEFAULT_CALL_BUDGET) {
       return used;
     },
   });
+  AUTHENTIC_BUDGETS.add(budget);
+  return budget;
+}
+
+/*
+ * Billy 2 integration fix for CODEX review 755269e4 F-2: a caller-supplied
+ * budget is accepted only if createCallBudget made it (module-private brand),
+ * so its max is 1..MAX_HTTP_CALLS_PER_RUN and take() is the real counter.
+ * Lookalike objects ({max, used, take}) are refused before any request.
+ */
+/** True only for budgets created by createCallBudget in this module. */
+export function isAuthenticCallBudget(budget) {
+  return typeof budget === "object" && budget !== null && AUTHENTIC_BUDGETS.has(budget);
+}
+
+/** LiveError for a budget that did not come from createCallBudget. */
+export function forgedBudgetError() {
+  return new LiveError("call_budget_not_authentic", "config",
+    `A call budget must come from createCallBudget (hard cap ${MAX_HTTP_CALLS_PER_RUN}); nothing was sent.`);
 }
 
 /* ------------------------------------------------------------ redaction */
@@ -293,6 +315,7 @@ export async function requestReceipt({ apiBase, apiKey, subject, timeoutMs, budg
     mintAddress: subject.mintAddress,
     tokenProgramAddress: subject.tokenProgramAddress,
   });
+  if (!isAuthenticCallBudget(budget)) throw forgedBudgetError();
   let lastError = null;
   for (let attempt = 1; attempt <= 1 + MAX_RETRIES; attempt += 1) {
     budget.take();
@@ -635,7 +658,8 @@ export function prepareLiveConfig(opts = {}) {
  * @param {number|string} [opts.maxCalls] per-run budget, default 3, 1..20 (hard cap)
  * @param {() => Date} [opts.clock] evaluation clock (default wall clock)
  * @param {typeof fetch} [opts.fetchImpl]
- * @param {ReturnType<typeof createCallBudget>} [opts.budget] share a cap across calls
+ * @param {ReturnType<typeof createCallBudget>} [opts.budget] share a cap across calls; must come from
+ *   createCallBudget, anything else is refused (call_budget_not_authentic) before any call
  * @returns {Promise<{ok:boolean, decision:"PROCEED"|"REFUSE", reason:string,
  *   receipt:object|null, verification:object|null, tamperControl:object|null,
  *   report:object|null, error:{code:string,kind:string,message:string}|null, httpCalls:number}>}
@@ -657,6 +681,11 @@ export async function fetchAndVerifyLiveReceipt(opts = {}) {
     httpCalls: budget ? budget.used : 0,
     ...extra,
   });
+
+  if (budget !== null && !isAuthenticCallBudget(budget)) {
+    budget = null;
+    return fail(forgedBudgetError());
+  }
 
   let cfg;
   try {
