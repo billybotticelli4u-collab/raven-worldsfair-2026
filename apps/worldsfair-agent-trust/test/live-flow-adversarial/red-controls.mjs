@@ -167,6 +167,12 @@ const SPECS = [
     testFile: LIVEPATH, pattern: "^case 11",
     expect: { actual: "integrity_or_malformed" },
     measured: "with the binding gate removed, the moved-timestamp live receipts fall through to verification: refusal reason flips receipt_predates_challenge / receipt_timestamp_invalid -> integrity_or_malformed (stage flips challenge_binding -> verification); the precise live-binding refusal is lost" },
+  { id: "RC13", cased: "12 live provider card label (a022ebf)", file: "src/live/agentBServer.js",
+    anchor: "(evidenceProvider ? (evidenceProvider.evidenceSourceLabel ?? CUSTOM_SOURCE_LABEL) : FIXTURE_SOURCE_LABEL)",
+    replacement: "FIXTURE_SOURCE_LABEL /* RED CONTROL: live-provider label precedence removed */",
+    testFile: LIVEPATH, pattern: "^control: an honest Agent B with a plugged-in live provider",
+    expect: { actual: "retained_fixture" },
+    measured: "with the label precedence removed, an Agent B with a plugged-in live provider advertises retained_fixture again: the notEqual guard fails with actual 'retained_fixture' (Billy 2's M2 mutation)" },
 ];
 
 // Import/setup failures: these mean the mutated tree never ran the intended
