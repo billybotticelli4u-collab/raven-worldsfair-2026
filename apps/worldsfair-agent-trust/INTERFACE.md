@@ -58,7 +58,7 @@ import { runLiveDemo } from "./src/live/liveDemo.js";            // ({ json?, ou
 - Every server binds **127.0.0.1** and the host cannot be changed. Port: `config.port`, then
   `RAVEN_LIVE_PORT`, then 0 (ephemeral). Port must be an integer 0–65535 (`port_invalid`).
 - The client (`loopbackJson`) refuses any non-`http://127.0.0.1:<port>` target
-  (`non_loopback_target_refused`). It follows no redirects, has a 5 s default timeout and caps bodies at 64 KiB.
+  (`non_loopback_target_refused`). It follows no redirects, has a 5 s default timeout and caps bodies at 64 KiB. The response cap is enforced while streaming: a declared Content-Length over 64 KiB is refused before reading, otherwise reading stops (connection closed) once 64 KiB is exceeded, and the call fails with `response_too_large`.
 
 ## 3. Agent card — `raven-agent-card/0`
 ```json

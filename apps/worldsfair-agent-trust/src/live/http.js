@@ -81,7 +81,8 @@ export function isLoopbackUrl(value) {
 
 /**
  * POST/GET JSON to a loopback peer. Refuses non-loopback targets, follows no
- * redirects, caps the response size and time.
+ * redirects, caps the response size and time. The size cap is enforced while
+ * streaming (CODEX d223799f F-1): see readResponseCapped.
  */
 export async function loopbackJson(url, { method = "GET", body, timeoutMs = DEFAULT_HTTP_TIMEOUT_MS } = {}) {
   if (!isLoopbackUrl(url)) throw new Error("non_loopback_target_refused");
@@ -92,7 +93,7 @@ export async function loopbackJson(url, { method = "GET", body, timeoutMs = DEFA
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(timeoutMs),
   });
-  const text = await res.text();
+  const text = await readResponseCapped(res, MAX_BODY_BYTES);
   if (Buffer.byteLength(text) > MAX_BODY_BYTES) throw new Error("response_too_large");
   let json = null;
   try {
@@ -101,4 +102,36 @@ export async function loopbackJson(url, { method = "GET", body, timeoutMs = DEFA
     json = null;
   }
   return { status: res.status, json };
+}
+
+/**
+ * Read a fetch Response body without ever holding more than `limit` bytes
+ * plus the chunk that crossed it.
+ * - A declared Content-Length above `limit` is refused before any body byte
+ *   is read: the body is cancelled (connection closed) and
+ *   `response_too_large` is thrown with `bytesRead = 0`.
+ * - Otherwise bytes are counted per chunk; as soon as the count exceeds
+ *   `limit` the body is cancelled (connection closed) and the bytes read so
+ *   far are returned, so the caller's size check refuses them.
+ */
+export async function readResponseCapped(res, limit) {
+  const declared = res.headers.get("content-length");
+  if (declared !== null && /^\s*[0-9]+\s*$/.test(declared) && Number(declared) > limit) {
+    try { await res.body?.cancel(); } catch { /* already closed */ } // declared-length-check
+    const err = new Error("response_too_large");
+    err.bytesRead = 0;
+    throw err;
+  }
+  if (!res.body) return "";
+  const reader = res.body.getReader();
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    total += value.byteLength;
+    if (total > limit) { try { await reader.cancel(); } catch { /* closed */ } break; } // streaming-cap-check
+  }
+  return Buffer.concat(chunks.map((c) => Buffer.from(c.buffer, c.byteOffset, c.byteLength))).toString("utf8");
 }
