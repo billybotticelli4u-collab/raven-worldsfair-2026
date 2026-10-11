@@ -2,13 +2,21 @@
 
 Raven checks how Solana transaction readers handle tricky bytes, and lets an agent verify a signed receipt offline before it acts. [**Judges: start here.**](JUDGE_START_HERE.md)
 
+## Compare real Kit versions
+
+**30 seconds, nothing to install:** [open the browser comparison](https://ravenattest.com/compare.html) and click **Run real comparison**. The same synthetic version-3 bytes run through published `@solana/kit` 3.0.3, 4.0.0 and 8.3.0 in your browser. Expect **3.0.3 ACCEPT (version 3)** and **4.0.0 / 8.3.0 REJECT**. A difference is evidence to investigate, not a bug claim or safety verdict. The downloadable report is unsigned.
+
+[Source and local serving instructions](apps/kit-compare/README.md) · [pinned bundle SHA-256 hashes](apps/kit-compare/decoder-vendor/manifest.json). No wallet, signing, RPC or upload is needed; use public or synthetic bytes. The two decoder calls and their limits are explicit in the source README.
+
+## Conformance and Agent Trust
+
 In two minutes, [Raven Conformance](https://raven-worldsfair-2026.vercel.app/) shows a Raven-owned reader diverging on V03/V16 (proposed v1, SIMD-0385) and V10 (a non-canonical length): 27 match, 3 differ, then the reference matching 30/30. The separate **Agent Trust** offline fixture shows Agent A PROCEED with a valid receipt and REFUSE after one finding code changes without a new signature. From a recursive checkout, run `npm run demo`. Both paths and their expected output are in the judge guide.
 
 ## Scope and limits
 
-The hosted page's Build Info asserts build `1db786e6` (current `main`; an unverified platform assertion, not proof of served bytes). The Conformance reproduction pin `2cb12875` has byte-identical Conformance product code (`apps/raven-conformance` unchanged) and reproduces the same corpus, though it predates the Agent Trust `npm run demo` command. Conformance reports are unsigned and a match is not a safety verdict. Agent Trust uses a deterministic fixture (`liveAcquisition:false`), not live Solana acquisition; PROCEED is a fixture policy result, not permission to transact. The hosted page runs Raven-owned demonstration readers, not visitor uploads. [Local saved-case Replay](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md) and [Hosted saved-case Replay](https://raven-replay.vercel.app) are separate applications; hosted source is [public on an unmerged branch at `51b60b7b`](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). Source availability does not prove deployed bytes or hosted execution.
+The hosted page's Disclosure / Build Info shows the commit it asserts (read it from /api/build-info; it can lag `main`; an unverified platform assertion, not proof of the served bytes). The Conformance app, api/ and vercel.json are unchanged since dba22af. The Conformance reproduction pin `2cb12875` has byte-identical Conformance product code (`apps/raven-conformance` unchanged) and reproduces the same corpus, though it predates the Agent Trust `npm run demo` command; run `npm run demo` from a clone of `main`, not from a checkout of the asserted build. Conformance reports are unsigned and a match is not a safety verdict. Agent Trust uses a deterministic fixture (`liveAcquisition:false`), not live Solana acquisition; PROCEED is a fixture policy result, not permission to transact. The hosted page runs Raven-owned demonstration readers, not visitor uploads. [Local saved-case Replay](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md) and [Hosted saved-case Replay](https://raven-replay.vercel.app) are separate applications; hosted source is [public on an unmerged branch at `51b60b7b`](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). Source availability does not prove deployed bytes or hosted execution.
 
-The [third-party decoder measurements](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md) lead with 13 structural rows and distinguish them from adapter and policy rows. The scores remain Billy's retained measurements; Billy 1's later author reconciliation explains the one-row Kit difference (V10, adapter composition) and corrects the V10 interpretation; KIMI's confirmation is pending. Kit's trailing-byte tolerance is a documented maintainer-accepted tradeoff (kit#1963); impact unassessed.
+The [third-party decoder measurements](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md) lead with 13 structural rows and distinguish them from adapter and policy rows. An internal non-author review independently confirmed the retained Kit 8.4.0 result by reproducing both adapters row by row: V10 is the only differing row, caused by adapter composition ([confirmation record](docs/hackathon/worldsfair-2026/JUDGE_PROVENANCE_APPENDIX.md#kit-v10-independent-confirmation)). The displayed scores remain the original measurements under their recorded row mapping. Kit's trailing-byte tolerance is a documented maintainer-accepted tradeoff (kit#1963); impact unassessed.
 
 The [canonical submission set](docs/hackathon/worldsfair-2026/submission/README.md) contains one card, portal field set, product demo and founder pitch, all drafts awaiting go-ahead. Sections below retain the required attribution; technical history is in the [provenance appendix](docs/hackathon/worldsfair-2026/JUDGE_PROVENANCE_APPENDIX.md). This repository has recorded Vercel Preview and Production deployments; a push may trigger hosting automation and does not authorize a change to ravenattest.com. The hosted Replay branch does not provide a provisioned execution snapshot or service credentials.
 
@@ -126,32 +134,15 @@ npm dependencies; verification code comes from the git submodule.
 
 | Path | Role |
 | --- | --- |
+| [`apps/kit-compare/`](apps/kit-compare/README.md) | Browser comparison of three published Kit versions; pinned bundles, licences and synthetic examples |
 | `apps/worldsfair-agent-trust/` | Fair Day-2 agent↔agent demo (FAIR_NEW) |
 | `apps/raven-conformance/` | Fair-era Conformance runner, profiles, UI and corpora; imported Solana target bytes retain their recorded Raven lineage |
 | `apps/raven-replay/` | Fair-era saved-case Replay prototype, including the nested parser SDK; included upstream history is limited as disclosed in V3 |
 | `apps/raven-site/` | Pre-existing Raven site apart from the Fair-era `worldsfair/` surface and changed Vercel configuration |
 | `docs/hackathon/worldsfair-2026/` | Fair provenance + PUBLIC_EXPOSURE_MANIFEST_V2 |
 | `vendor/raven-receipt-verifier/` | **Submodule** — PRE-EXISTING foundation pin |
-| `EXPORTED_FILE_MANIFEST.md` | Exact exported file set vs V2 |
+| [`docs/internal/`](docs/internal/README.md) | Historical operations notes and the original export manifest |
 
 ---
 
-## Review / deploy honesty
-
-- This repository is **not** Owner production-publish authorization by itself
-  beyond the Fair public surface authorized for this contest demo.
-- **Deploy to ravenattest.com / `/worldsfair` is HOLD** — not performed
-  by this Day-2 tip-bump pass.
-- **No npm publish** of `raven-receipt-verifier` or this Fair app.
-
-## Related Fair app: Raven Conformance MVP
-
-Judge-usable Conformance product MVP (separate from Agent Trust):
-
-- Path: [`apps/raven-conformance/`](apps/raven-conformance/)
-- Branch tip for this work: `billy/fair-conformance-mvp-2026-09-16`
-- Loop: target → claimed profile → corpus → evidence report → clean reproduction
-- Local: `cd apps/raven-conformance && npm test && npm start` → http://127.0.0.1:8791
-
-Build Stage product milestone. Does not claim Day-3 Evidence Contract Handshake
-as this product. See that app's README for PRE-EXISTING vs FAIR-built disclosure.
+The [historical operations archive](docs/internal/README.md) preserves older deployment and promotion notes. It is not current release authority. This source update does not authorize a production deployment or npm publication.

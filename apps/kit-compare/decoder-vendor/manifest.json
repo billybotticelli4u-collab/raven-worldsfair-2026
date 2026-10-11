@@ -1,0 +1,23 @@
+{
+  "source": "Unmodified @solana/kit production UMD bundles from npm via unpkg",
+  "files": [
+    {
+      "version": "3.0.3",
+      "file": "kit-3.0.3.js",
+      "source": "https://unpkg.com/@solana/kit@3.0.3/dist/index.production.min.js",
+      "sha256": "56778f4c15228ba6e2b2c3a0126e93562cd1681555232250ecc06c08847f9f72"
+    },
+    {
+      "version": "4.0.0",
+      "file": "kit-4.0.0.js",
+      "source": "https://unpkg.com/@solana/kit@4.0.0/dist/index.production.min.js",
+      "sha256": "897742a5905e3d0b49e881c2ac2b94e4889292fe2b76be05fc0630f4248b6225"
+    },
+    {
+      "version": "8.3.0",
+      "file": "kit-8.3.0.js",
+      "source": "https://unpkg.com/@solana/kit@8.3.0/dist/index.production.min.js",
+      "sha256": "bbf744562e1fd5ae6bc29b7ff6e07e11adb2174eadbe7f72d19a1fe992e16c95"
+    }
+  ]
+}

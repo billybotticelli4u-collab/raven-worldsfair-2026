@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="gem" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#e8fffb"/>
+      <stop offset="38%" stop-color="#5ee6d0"/>
+      <stop offset="100%" stop-color="#17b8a6"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="14" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="512" cy="512" r="500" fill="#0d1117"/>
+  <circle cx="512" cy="512" r="478" fill="none" stroke="#1d2738" stroke-width="3"/>
+  <circle cx="512" cy="512" r="466" fill="none" stroke="#16202e" stroke-width="1.5"/>
+  <g stroke="#2e7f74" stroke-width="3">
+    <line x1="512" y1="20"  x2="512" y2="52"/>
+    <line x1="512" y1="972" x2="512" y2="1004"/>
+    <line x1="34"  y1="512" x2="66"  y2="512"/>
+    <line x1="958" y1="512" x2="990" y2="512"/>
+  </g>
+  <g stroke="#1d2738" stroke-width="2">
+    <line x1="160" y1="190" x2="182" y2="212"/>
+    <line x1="842" y1="212" x2="864" y2="190"/>
+    <line x1="160" y1="834" x2="182" y2="812"/>
+    <line x1="842" y1="812" x2="864" y2="834"/>
+  </g>
+  <circle cx="415" cy="478" r="178" fill="#e4e8e5"/>
+  <path fill="#e4e8e5" d="M 540 420 L 782 486 L 548 530 Q 585 474 540 420 Z"/>
+  <g transform="translate(478,440)">
+    <path fill="#0c1014" d="M0,-52 L45,-26 L45,26 L0,52 L-45,26 L-45,-26 Z"/>
+    <path fill="url(#gem)" filter="url(#glow)" d="M0,-34 L29.5,-17 L29.5,17 L0,34 L-29.5,17 L-29.5,-17 Z"/>
+    <path fill="#f2fffd" d="M0,-13 L11.3,-6.5 L11.3,6.5 L0,13 L-11.3,6.5 L-11.3,-6.5 Z"/>
+  </g>
+  <text x="512" y="956" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="30" letter-spacing="14" fill="#2e4a55">TEMPLVM &#183; MMXXVI &#183; RAVEN</text>
+</svg>

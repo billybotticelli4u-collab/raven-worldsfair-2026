@@ -1,6 +1,6 @@
 # Product demo — one recording draft, target 2:45
 
-Not recorded or uploaded. This is the selected cut; no optional beat or alternate command. It combines Billy's Conformance → third-party table → Agent Trust sequence with CODEX's reviewed command and receipt/report distinctions. Confirm the live portal cap before recording; 2:45 is a target, not a measured video.
+Not recorded or uploaded. This is the selected cut; no optional beat or alternate command. It combines the retained Conformance → third-party table → Agent Trust sequence with the reviewed command and receipt/report distinctions. Confirm the live portal cap before recording; 2:45 is a target, not a measured video.
 
 Prepare the actual Conformance page, the [structural results table](../THIRD_PARTY_DECODER_RESULTS.md#structural-results) and a recursive checkout with Node 22.18.0. Use `npm run demo` only. The command needs no install and is already present in the reviewed 1db786e6 parent; this local docs successor does not change it. Verify the hosted build information and rehearse both demos on the recording day.
 

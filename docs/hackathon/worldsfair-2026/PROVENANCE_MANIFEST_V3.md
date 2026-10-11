@@ -86,7 +86,7 @@ its SDK; `raven-solana-replay` is outside this candidate.
 
 ## BONK attribution erratum
 
-The historical `EXPORTED_FILE_MANIFEST.md` and both
+The historical [EXPORTED_FILE_MANIFEST.md](../../internal/EXPORTED_FILE_MANIFEST.md) and both
 `PUBLIC_EXPOSURE_MANIFEST` files remain unchanged because they are records
 bound to Day-2 `a5cd592b…`. For this successor, this V3 document supersedes
 their labels as follows:
@@ -186,3 +186,9 @@ behavior or the scope of any prior review.
 No push, PR mutation, merge, deploy, publication, repository-visibility
 change, outreach, upload, form submission or paid action is authorized by this
 document.
+
+## 11 October 2026 addendum — browser Kit comparison source
+
+The historical manifest above remains bound to its original candidate. The new `apps/kit-compare/` import copies the comparison page, worker, examples, bundle manifest, three published Kit bundles, licences and supporting site assets from source commit `05f11778dbd57a5c67a95cf4b19871a3d1c9ea18`. The comparison implementation first appears in that history at `a796a85d0e77ea8809e156c6104cbd51bcb1b73c` (10 October 2026); this is repository-history evidence, not proof of invention or a whole-tree Fair-work claim. Styling, logo and fonts are reused foundations; Kit is third-party software.
+
+Unlike the nested parser SDK described above, this browser directory **does bundle** the unmodified Kit 3.0.3, 4.0.0 and 8.3.0 production UMD files. Each version's licence is retained alongside it; font licences are retained with the fonts. See the [source, hashes, licence locations and scope](../../../apps/kit-compare/README.md). The original apps, verifier submodule pin, receipt fixtures, lockfiles and retained decoder reports are unchanged. No source-publication, deployment or release clearance is inferred from this local import.

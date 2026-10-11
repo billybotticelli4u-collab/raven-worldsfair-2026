@@ -1,6 +1,6 @@
 # Portal fields — one canonical set, not submitted
 
-All blocks below are the selected plain-text values, not alternatives. A2 is identical to the card's about-text. Counts include line breaks. Limits are inherited from REV9-S8 and Billy's packet; the live portal labels were not rechecked in this local reconciliation. Glen must check those labels before pasting. No prices, terms, customer or release readiness is implied.
+All blocks below are the selected plain-text values, not alternatives. A2 is identical to the card's about-text. Counts include line breaks. Limits are inherited from REV9-S8 and the retained submission packet; the live portal labels were not rechecked in this local reconciliation. Glen must check those labels before pasting. No prices, terms, customer or release readiness is implied.
 
 | Field | Selected value |
 | --- | --- |
@@ -69,10 +69,10 @@ Pre-existing, referenced, not Fair work: Raven's receipt verifier and public tru
 
 <a id="field-b3"></a>
 
-## B3 Repo context — 479/500 characters
+## B3 Repo context — 429/500 characters
 
 ```text
-Current repo: raven-worldsfair-2026. Conformance's 30-row reproduction pin is 2cb12875. Agent Trust's npm run demo is in 1db786e6 and this docs successor. Local saved-case Replay is apps/raven-replay; hosted Replay source is on unmerged branch codex/hosted-replay-source-recovery-51b60b7-20261003 at 51b60b7b, not main. The verifier is a pinned pre-Fair submodule. PROVENANCE_MANIFEST_V3.md attributes components; Apache-2.0. Earlier raven-conformance-worldsfair links are stale.
+Current repo: raven-worldsfair-2026. Conformance's 30-row reproduction pin is 2cb12875. Agent Trust's npm run demo is in 1db786e6 and this docs successor. Local saved-case Replay is apps/raven-replay; hosted Replay source is on an unmerged branch at 51b60b7b, not main. The verifier is a pinned pre-Fair submodule. PROVENANCE_MANIFEST_V3.md attributes components; Apache-2.0. Earlier raven-conformance-worldsfair links are stale.
 ```
 
 <a id="field-b7"></a>
@@ -97,6 +97,6 @@ The Conformance report and the separate saved-case Replay report are unsigned; A
 
 Separate workflows retain separate names: **Replay report** is Conformance's report check; **Local saved-case Replay** is `apps/raven-replay`; **Hosted saved-case Replay** is the separate hosted app whose source is on an unmerged branch. This set leads with Conformance and Agent Trust. It does not certify hosted Replay's snapshot, deployed bytes, distribution clearance or execution readiness.
 
-Third-party headlines use only the 13 structural rows. The three adapter-prelude rows and fourteen sanitize/policy rows are not claims these libraries promise to enforce; solders used a separate harness. These are Billy's retained structural scores. KIMI's initial check confirmed the summary; Billy 1's later author reconciliation traced the one-row Kit difference to V10 adapter composition, with KIMI's confirmation pending. The row taxonomy is derived, and the two mappings differ at V17/V19. The technical results page records that limit, the web3.js-only V10 API split and Kit's documented maintainer-accepted trailing-byte tradeoff (kit#1963). Impact unassessed. No standalone length-encoding follow-up is part of this copy.
+Third-party headlines use only the 13 structural rows. The three adapter-prelude rows and fourteen sanitize/policy rows are not claims these libraries promise to enforce; solders used a separate harness. These are the original retained structural scores. An initial internal non-author review confirmed the summary; a later internal non-author re-run independently confirmed both adapters row by row: V10 is the single differing row, caused by adapter composition ([confirmation record](../JUDGE_PROVENANCE_APPENDIX.md#kit-v10-independent-confirmation)). The row taxonomy is derived, and the two mappings differ at V17/V19. The technical results page records that limit, the web3.js-only V10 API split and Kit's documented maintainer-accepted trailing-byte tradeoff (kit#1963). Impact unassessed. No standalone length-encoding follow-up is part of this copy.
 
-[Source decisions and hashes](SOURCE-MAP.md) preserve the revision lineage. Earlier submitted weekly links were reported as locked in Billy's packet; that portal behavior was not rechecked here. This set corrects the current GitHub field and does not claim to edit those earlier links.
+[Source decisions and hashes](SOURCE-MAP.md) preserve the revision lineage. Earlier submitted weekly links were reported as locked in the retained submission packet; that portal behavior was not rechecked here. This set corrects the current GitHub field and does not claim to edit those earlier links.

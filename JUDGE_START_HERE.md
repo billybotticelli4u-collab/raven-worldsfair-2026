@@ -2,6 +2,10 @@
 
 Raven checks how Solana transaction readers handle tricky bytes, and lets an agent verify a signed receipt offline before it acts.
 
+## Compare real Kit versions — 30 seconds, nothing to install
+
+[Open the comparison](https://ravenattest.com/compare.html) → **Run real comparison**. On the synthetic version-3 example, expect **Kit 3.0.3 ACCEPT (version 3)**; **4.0.0 and 8.3.0 REJECT**. The same bytes run through published bundles in your browser. A difference is not a bug claim or safety verdict. [Source and pins](apps/kit-compare/README.md).
+
 ## 2 minutes, nothing to install
 
 [Conformance](https://raven-worldsfair-2026.vercel.app/): **Solana transaction versions** → **SOL_BROKEN_SUBTLE** → **Run Conformance (live)**. The three differences are V03 and V16 — the proposed, experimental v1 layout (SIMD-0385), which a conformant reader may not yet accept — and V10, a non-canonical length. Then **SOL_CONFORMANT_REFERENCE** → **Run Conformance (live)** → **Replay report**.
@@ -51,7 +55,7 @@ No wallet, sign-in or transaction fetch is needed.
 
 The reader broken against Raven's experimental v1 profile (SIMD-0385) is Raven's demonstration fixture. This does not establish a defect in a customer's decoder. The experimental profile is not a claim of universal transaction correctness.
 
-The hosted page's **Disclosure / Build Info** asserts build `1db786e63766cc2671209331a555b0d9c58c3cbb` (current `main`; an unverified platform assertion, not proof of the served bytes). The Conformance reproduction pin `2cb12875b2a0f65b8a59999ffa33807e35a81e43` has byte-identical Conformance product code (`apps/raven-conformance` unchanged between the two commits), so it reproduces the same corpus; it predates the Agent Trust `npm run demo` command added after it.
+The hosted page's Disclosure / Build Info shows the commit it asserts (read it from /api/build-info; it can lag `main`; an unverified platform assertion, not proof of the served bytes). The Conformance app, api/ and vercel.json are unchanged since dba22af. The Conformance reproduction pin `2cb12875b2a0f65b8a59999ffa33807e35a81e43` has byte-identical Conformance product code (`apps/raven-conformance` unchanged between the two commits), so it reproduces the same corpus; it predates the Agent Trust `npm run demo` command added after it; run `npm run demo` from a clone of `main`, not from a checkout of the asserted build.
 
 If the hosted page is unavailable, reproduce the same corpus locally in a **separate** checkout. This older pin reproduces Conformance; it does not contain the new Agent Trust convenience command:
 
@@ -121,7 +125,7 @@ Reports are unsigned. MATCH means the retained expectation reproduced, not that 
 This repository's main-branch Vercel configuration hosts Conformance, not the local Replay prototype in `apps/raven-replay`. To inspect hosted Replay, use the [public hosted Replay source](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). In a **separate clone**, fetch and check out its recorded source:
 
 ```sh
-git fetch origin codex/hosted-replay-source-recovery-51b60b7-20261003
+git fetch origin 51b60b7b9220d52f95ef747abc0ca5c97250b9e0
 git checkout --detach 51b60b7b9220d52f95ef747abc0ca5c97250b9e0
 ```
 
@@ -133,9 +137,9 @@ A push to this repository may trigger hosting automation. SDK package metadata a
 
 On the **13 structural rows** of Raven's 30-vector experimental corpus, unmodified published decoders matched as follows: Kit 8.4.0 and 8.3.0 each 11/13; Kit 4.0.0 9/13; Kit 3.0.3 8/13; web3.js 1.99.0 (`VersionedTransaction.deserialize`) 12/13; solders 0.29.0 11/13. The Node adapters ran in Raven's official sandboxed runner; solders used a separate harness.
 
-These are not quality rankings. Three other rows test adapter JSON/base64 handling; fourteen test sanitize/policy rules these decoders do not claim to enforce. The corpus is synthetic and its v1 interpretation experimental; agreement by other decoders supports rather than proves that interpretation. KIMI's initial summary check used retained evidence; a later independent reconciliation confirmed web3.js's runner total. The one-row Kit 8.4.0 difference (16/30 vs 15/30) is V10 and comes from adapter composition, not a different Kit. The displayed structural scores remain Billy's retained measurements, not a claim of identical independent row results.
+These are not quality rankings. Three other rows test adapter JSON/base64 handling; fourteen test sanitize/policy rules these decoders do not claim to enforce. The corpus is synthetic and its v1 interpretation experimental; agreement by other decoders supports rather than proves that interpretation. An initial internal non-author review checked the retained summary; a later internal non-author re-run confirmed web3.js's runner total. The Kit 8.4.0 result is independently confirmed: both adapters reproduced row by row, with V10 as their only differing row (16/30 vs 15/30), caused by adapter composition ([confirmation record](docs/hackathon/worldsfair-2026/JUDGE_PROVENANCE_APPENDIX.md#kit-v10-independent-confirmation)). The displayed structural scores remain the original measurements under their recorded row mapping.
 
-Read the [structural results and V10 interpretation](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md). Kit 4.0.0 accepts V10. Kit 8.4.0's transaction decoder alone also accepts it, reading `81` as a v1 envelope; adding Kit's compiled-message decoder, as Billy's adapter does, rejects it on a v1 layout length error, not on length minimality. The modern/legacy API split applies to web3.js only. Kit's trailing-byte tolerance is a documented maintainer-accepted tradeoff (kit#1963). Impact is unassessed. The decoder campaign itself remains Billy's executed evidence; no fresh decoder execution is claimed by this docs successor.
+Read the [structural results and V10 interpretation](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md). Kit 4.0.0 accepts V10. Kit 8.4.0's transaction decoder alone also accepts it, reading `81` as a v1 envelope; adding Kit's compiled-message decoder, as the original two-call adapter does, rejects it on a v1 layout length error, not on length minimality. The modern/legacy API split applies to web3.js only. Kit's trailing-byte tolerance is a documented maintainer-accepted tradeoff (kit#1963). Impact is unassessed. The original campaign remains retained author evidence; the internal non-author review confirmed only the two adapter compositions within its recorded scope. This documentation update does not claim a new Kit 8.4.0 campaign.
 
 ### Submission copy and recording scripts
 

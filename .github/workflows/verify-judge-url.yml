@@ -6,14 +6,12 @@
 #   JUDGE_VERIFY_BASE_URL (optional; if set on PR must match exact preview for head — never production)
 # Never echo secrets. Never treat skip as PASS.
 # Preview path: PR / workflow_dispatch / preview deployment_status — credentialed bind; no production fallback.
-# Production path: push / production deployment_status — Ready production only; public uncredentialed check.
+# Production path: production deployment_status — Ready production only; public uncredentialed check.
 # Fixture / local resolver tests ≠ hosted workflow PASS. Do not claim hosted PASS from local runs.
 name: verify-judge-url
 
 on:
   pull_request:
-    branches: [main]
-  push:
     branches: [main]
   deployment_status:
   workflow_dispatch:
