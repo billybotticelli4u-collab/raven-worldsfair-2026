@@ -10,11 +10,11 @@ Raven checks how Solana transaction readers handle tricky bytes, and lets an age
 
 ## Conformance and Agent Trust
 
-In two minutes, [Raven Conformance](https://raven-worldsfair-2026.vercel.app/) shows a Raven-owned reader diverging on V03/V16 (proposed v1, SIMD-0385) and V10 (a non-canonical length): 27 match, 3 differ, then the reference matching 30/30. The separate **Agent Trust** offline fixture shows Agent A PROCEED with a valid receipt and REFUSE after one finding code changes without a new signature. From a recursive checkout, run `npm run demo`. Both paths and their expected output are in the judge guide.
+In two minutes, [Raven Conformance](https://raven-worldsfair-2026.vercel.app/) shows a Raven-owned reader diverging on V03/V16 (proposed v1, SIMD-0385) and V10 (a non-canonical length): 27 match, 3 differ, then the reference matching 30/30. The separate **Agent Trust** offline fixture shows Agent A PROCEED with a valid receipt and REFUSE after one finding code changes without a new signature. From a recursive checkout, run `npm run demo` (the fastest check). `npm run demo:live-local` starts a local registry, Agent B services and Agent A as separate processes on 127.0.0.1; Agent A sends live proof requests with fresh one-time challenges and verifies the receipts against the pinned verifier, using the same retained fixture evidence. Both paths and their expected output are in the judge guide.
 
 ## Scope and limits
 
-The hosted page's Disclosure / Build Info shows the commit it asserts (read it from /api/build-info; it can lag `main`; an unverified platform assertion, not proof of the served bytes). Conformance runtime files, api/ and vercel.json are unchanged since dba22af; the app’s provenance documentation has since been clarified. The Conformance reproduction pin `2cb12875` has byte-identical Conformance product code (runtime files under `apps/raven-conformance` unchanged; provenance text excepted) and reproduces the same corpus, though it predates the Agent Trust `npm run demo` command; run `npm run demo` from a clone of `main`, not from a checkout of the asserted build. Conformance reports are unsigned and a match is not a safety verdict. Agent Trust uses a deterministic fixture (`liveAcquisition:false`), not live Solana acquisition; PROCEED is a fixture policy result, not permission to transact. The hosted page runs Raven-owned demonstration readers, not visitor uploads. [Local saved-case Replay](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md) and [Hosted saved-case Replay](https://raven-replay.vercel.app) are separate applications; hosted source is [public on an unmerged branch at `51b60b7b`](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). Source availability does not prove deployed bytes or hosted execution.
+The hosted page's Disclosure / Build Info shows the commit it asserts (read it from /api/build-info; it can lag `main`; an unverified platform assertion, not proof of the served bytes). Conformance runtime files, api/ and vercel.json are unchanged since dba22af; the app’s provenance documentation has since been clarified. The Conformance reproduction pin `2cb12875` has byte-identical Conformance product code (runtime files under `apps/raven-conformance` unchanged; provenance text excepted) and reproduces the same corpus, though it predates the Agent Trust `npm run demo` command; run `npm run demo` from a clone of `main`, not from a checkout of the asserted build. Conformance reports are unsigned and a match is not a safety verdict. Agent Trust (`npm run demo` and `npm run demo:live-local`) uses a deterministic fixture (`liveAcquisition:false`), not live Solana acquisition; PROCEED is a fixture policy result, not permission to transact. `npm run demo:live-solana` needs the owner's own API key and fetches a fresh signed receipt from Raven's hosted API; it is not part of the judge path, and judges are not expected to run it. The hosted page runs Raven-owned demonstration readers, not visitor uploads. [Local saved-case Replay](docs/hackathon/worldsfair-2026/REPLAY_JUDGE_WALKTHROUGH.md) and [Hosted saved-case Replay](https://raven-replay.vercel.app) are separate applications; hosted source is [public on an unmerged branch at `51b60b7b`](https://github.com/billybotticelli4u-collab/raven-worldsfair-2026/tree/51b60b7b9220d52f95ef747abc0ca5c97250b9e0/apps/raven-replay-hosted). Source availability does not prove deployed bytes or hosted execution.
 
 The [third-party decoder measurements](docs/hackathon/worldsfair-2026/THIRD_PARTY_DECODER_RESULTS.md) lead with 13 structural rows and distinguish them from adapter and policy rows. An internal non-author review independently confirmed the retained Kit 8.4.0 result by reproducing both adapters row by row: V10 is the only differing row, caused by adapter composition ([confirmation record](docs/hackathon/worldsfair-2026/JUDGE_PROVENANCE_APPENDIX.md#kit-v10-independent-confirmation)). The displayed scores remain the original measurements under their recorded row mapping. Kit's trailing-byte tolerance is a documented maintainer-accepted tradeoff (kit#1963); impact unassessed.
 
@@ -79,6 +79,11 @@ demo built on that product — not the invention of Raven itself.
 This demo does **not** perform live Solana RPC acquisition for PATH A/B.
 Evidence is offline fixture-based (`liveAcquisition:false`). Do not treat the
 demo as a live-chain fetch or production signing workflow.
+`npm run demo:live-local` exchanges live proof requests between local
+processes on 127.0.0.1, but its evidence is the same retained signed fixture
+receipt (`liveAcquisition:false`), not live chain data. The owner-run
+`npm run demo:live-solana` needs the owner's own API key and is not part of the
+judge path.
 
 ### 6. Review limits
 
@@ -110,6 +115,7 @@ Use **Node.js 22.18.0** for the recorded environment.
 git clone --recurse-submodules https://github.com/billybotticelli4u-collab/raven-worldsfair-2026
 cd raven-worldsfair-2026
 npm run demo  # Valid receipt: PROCEED; One-field tamper: REFUSE
+npm run demo:live-local  # last line: Result: live discovery and proof-request demo completed
 
 # Confirm submodule pin (must be exact SHA below):
 git -C vendor/raven-receipt-verifier rev-parse HEAD

@@ -25,6 +25,47 @@ npm run demo
 
 `npm run demo` prints only the two Agent Trust lines above; the 27/30 and 30/30 Conformance results come from the hosted run in the previous section, not from this command.
 
+## Agent Trust, live (local)
+
+Same recursive checkout and Node version; `npm run demo` stays the fastest check.
+
+```sh
+npm run demo:live-local
+```
+
+One command starts a local registry, seven Agent B services and Agent A as separate processes on 127.0.0.1. Agent A discovers providers from the registry, sends each eligible provider a live proof request with a fresh one-time challenge, and verifies the returned receipt against the pinned verifier. Expected output (`npm run -s` omits npm's script banner):
+
+```text
+Raven Agent Trust - live local exchange (separate processes, 127.0.0.1 only)
+Registry: 7 self-asserted agent cards (listing is not trust)
+Discovery by Agent A (capability evidence.request:raven.receipt-v1, verifier pin 1b04356a):
+  agent-b-honest             eligible
+  agent-b-tamperer           eligible
+  agent-b-wrong-capability   skipped: capability_missing
+  agent-b-bad-pin            skipped: verifier_pin_mismatch
+  agent-b-replayer           eligible
+  agent-b-stale              eligible
+  agent-b-impostor           eligible
+Live proof requests (fresh nonce each, 30 s response window, real clock):
+  agent-b-honest             PROCEED  verified
+  agent-b-tamperer           REFUSE   integrity_or_malformed
+  agent-b-replayer           PROCEED  verified
+  agent-b-stale              REFUSE   stale_response
+  agent-b-impostor           REFUSE   endpoint_card_mismatch
+Selected provider: agent-b-honest -> PROCEED
+Replay check: agent-b-replayer re-sends its first (already used) answer -> REFUSE nonce_replayed
+Unknown agent: agent-b-ghost -> REFUSE unknown_agent
+Evidence: retained signed BONK receipt fixture (liveAcquisition:false), checked by the pinned verifier at the disclosed fixture time. Not live chain data; not permission to transact.
+Shutdown: 9/9 processes exited
+Result: live discovery and proof-request demo completed
+```
+
+Agent A returns PROCEED for the honest provider and REFUSE for tampered (`integrity_or_malformed`), stale (`stale_response`), impostor (`endpoint_card_mismatch`), replayed (`nonce_replayed`) and unknown-agent (`unknown_agent`) responses. Two cards are skipped before any request (`capability_missing`, `verifier_pin_mismatch`). The replayer's first, fresh answer passes; only its re-sent answer is refused.
+
+Limits: the registry is local and self-asserted, not public discovery. The evidence is the retained signed fixture receipt (`liveAcquisition:false`), not live chain data; the real clock governs only challenges and freshness. A signature is not authorization, and PROCEED is not a safety verdict.
+
+`npm run demo:live-solana` is separate: it needs the owner's own API key and fetches a fresh signed receipt from Raven's hosted API. It is not part of the judge path, and judges are not expected to run it.
+
 ## Scope and limits
 
 The hosted Conformance page runs Raven-owned demo targets. The experimental 30-vector profile is a finite stated rule set, not a universal correctness or safety verdict. Agent Trust uses a deterministic offline receipt fixture (`liveAcquisition:false`), not a live-chain fetch. Conformance and saved-case Replay reports are unsigned; MATCH means a retained result reproduced, not that a transaction is safe.
@@ -41,7 +82,7 @@ cd raven-worldsfair-2026
 npm run demo
 ```
 
-Use the checkout containing this guide and `scripts/agent-trust-demo.mjs`; the older corpus pin below predates this convenience command. No npm install is needed. The command runs the actual pinned verifier on both retained fixtures and fails without printing the success pair if either expected outcome is absent. The fixtures differ only at `findings[0].code`, without a new signature. To check the command and its refusal cases, run `npm --prefix apps/worldsfair-agent-trust test` (43 tests in the reviewed parent). PROCEED is Agent A's fixture policy outcome, not permission to transact or proof of current token state.
+Use the checkout containing this guide and `scripts/agent-trust-demo.mjs`; the older corpus pin below predates this convenience command. No npm install is needed. The command runs the actual pinned verifier on both retained fixtures and fails without printing the success pair if either expected outcome is absent. The fixtures differ only at `findings[0].code`, without a new signature. To check the command and its refusal cases, run `npm --prefix apps/worldsfair-agent-trust test` (43 tests in the reviewed parent; 144 on this commit, including the live-local exchange tests). PROCEED is Agent A's fixture policy outcome, not permission to transact or proof of current token state.
 
 ### Conformance walkthrough
 

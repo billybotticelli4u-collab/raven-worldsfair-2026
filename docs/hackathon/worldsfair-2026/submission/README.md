@@ -15,7 +15,7 @@ Aligned with the [current public project card](https://colosseum.com/arena/proje
 
 1. **Compare real Kit versions.** Run the same synthetic bytes through the unmodified published Kit 3.0.3, 4.0.0 and 8.3.0 builds in the browser. The default version-3 example is accepted by 3.0.3 and rejected by 4.0.0 and 8.3.0 through the stated two-call adapter. A disagreement is evidence to investigate, not a bug or safety verdict; the downloaded report is unsigned.
 2. **Conformance.** The [hosted 30-vector demonstration](https://raven-worldsfair-2026.vercel.app/) compares Raven-owned reference and intentionally broken readers, then replays the unsigned report. It is a bounded synthetic experimental profile, not a test of arbitrary third-party libraries.
-3. **Agent Trust.** Run `npm run demo` locally. The pinned verifier prints `Valid receipt: PROCEED` and `One-field tamper: REFUSE`. This uses a fixed signed fixture and evaluation clock, not live acquisition or permission to act.
+3. **Agent Trust.** Run `npm run demo` locally. The pinned verifier prints `Valid receipt: PROCEED` and `One-field tamper: REFUSE`. This uses a fixed signed fixture and evaluation clock, not live acquisition or permission to act. Optionally, `npm run demo:live-local` runs a live exchange between separate local processes on 127.0.0.1: fresh one-time challenges, receipts verified against the pinned verifier, and the same retained fixture evidence; see the [reproduction guide](../../../../JUDGE_START_HERE.md#agent-trust-live-local).
 
 ## Historical drafting records
 
