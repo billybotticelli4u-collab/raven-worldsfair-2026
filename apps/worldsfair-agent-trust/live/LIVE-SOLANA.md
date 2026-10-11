@@ -78,7 +78,7 @@ these live checks, each shown as OK / FAIL:
   timeout, network error or HTTP 5xx. Per-request timeout (20 s default, 60 s
   max). Redirects are not followed. Programmatic callers that share a budget
   (`budget:` option) must pass one made by `createCallBudget`; any other object
-  is refused (`call_budget_not_authentic`) before any call (Billy 2, CODEX F-2).
+  is refused (`call_budget_not_authentic`) before any call (call-budget authenticity regression).
 - **API base allowlist.** `--api-base` (or `RAVEN_API_BASE`; the flag wins)
   accepts only `https://raven-hosted-verifier.onrender.com` (the default) or
   plain `http://` to a local stub on `127.0.0.1`, `localhost` or `[::1]`

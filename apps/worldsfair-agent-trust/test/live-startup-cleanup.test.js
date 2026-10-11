@@ -1,4 +1,4 @@
-// Regression for CODEX review a8361b0b (751f604b): a startAgentB that fails
+// Regression for review a8361b0b (751f604b): a startAgentB that fails
 // after it has started listening (duplicate id 409, registry full 429,
 // registry transport error, non-loopback registry) must close its listener.
 import assert from "node:assert/strict";

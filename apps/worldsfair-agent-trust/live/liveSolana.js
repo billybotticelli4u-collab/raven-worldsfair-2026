@@ -1,5 +1,5 @@
 /**
- * LIVE-SOLANA (Billy 1): fetch ONE fresh Raven receipt-v1 from the hosted
+ * LIVE-SOLANA: fetch ONE fresh Raven receipt-v1 from the hosted
  * Raven API with the caller's own key, then verify it OFFLINE against the
  * repo's PINNED signer key and run Agent A's existing Day-2 policy on it.
  *
@@ -19,8 +19,8 @@
  * live/test/testOnlySigner.js and is never imported from here.
  *
  * Credit: endpoint allowlist idea, token-program allowlist, rules-status gate
- * and "no redirects / body cap" limits follow Billy 2's dropped Feature-3
- * draft (branch billy2/archive-f3-dropped-20261011, 1e7a51f).
+ * and "no redirects / body cap" limits follow the earlier Feature-3
+ * draft (1e7a51f).
  */
 import { createHash, createPublicKey, verify as ed25519Verify } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -159,7 +159,7 @@ export function createCallBudget(limit = DEFAULT_CALL_BUDGET) {
 }
 
 /*
- * Billy 2 integration fix for CODEX review 755269e4 F-2: a caller-supplied
+ * Integration fix for review 755269e4 F-2: a caller-supplied
  * budget is accepted only if createCallBudget made it (module-private brand),
  * so its max is 1..MAX_HTTP_CALLS_PER_RUN and take() is the real counter.
  * Lookalike objects ({max, used, take}) are refused before any request.
@@ -483,7 +483,7 @@ export function evaluateLiveGates({ receipt, subject, now, pinnedPublicKeyBase64
  * Agent A's applyDecisionPolicy consumes: the repo's pinned verifier
  * (ravenVerifyEvidenceResponse at `now`) AND the live gates. If any live gate
  * fails, the result is VERIFICATION_FAILED with that gate's reason.
- * Usable directly as Billy 2's createAgentA({ verifyEvidence }).
+ * Usable directly as createAgentA({ verifyEvidence }).
  */
 export async function verifyLiveEvidenceResponse({ evidenceRequest, evidenceResponse, now }) {
   const evaluation = evaluationDate(now ?? new Date());

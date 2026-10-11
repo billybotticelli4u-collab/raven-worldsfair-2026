@@ -1,7 +1,7 @@
 /**
  * Shared adversarial fixtures for the live-flow fail-closed pack.
  *
- * KIMI 2026-10-11. Every helper builds a REAL 127.0.0.1 HTTP peer or a REAL
+ * 2026-10-11. Every helper builds a REAL 127.0.0.1 HTTP peer or a REAL
  * child process — no mocks of Agent A's code under test. Agent A always runs
  * its real discovery / card check / claim / challenged request / acceptance /
  * pinned-verifier path.
@@ -148,7 +148,7 @@ export async function startRogueB(t, { agentId, registryUrl, behavior, cardTampe
       if (behavior === "live-predated-receipt" ||
           behavior === "live-invalid-receipt-timestamp" ||
           behavior === "fixture-card-claims-live") {
-        // Live-path rogues (Billy 2's challenge-binding gate, 005c84a): the
+        // Live-path rogues (challenge-binding gate, 005c84a): the
         // response CLAIMS live acquisition; the receipt timestamp is moved
         // relative to THIS request's challenge.issuedAt.
         const response = honestEvidenceResponse(request);

@@ -1,5 +1,5 @@
 /**
- * Hooks for Billy 2's live-local exchange (see ../INTERFACE.md, sections 1 and 8).
+ * Hooks for the live-local exchange (see ../INTERFACE.md, sections 1 and 8).
  *
  *   import { createLiveEvidenceProvider, liveVerifyEvidence } from "../live/agentHooks.js";
  *   startAgentB(config, { evidenceProvider: createLiveEvidenceProvider({ apiKey: keyFromYourEnvironment }) });
@@ -42,7 +42,7 @@ export function createLiveEvidenceProvider(opts = {}) {
   const cfg = prepareLiveConfig({
     apiKey: opts.apiKey, apiBase: opts.apiBase, timeoutMs: opts.timeoutMs, maxCalls: opts.maxCalls,
   });
-  // Billy 2 integration fix (CODEX 755269e4 F-2): only a createCallBudget budget is accepted.
+  // Integration fix (review 755269e4 F-2): only a createCallBudget budget is accepted.
   if (opts.budget !== undefined && opts.budget !== null && !isAuthenticCallBudget(opts.budget)) throw forgedBudgetError();
   const budget = opts.budget ?? createCallBudget(cfg.maxCalls);
   const source = Object.freeze({
@@ -74,7 +74,7 @@ export function createLiveEvidenceProvider(opts = {}) {
     }
   }
   Object.defineProperty(liveEvidenceProvider, "budget", { value: budget });
-  // Billy 2 integration: Agent B's card advertises this instead of "retained_fixture".
+  // Live-source integration: Agent B's card advertises this instead of "retained_fixture".
   Object.defineProperty(liveEvidenceProvider, "evidenceSourceLabel", {
     value: cfg.loopback ? "hosted_receipt_api_loopback_stub" : "hosted_receipt_api_live",
   });

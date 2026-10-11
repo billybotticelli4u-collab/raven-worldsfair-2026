@@ -172,7 +172,7 @@ const SPECS = [
     replacement: "FIXTURE_SOURCE_LABEL /* RED CONTROL: live-provider label precedence removed */",
     testFile: LIVEPATH, pattern: "^control: an honest Agent B with a plugged-in live provider",
     expect: { actual: "retained_fixture" },
-    measured: "with the label precedence removed, an Agent B with a plugged-in live provider advertises retained_fixture again: the notEqual guard fails with actual 'retained_fixture' (Billy 2's M2 mutation)" },
+    measured: "with the label precedence removed, an Agent B with a plugged-in live provider advertises retained_fixture again: the notEqual guard fails with actual 'retained_fixture' (provider-label removal control)" },
 ];
 
 // Import/setup failures: these mean the mutated tree never ran the intended

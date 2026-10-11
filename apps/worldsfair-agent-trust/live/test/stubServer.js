@@ -1,7 +1,7 @@
 // TEST-ONLY local stub of POST /receipt/v1. Binds 127.0.0.1 on an ephemeral
 // port and replays bytes it is given (the genuinely signed fixture, or
 // test-only receipts built in testOnlySigner.js). It holds no signing key.
-// Shape follows Billy 2's dropped hostedReceiptStub helper (1e7a51f).
+// Shape follows the earlier hostedReceiptStub helper (1e7a51f).
 import http from "node:http";
 
 /**

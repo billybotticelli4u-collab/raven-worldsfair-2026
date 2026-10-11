@@ -1,5 +1,5 @@
 /**
- * Adversarial live-path cases 11 and 12 — Billy 2's challenge-binding gate and
+ * Adversarial live-path cases 11 and 12 — the challenge-binding gate and
  * the card evidence-source label, exercised over the wire against rogues.
  *
  * Case 11: a rogue that CLAIMS live acquisition (source.liveAcquisition:true)
@@ -64,7 +64,7 @@ test("case 12: card says retained_fixture but evidence claims live acquisition -
     "evidence claiming live acquisition must not be recorded as a fixture exchange");
 });
 
-test("control: an honest Agent B with a plugged-in live provider never advertises retained_fixture (Billy 2 a022ebf)", async (t) => {
+test("control: an honest Agent B with a plugged-in live provider never advertises retained_fixture (provider-label regression)", async (t) => {
   const { reg } = await world(t);
   const b = await startAgentB({ variant: "honest", agentId: "agent-b-live-provider", registryUrl: reg.url }, {
     evidenceProvider: async (request) => agentBHandleEvidenceRequest(request, "valid").evidenceResponse,

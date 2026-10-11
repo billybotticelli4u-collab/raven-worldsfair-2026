@@ -1,15 +1,13 @@
-# Agent Trust live-local core — INTERFACE (Billy 2, branch `billy2/agent-trust-discovery-live-20261011`)
+# Agent Trust live-local core — INTERFACE
 
-Scope of this document: the live-local core written by Billy 2 — agent cards, discovery
-registry, separate Agent A / Agent B HTTP services, live proof request/response with a
-one-time challenge, the refused Agent B variants, and `npm run demo:live-local`.
+Scope of this document: the live-local core — agent cards, discovery registry, separate
+Agent A / Agent B HTTP services, live proof request/response with a one-time challenge,
+the refused Agent B variants, and `npm run demo:live-local`.
 
-This integrated branch also contains, by other authors:
-- Live Solana (`apps/worldsfair-agent-trust/live/`, `npm run demo:live-solana`), written by
-  Billy 1 (originally 0e2b86d, 2f78c554; rebased as e2a20052, 18f10a17). Billy 2 later changed
-  Billy 1's files in a022ebf5, 005c84a6 and 7c139e4d (listed per file in the R3 REPORT.md). It is documented in `live/LIVE-SOLANA.md`; its hooks into this core
-  are in sections 1 and 8.
-- KIMI's adversarial test pack (`test/live-flow-adversarial/`, `npm run test:adversarial`).
+The integrated code also contains:
+- Live Solana (`apps/worldsfair-agent-trust/live/`, `npm run demo:live-solana`), documented
+  in `live/LIVE-SOLANA.md`; its hooks into this core are in sections 1 and 8.
+- The adversarial test pack (`test/live-flow-adversarial/`, `npm run test:adversarial`).
 
 The offline judge path is unchanged. `npm run check:demo-unchanged` proves that `npm run demo`
 stdout and every 33f5486b file under `apps/worldsfair-agent-trust/` are byte-identical.
@@ -53,7 +51,7 @@ import { startAgentA } from "./src/live/agentAServer.js";        // (config{regi
 import { createFleet, pidAlive } from "./src/live/orchestrator.js"; // start(role,{config}) / stopAll() -> [{role,agentId,pid,url,exited}]
 import { runLiveDemo } from "./src/live/liveDemo.js";            // ({ json?, out? }) -> boolean ok
 ```
-**Extension points (for Billy 1's live source):**
+**Extension points (for the live Solana source):**
 - `evidenceProvider: async (evidenceRequestWithoutChallenge, { agentId, subject }) => evidence.response`.
   It replaces the fixture. Agent B still adds `challengeEcho`. Use `createEvidenceResponse` from `src/lib/protocol.js`.
 - `claimProvider: (subject) => solana.claim`. The message must have `from:"agent-b"` and `to:"agent-a"` (`createClaimMessage`).
@@ -82,8 +80,7 @@ import { runLiveDemo } from "./src/live/liveDemo.js";            // ({ json?, ou
   "evidenceSource": "retained_fixture"
 }
 ```
-`evidenceSource` labels: `retained_fixture` (default fixture path only), `hosted_receipt_api_live` (Billy 1's
-`createLiveEvidenceProvider` against the hosted API), `hosted_receipt_api_loopback_stub` (the same provider against a
+`evidenceSource` labels: `retained_fixture` (default fixture path only), `hosted_receipt_api_live` (`createLiveEvidenceProvider` against the hosted API), `hosted_receipt_api_loopback_stub` (the same provider against a
 127.0.0.1 stub), `custom_evidence_provider` (any other injected `evidenceProvider` without a label). Precedence:
 `config.evidenceSourceLabel` > `evidenceProvider.evidenceSourceLabel` > `custom_evidence_provider` when a provider is
 plugged in, else `retained_fixture`. A card is never labeled `retained_fixture` when an `evidenceProvider` is in use,
@@ -145,7 +142,7 @@ must parse and must satisfy `timestamp >= challenge.issuedAt - challengeBindingS
 `CHALLENGE_BINDING_SKEW_MS` = 5000 ms. Otherwise the result is REFUSE at stage `challenge_binding`, with
 `receipt_predates_challenge` or `receipt_timestamp_invalid`, plus `binding: { receiptTimestamp, challengeIssuedAt, skewMs }`.
 A non-number or negative tolerance throws `challenge_binding_skew_invalid`. The Agent A CLI process always uses 5000.
-Future-dated receipts are left to the live verifier's gates (Billy 1: at most 60 s in the future).
+Future-dated receipts are left to the live verifier's gates (at most 60 s in the future).
 
 ## 7. Refusal codes (`attempt.stage` / `attempt.reason`)
 - `discovery`: `unknown_agent`, `capability_missing`, `verifier_pin_mismatch`, `role_not_provider`,
@@ -181,11 +178,11 @@ npm run check:demo-unchanged # byte-identity vs 33f5486b
 npm test                     # root 16
 npm --prefix apps/worldsfair-agent-trust test   # 43 original + live-*.test.js
 npm run demo:live-local
-npm run test:adversarial     # KIMI adversarial pack (24), not part of the app npm test
-npm run test:all             # root 16 + app 144 (incl. Billy 1 live stub tests) + adversarial 24
+npm run test:adversarial     # adversarial pack (24), not part of the app npm test
+npm run test:all             # root 16 + app 144 (incl. live Solana stub tests) + adversarial 24
 ```
 
-Red controls: `node --experimental-strip-types apps/worldsfair-agent-trust/live/test/red-controls.mjs` (Billy 1, 26) and
-`node --experimental-strip-types apps/worldsfair-agent-trust/test/live-flow-adversarial/red-controls.mjs` (KIMI, 15; set
+Red controls: `node --experimental-strip-types apps/worldsfair-agent-trust/live/test/red-controls.mjs` (26) and
+`node --experimental-strip-types apps/worldsfair-agent-trust/test/live-flow-adversarial/red-controls.mjs` (15; set
 `RED_CONTROL_LOGDIR` to keep per-case logs, otherwise a private temp dir is used and removed).
 App `package.json` is a guarded judge-path file (byte-identical to 33f5486b), so the new scripts live in the root `package.json`.

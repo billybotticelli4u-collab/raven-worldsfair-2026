@@ -1,5 +1,5 @@
 /**
- * Live-exchange constants (Billy 2, 2026-10-11). Additive; the offline
+ * Live-exchange constants (2026-10-11). Additive; the offline
  * Day-2 path in ../lib is unchanged.
  */
 export const LIVE_PROTOCOL = "raven-agent-trust-live/0";

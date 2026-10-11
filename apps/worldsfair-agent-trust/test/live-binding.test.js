@@ -1,4 +1,4 @@
-// Live-path challenge binding (Billy 2 follow-up b): receipt-v1 `timestamp`
+// Live-path challenge binding (follow-up b): receipt-v1 `timestamp`
 // must not precede challenge.issuedAt by more than CHALLENGE_BINDING_SKEW_MS.
 import assert from "node:assert/strict";
 import test from "node:test";

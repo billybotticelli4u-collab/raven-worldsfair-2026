@@ -1,4 +1,4 @@
-// Regression for CODEX review 755269e4 (d223799f) F-1: the 64 KiB loopback
+// Regression for review 755269e4 (d223799f) F-1: the 64 KiB loopback
 // response cap must be enforced while streaming, not after buffering.
 import assert from "node:assert/strict";
 import http from "node:http";

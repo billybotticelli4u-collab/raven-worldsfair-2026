@@ -1,6 +1,6 @@
-// Regression for CODEX review 755269e4 (d223799f) F-2: a caller-forged call
-// budget must not bypass the hard cap of 20 (written by Billy 2 against
-// Billy 1's live-Solana module; loopback stub only, dummy key, no hosted call).
+// Regression for review 755269e4 (d223799f) F-2: a caller-forged call
+// budget must not bypass the hard cap of 20 (live-Solana
+// module; loopback stub only, dummy key, no hosted call).
 import assert from "node:assert/strict";
 import test from "node:test";
 

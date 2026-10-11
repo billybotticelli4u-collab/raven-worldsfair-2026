@@ -82,7 +82,7 @@ export function isLoopbackUrl(value) {
 /**
  * POST/GET JSON to a loopback peer. Refuses non-loopback targets, follows no
  * redirects, caps the response size and time. The size cap is enforced while
- * streaming (CODEX d223799f F-1): see readResponseCapped.
+ * streaming (review d223799f F-1): see readResponseCapped.
  */
 export async function loopbackJson(url, { method = "GET", body, timeoutMs = DEFAULT_HTTP_TIMEOUT_MS } = {}) {
   if (!isLoopbackUrl(url)) throw new Error("non_loopback_target_refused");
