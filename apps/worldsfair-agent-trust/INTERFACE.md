@@ -1,13 +1,20 @@
 # Agent Trust live-local core — INTERFACE (Billy 2, branch `billy2/agent-trust-discovery-live-20261011`)
 
-Scope of this branch: agent cards, discovery registry, separate Agent A / Agent B
-HTTP services, live proof request/response with a one-time challenge, the refused
-Agent B variants, and `npm run demo:live-local`. Live Solana (`apps/worldsfair-agent-trust/live/`,
-`npm run demo:live-solana`) belongs to Billy 1 and is **not** in this branch. The offline
-judge path is unchanged. `npm run check:demo-unchanged` proves that `npm run demo` stdout
-and every 33f5486b file under `apps/worldsfair-agent-trust/` are byte-identical.
+Scope of this document: the live-local core written by Billy 2 — agent cards, discovery
+registry, separate Agent A / Agent B HTTP services, live proof request/response with a
+one-time challenge, the refused Agent B variants, and `npm run demo:live-local`.
 
-All code lives in `apps/worldsfair-agent-trust/src/live/` (ES modules; run with
+This integrated branch also contains, by other authors:
+- Live Solana (`apps/worldsfair-agent-trust/live/`, `npm run demo:live-solana`), written by
+  Billy 1 (originally 0e2b86d, 2f78c554; rebased as e2a20052, 18f10a17). Billy 2 later changed
+  Billy 1's files in a022ebf5, 005c84a6 and 7c139e4d (listed per file in the R3 REPORT.md). It is documented in `live/LIVE-SOLANA.md`; its hooks into this core
+  are in sections 1 and 8.
+- KIMI's adversarial test pack (`test/live-flow-adversarial/`, `npm run test:adversarial`).
+
+The offline judge path is unchanged. `npm run check:demo-unchanged` proves that `npm run demo`
+stdout and every 33f5486b file under `apps/worldsfair-agent-trust/` are byte-identical.
+
+The core's code lives in `apps/worldsfair-agent-trust/src/live/` (ES modules; run with
 `node --experimental-strip-types`, Node 22.18 / 24.18 / 26.9 tested).
 
 ## 1. Starting things
@@ -175,7 +182,7 @@ npm test                     # root 16
 npm --prefix apps/worldsfair-agent-trust test   # 43 original + live-*.test.js
 npm run demo:live-local
 npm run test:adversarial     # KIMI adversarial pack (19), not part of the app npm test
-npm run test:all             # root 16 + app 135 (incl. Billy 1 live stub tests) + adversarial 19
+npm run test:all             # root 16 + app 144 (incl. Billy 1 live stub tests) + adversarial 19
 ```
 
 Red controls: `node --experimental-strip-types apps/worldsfair-agent-trust/live/test/red-controls.mjs` (Billy 1, 26) and
