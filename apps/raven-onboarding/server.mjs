@@ -23,7 +23,8 @@ function json(res, status, data) {
 }
 
 export function createOnboardingServer() {
-  let active = null;
+  let active = null, activeDone = Promise.resolve(), closing = null;
+  const connections = new Set();
   const server = http.createServer(async (req, res) => {
     const authority = `127.0.0.1:${server.address()?.port}`;
     // A local-only app must not accept cross-site mutations or DNS-rebinding hosts.
@@ -40,12 +41,15 @@ export function createOnboardingServer() {
       }
       if (req.method === 'POST' && ['/api/conformance', '/api/receipt'].includes(url.pathname)) {
         const body = await readJsonObject(req);
+        if (closing) throw new HttpError(503, 'server_shutting_down');
         const key = url.pathname === '/api/conformance' ? 'target' : 'path';
         const allow = key === 'target' ? loadDemoTargets(PROFILE).map(t => t.id) : PATHS;
         if (Object.keys(body).length !== 1 || !allow.includes(body[key])) return json(res, 400, { error: 'choose_a_listed_example' });
         if (active) return json(res, 409, { error: 'run_in_progress' });
         const controller = new AbortController();
         active = controller;
+        let settled;
+        activeDone = new Promise(resolve => { settled = resolve; });
         const disconnected = () => { if (!res.writableEnded) controller.abort(); };
         res.once('close', disconnected);
         try {
@@ -61,6 +65,7 @@ export function createOnboardingServer() {
         } finally {
           res.off('close', disconnected);
           active = null;
+          settled();
         }
         return;
       }
@@ -76,12 +81,23 @@ export function createOnboardingServer() {
       if (!res.headersSent && !res.destroyed) json(res, error instanceof HttpError ? error.status : 500, { error: error instanceof HttpError ? error.code : 'run_failed', message: String(error.message) });
     }
   });
+  server.on('connection', socket => {
+    connections.add(socket);
+    socket.once('close', () => connections.delete(socket));
+  });
   server.requestTimeout = 10000;
   server.headersTimeout = 10000;
-  server.closeOnboarding = async () => {
+  server.closeOnboarding = () => {
+    if (closing) return closing;
+    // Stop unfinished HTTP clients too, then await the engine's own abort cleanup.
+    let closed;
+    closing = new Promise(resolve => { closed = resolve; });
+    const done = activeDone;
     active?.abort();
-    server.closeIdleConnections();
-    await new Promise(resolve => server.close(resolve));
+    server.close(closed);
+    for (const socket of connections) socket.destroy();
+    closing = Promise.all([closing, done]).then(() => undefined);
+    return closing;
   };
   return server;
 }

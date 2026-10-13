@@ -1,6 +1,7 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import net from 'node:net';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createOnboardingServer, assertRuntime } from '../server.mjs';
@@ -86,4 +87,29 @@ test('Conformance executes the real 30-vector targets and writes no source repor
     if (target === 'SOL_BROKEN_OBVIOUS') assert.ok(display.counts.behavioral_divergence > 3);
   }
   assert.deepEqual(readdirSync(directory), beforeFiles);
+});
+
+for (const kind of ['headers', 'body']) test(`shutdown closes a client with incomplete ${kind}`, async () => {
+  const local = createOnboardingServer();
+  await new Promise(resolve => local.listen(0, '127.0.0.1', resolve));
+  const port = local.address().port;
+  const received = new Promise(resolve => local.once('connection', client => client.once('data', resolve)));
+  const socket = net.connect(port, '127.0.0.1');
+  socket.on('error', () => {}); // Closing an unfinished HTTP request may reset its socket.
+  await new Promise(resolve => socket.once('connect', resolve));
+  const request = kind === 'headers'
+    ? `GET /api/setup HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\n`
+    : `POST /api/receipt HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nContent-Length: 1000\r\n\r\n{`;
+  await new Promise(resolve => socket.write(request, resolve));
+  await received; // The server must have read the partial request before shutdown.
+  const closing = local.closeOnboarding();
+  let timer, ended;
+  try {
+    ended = await Promise.race([closing.then(() => true), new Promise(resolve => { timer = setTimeout(() => resolve(false), 1000); })]);
+  } finally {
+    clearTimeout(timer);
+    socket.destroy();
+    await closing;
+  }
+  assert.equal(ended, true, 'shutdown must not wait for the client to finish its request');
 });
