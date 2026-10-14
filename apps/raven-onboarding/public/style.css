@@ -8,3 +8,5 @@
 @media(max-width:520px){main{width:calc(100% - 32px)}.masthead{padding:16px;gap:12px;flex-wrap:wrap}.local-label{font-size:.65rem}.masthead>a:last-child{font-size:.75rem}.brand{font-size:.875rem}.brand img{width:32px;height:32px}.intro{padding:32px 0}h1{font-size:2.5rem}h2{font-size:2rem}.journey{display:flex;flex-direction:column;gap:0}.journey button{min-height:60px}.journey small{display:block}.journey-note{margin:16px 0}.summary{grid-template-columns:1fr;gap:20px}.result-heading{align-items:flex-start;flex-direction:column}.table-wrap table{font-size:.75rem}th,td{padding:10px 6px}.run-bar button{flex-grow:1}}
 @media(prefers-reduced-motion:no-preference){button{transition:background-color 120ms ease-out}}
 #profile-detail{overflow-wrap:anywhere}
+#status{min-width:0;overflow-wrap:anywhere}
+#facts>p{overflow-wrap:anywhere}

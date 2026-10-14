@@ -26,3 +26,5 @@ npm --prefix apps/raven-conformance test
 ```
 
 Browser validation and evidence are retained in the author packet outside the repository. A non-author must review the new presentation, failure handling and preservation before publication. This is author delivery, not independent acceptance, release permission or a change to the submitted project.
+
+The onboarding tests include a real Chromium layout regression for every step, normal results, failure/skip banners and long error messages. Use an already installed Chromium and, when it is not at a standard path, set `RAVEN_CHROMIUM=/absolute/path/to/chromium` before `npm run test:onboarding`. The test uses Node built-ins, downloads nothing, and fails clearly if Chromium is unavailable. It blocks external page requests and keeps the complete profile identity and limits visible. Its controlled failure responses test presentation only; normal runs execute the existing checks. Browser availability is a test prerequisite, not an extra installation needed to use the workspace in your browser.
