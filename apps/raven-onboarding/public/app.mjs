@@ -42,7 +42,13 @@ function setupNotice() {
     examplesStatus === 'failed' ? 'Comparison examples could not load. Enter public bytes manually, or reload to retry.' : '',
   ].filter(Boolean).join(' ');
   $('setup-notice').hidden = !$('setup-notice').textContent;
-  if (!running && !state.result) clear('Ready. Results are calculated when you run; none are pre-filled.');
+  // Startup metadata must not erase user input errors, cancellation or results.
+  if (step === 'conformance' && !running && !state.result) {
+    $('run').disabled = !setup;
+    if (!setup || /^(Loading the profile|Profile check unavailable)/.test($('status').textContent)) {
+      $('status').textContent = setup ? 'Ready. Choose a target and run the check.' : profileUnavailable();
+    }
+  }
 }
 
 function selectStep(next) {
@@ -57,7 +63,7 @@ function selectStep(next) {
   $('step-description').textContent = copy[step].description;
   $('transition').textContent = copy[step].transition;
   $('run').textContent = copy[step].action;
-  clear('Ready. Choose an example and run the check.');
+  clear('Ready. Results are calculated when you run; none are pre-filled.');
 }
 
 function table(headings, rows) {
@@ -207,7 +213,7 @@ fetch('/kit/decoder-cases.json').then(r => { if (!r.ok) throw Error(); return r.
   for (const name of Object.keys(examples)) { const o = document.createElement('option'); o.value = name; o.textContent = name.replaceAll('_', ' '); $('example').append(o); }
   const initial = Object.keys(examples).find(k => k.startsWith('E_'));
   // Do not replace public bytes the user entered while the examples were loading.
-  if (!$('bytes').value && !running && !state.result) { $('example').value = initial; $('bytes').value = examples[initial]; }
+  if (!$('bytes').value && $('encoding').value === 'hex' && !running && !state.result) { $('example').value = initial; $('bytes').value = examples[initial]; }
   $('example').disabled = false;
 }).catch(() => { examplesStatus = 'failed'; }).finally(setupNotice);
 

@@ -17,6 +17,17 @@ export function assertRuntime(version = process.versions.node) {
   if (version !== '22.18.0') throw new Error('This local review candidate requires Node 22.18.0.');
 }
 
+// Linux npm may retain sh after npm dies. Inspect only this parent's PPid;
+// never read /proc command lines or environments. Other platforms retain the
+// existing direct-parent watch and require their own lifecycle measurement.
+function parentOf(pid) {
+  try {
+    const match = readFileSync(`/proc/${pid}/status`, 'utf8').match(/^PPid:\s+(\d+)$/m);
+    const value = match ? Number(match[1]) : null;
+    return Number.isSafeInteger(value) && value >= 0 ? value : null;
+  } catch { return null; }
+}
+
 function json(res, status, data) {
   res.writeHead(status, { 'content-type': MIME['.json'], 'cache-control': 'no-store' });
   res.end(JSON.stringify(data));
@@ -106,6 +117,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   try { assertRuntime(); } catch (error) { console.error(error.message); process.exit(2); }
   const port = Number(process.env.PORT || 8790);
   if (!Number.isInteger(port) || port < 0 || port > 65535) { console.error('Invalid local port.'); process.exit(2); }
+  const launcher = process.ppid, launcherParent = process.platform === 'linux' ? parentOf(launcher) : null;
+  if (process.platform === 'linux' && launcherParent === null) { console.error('Cannot read the launcher PPid from /proc; local server not started.'); process.exit(2); }
   const server = createOnboardingServer();
   server.once('error', error => { console.error(error.message); process.exitCode = 1; });
   server.listen(port, '127.0.0.1', () => console.log(`Raven local onboarding: http://127.0.0.1:${server.address().port}`));
@@ -116,10 +129,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     clearInterval(parentWatch);
     await server.closeOnboarding();
   };
-  // npm does not forward SIGTERM to its child. Stop if the original launcher
-  // disappears too; this watches only our parent, never unrelated processes.
-  const launcher = process.ppid;
-  const parentWatch = setInterval(() => { if (process.ppid !== launcher) void shutdown(); }, 250);
+  // Linux npm can leave sh alive after npm is force-killed. Watch both original
+  // ancestry links; losing either uses the same abort/cleanup path as signals.
+  const parentWatch = setInterval(() => { if (process.ppid !== launcher || process.platform === 'linux' && parentOf(launcher) !== launcherParent) void shutdown(); }, 250);
   parentWatch.unref();
   server.once('close', () => clearInterval(parentWatch));
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, shutdown);

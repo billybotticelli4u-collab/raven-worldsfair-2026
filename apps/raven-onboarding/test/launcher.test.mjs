@@ -8,12 +8,15 @@ const root = new URL('../../../', import.meta.url);
 // Probe only the new launcher's process group; no process command lines or environments.
 const groupExists = group => {
   try { process.kill(-group, 0); return true; }
-  catch (error) { if (error.code === 'ESRCH') return false; throw error; }
+  catch (error) { if (error.code === 'ESRCH') return false; if (error.code === 'EPERM') return true; throw error; }
 };
 
-for (const viaNpm of [true, false]) for (const load of ['idle', 'incomplete body', 'active profile']) test(`SIGTERM to ${viaNpm ? 'npm' : 'non-forwarding launcher'} leaves no onboarding server (${load})`, { timeout: 15000 }, async () => {
+for (const signal of ['SIGTERM', 'SIGKILL']) for (const viaNpm of [true, false]) for (const load of ['idle', 'incomplete body', 'active profile']) test(`${signal} to ${viaNpm ? 'npm' : 'non-forwarding launcher'} leaves no onboarding server (${load})`, { timeout: 15000, skip: signal === 'SIGKILL' && !viaNpm && process.platform !== 'linux' ? 'Linux /proc ancestry regression; needs fresh Linux execution' : false }, async () => {
   assert.notEqual(process.platform, 'win32', 'POSIX launcher regression needs process-group signals');
-  const fixture = "import { spawn } from 'node:child_process'; spawn(process.execPath, ['--experimental-strip-types', 'apps/raven-onboarding/server.mjs'], { stdio: ['ignore', 'inherit', 'inherit'] });";
+  const fixture = signal === 'SIGKILL'
+    // Keep a real shell between the killed launcher and server, as on Linux npm.
+    ? `import { spawn } from 'node:child_process'; spawn('/bin/sh', ['-c', '"$1" --experimental-strip-types apps/raven-onboarding/server.mjs; :', 'raven-launcher-fixture', process.execPath], { stdio: ['ignore', 'inherit', 'inherit'] });`
+    : "import { spawn } from 'node:child_process'; spawn(process.execPath, ['--experimental-strip-types', 'apps/raven-onboarding/server.mjs'], { stdio: ['ignore', 'inherit', 'inherit'] });";
   const child = spawn(viaNpm ? 'npm' : process.execPath, viaNpm ? ['run', 'onboarding'] : ['--input-type=module', '-e', fixture], { cwd: root, env: { ...process.env, PORT: '0' }, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
   const exited = new Promise(resolve => child.once('exit', resolve));
   let output = '', socket, running;
@@ -42,11 +45,11 @@ for (const viaNpm of [true, false]) for (const load of ['idle', 'incomplete body
       }
       assert.equal(busy, true, 'signal occurs only after the server confirms an active run');
     }
-    child.kill('SIGTERM'); await exited;
+    child.kill(signal); await exited;
     const until = Date.now() + 3000;
     while (groupExists(child.pid) && Date.now() < until) await wait(25);
     const remaining = groupExists(child.pid);
-    console.log('LAUNCHER_CLEANUP', JSON.stringify({ viaNpm, load, remaining }));
+    console.log('LAUNCHER_CLEANUP', JSON.stringify({ signal, viaNpm, load, remaining }));
     assert.equal(remaining, false, 'terminating npm must not leave its loopback server or engine children');
     await assert.rejects(fetch(base + '/api/setup'), 'listener must be gone');
   } finally {

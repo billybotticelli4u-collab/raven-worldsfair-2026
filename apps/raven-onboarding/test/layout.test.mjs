@@ -19,6 +19,7 @@ let loads = 0;
 let reply = null;
 const routes = new Map();
 let holdConformance = false, heldRequest = null;
+const startupHolds = new Set(), startupRequests = new Map();
 const requests = [], blocked = [], errors = [], measurements = [];
 
 async function chromiumPath() {
@@ -102,6 +103,10 @@ function assertFit(state, label, width) {
   for (const box of state.textBoxes.filter(box => box.visible)) {
     assert.ok(box.scroll <= box.width + 1, `${label} clips ${box.selector}`);
     assert.ok(box.left >= -1 && box.right <= state.client + 1, `${label} places ${box.selector} outside the readable viewport`);
+    for (const text of box.textRects ?? []) {
+      assert.ok(text.left >= -1 && text.right <= state.client + 1, `${label} places ${box.selector} text outside the readable viewport`);
+      assert.ok(text.left >= box.left - 1 && text.right <= box.right + 1, `${label} clips ${box.selector} text outside its box`);
+    }
   }
 }
 
@@ -117,7 +122,10 @@ async function fit(label, width) {
     textBoxes: ['#status', '#profile-detail', '#facts > p', '#setup-notice', '#reproduce'].map(selector => {
       const node = document.querySelector(selector);
       const rect = node?.getBoundingClientRect();
-      return { selector, visible: Boolean(node?.getClientRects().length), scroll: node?.scrollWidth, width: node?.clientWidth, left: rect?.left, right: rect?.right };
+      const range = document.createRange();
+      if (node) range.selectNodeContents(node);
+      const textRects = node ? Array.from(range.getClientRects(), r => ({ left: r.left, right: r.right, width: r.width, height: r.height })).filter(r => r.width > 0 && r.height > 0) : [];
+      return { selector, visible: Boolean(node?.getClientRects().length), scroll: node?.scrollWidth, width: node?.clientWidth, left: rect?.left, right: rect?.right, textRects };
     }),
     resultVisible: !document.querySelector('#result').hidden,
     downloadDisabled: document.querySelector('#download').disabled
@@ -193,6 +201,8 @@ before(async () => {
       blocked.push(request.url); await cdp.send('Fetch.failRequest', { requestId, errorReason: 'BlockedByClient' }); return;
     }
     if (holdConformance && request.url === base + '/api/conformance' && request.method === 'POST') { heldRequest = requestId; return; }
+    const pathname = new URL(request.url).pathname;
+    if (startupHolds.has(pathname)) { startupRequests.set(pathname, requestId); return; }
     const stub = routes.get(new URL(request.url).pathname) || (request.url === base + '/api/conformance' && request.method === 'POST' ? reply : null);
     if (stub) {
       await cdp.send('Fetch.fulfillRequest', { requestId, responseCode: stub.status,
@@ -352,5 +362,63 @@ test('a pending profile check explains the wait; cancellation leaves no result',
     holdConformance = false;
     if (heldRequest) await cdp.send('Fetch.failRequest', { requestId: heldRequest, errorReason: 'Aborted' }).catch(error => { if (!/Invalid InterceptionId/.test(error.message)) throw error; });
     heldRequest = null;
+  }
+});
+
+async function holdStartup(pathname, ready) {
+  startupHolds.add(pathname); startupRequests.delete(pathname);
+  await navigate(320, ready);
+  const until = Date.now() + 5000;
+  while (!startupRequests.has(pathname) && Date.now() < until) await wait(25);
+  assert.ok(startupRequests.has(pathname), `real startup request held: ${pathname}`);
+}
+async function releaseStartup(pathname) {
+  startupHolds.delete(pathname);
+  const requestId = startupRequests.get(pathname); startupRequests.delete(pathname);
+  if (requestId) await cdp.send('Fetch.continueRequest', { requestId });
+}
+
+test('N2 late examples preserve a user-selected Base64 encoding until an example is chosen', async () => {
+  const pathname = '/kit/decoder-cases.json';
+  try {
+    await holdStartup(pathname, "document.readyState === 'complete' && !document.querySelector('#target').disabled");
+    await evaluate("document.querySelector('#encoding').value = 'base64'; document.querySelector('#encoding').dispatchEvent(new Event('change', { bubbles: true }))");
+    await releaseStartup(pathname);
+    await waitFor("!document.querySelector('#example').disabled");
+    assert.deepEqual(await evaluate("({ encoding: document.querySelector('#encoding').value, bytes: document.querySelector('#bytes').value, example: document.querySelector('#example').value })"), { encoding: 'base64', bytes: '', example: '' });
+    await evaluate("const e = document.querySelector('#example'); e.value = Array.from(e.options).find(o => o.value.startsWith('E_')).value; e.dispatchEvent(new Event('change', { bubbles: true }))");
+    assert.equal(await evaluate("document.querySelector('#encoding').value"), 'hex');
+    await run(); await resultReady();
+    assert.equal(await evaluate("document.querySelector('#result-title').textContent"), 'The readers disagree.');
+  } finally { await releaseStartup(pathname); }
+});
+
+for (const pathname of ['/api/setup', '/kit/decoder-cases.json']) test(`N3 late startup keeps the visible validation failure (${pathname})`, async () => {
+  try {
+    await holdStartup(pathname, "document.readyState === 'complete' && !document.querySelector('#run').disabled");
+    await evaluate("document.querySelector('#bytes').value = 'abc'; document.querySelector('#bytes').dispatchEvent(new Event('input', { bubbles: true }))");
+    await run(); await waitFor("document.querySelector('#status').textContent.includes('Hex needs complete byte pairs')");
+    const before = await evaluate("document.querySelector('#status').textContent");
+    await releaseStartup(pathname);
+    await waitFor(pathname === '/api/setup' ? "!document.querySelector('#target').disabled" : "!document.querySelector('#example').disabled");
+    await wait(50);
+    assert.equal(await evaluate("document.querySelector('#status').textContent"), before);
+    assert.equal(await evaluate("document.querySelector('#result').hidden && document.querySelector('#download').disabled"), true);
+  } finally { await releaseStartup(pathname); }
+});
+
+test('N4 layout guard rejects off-screen status text even when its box fits', async () => {
+  await navigate(320);
+  await evaluate("document.querySelector('#status').style.textIndent = '-9999px'");
+  try { await assert.rejects(fit('offscreen-status-text-control', 320), /#status text outside the readable viewport/); }
+  finally { await evaluate("document.querySelector('#status').style.textIndent = ''"); }
+  await fit('status-text-restored-twin', 320);
+});
+
+test('N5 long synthetic setup notices remain fully readable on phone widths', async () => {
+  for (const width of [320, 390]) {
+    await navigate(width);
+    await evaluate("const n = document.querySelector('#setup-notice'); n.hidden = false; n.textContent = 'Synthetic layout control: ' + 'setup_identity_'.repeat(24)");
+    await fit('long-setup-notice-control', width);
   }
 });
