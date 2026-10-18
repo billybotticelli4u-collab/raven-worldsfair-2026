@@ -147,6 +147,9 @@ async function fit(label, width) {
 }
 
 after(async () => {
+  // Close the actual browser before its process group fallback, including native
+  // Chrome helpers that may use a separate group on macOS.
+  if (cdp) await Promise.race([cdp.send('Browser.close').catch(() => {}), wait(1500)]);
   cdp?.close();
   if (Number.isInteger(browser?.pid)) {
     const kill = signal => { try { process.platform === 'win32' ? browser.kill(signal) : process.kill(-browser.pid, signal); } catch (e) { if (e.code !== 'ESRCH') throw e; } };
