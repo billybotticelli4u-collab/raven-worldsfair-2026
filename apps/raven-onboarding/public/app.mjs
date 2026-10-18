@@ -3,6 +3,7 @@ import { createRunState, decodeInput } from './state.mjs';
 const $ = id => document.getElementById(id);
 const state = createRunState();
 let step = 'compare', worker = null, timer = null, setup = null, examples = {};
+let setupStatus = 'loading', examplesStatus = 'loading', running = false;
 const copy = {
   compare: {
     title: 'Compare interpretations', type: 'Unsigned comparison report', action: 'Run comparison',
@@ -22,11 +23,26 @@ const copy = {
 };
 
 function clear(message = 'Selection changed. Run again for a current result.') {
+  running = false;
   state.invalidate(); worker?.terminate(); worker = null; clearTimeout(timer);
   $('result').hidden = true; $('download').disabled = true;
   $('facts').replaceChildren(); $('raw').textContent = '';
   $('run').disabled = step === 'conformance' && !setup;
-  $('cancel').hidden = true; $('status').textContent = message;
+  $('cancel').hidden = true;
+  $('status').textContent = step === 'conformance' && !setup ? profileUnavailable() : message;
+}
+
+function profileUnavailable() {
+  return setupStatus === 'loading' ? 'Loading the profile and corpus identities…' : 'Profile check unavailable: local identities could not load. Reload to retry. Comparison and receipt checks are still available.';
+}
+
+function setupNotice() {
+  $('setup-notice').textContent = [
+    setupStatus === 'failed' ? 'Profile identities could not load. Reload to retry the profile check.' : '',
+    examplesStatus === 'failed' ? 'Comparison examples could not load. Enter public bytes manually, or reload to retry.' : '',
+  ].filter(Boolean).join(' ');
+  $('setup-notice').hidden = !$('setup-notice').textContent;
+  if (!running && !state.result) clear('Ready. Results are calculated when you run; none are pre-filled.');
 }
 
 function selectStep(next) {
@@ -55,6 +71,7 @@ function table(headings, rows) {
     for (const value of values) {
       const cell = row.insertCell(); cell.textContent = String(value ?? '—');
       if (['ACCEPT', 'REJECT'].includes(value)) cell.className = `decision ${value.toLowerCase()}`;
+      else if (typeof value === 'string' && /^[A-Z][A-Z_]{2,}$/.test(value)) cell.className = 'token';
     }
   }
   wrap.append(node); return wrap;
@@ -104,8 +121,13 @@ async function compare(ticket) {
 
 async function request(ticket, endpoint, body) {
   const response = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ticket.signal });
-  const data = await response.json();
-  if (!response.ok) throw Error(data.message || data.error || 'The check could not finish.');
+  let data;
+  try { data = await response.json(); } catch { throw Error('The local server returned an unreadable response. Retry the check; restart the local server if it persists.'); }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) throw Error('The local server returned an unreadable response. Retry the check; restart the local server if it persists.');
+  if (!response.ok) {
+    const hints = { run_in_progress: 'Another check is still running, possibly in another tab. Wait for it to finish, then try again.', server_shutting_down: 'The local server is stopping. Restart it before trying again.' };
+    throw Error(hints[data.error] || data.message || data.error || 'The check could not finish.');
+  }
   return data;
 }
 
@@ -115,6 +137,7 @@ async function conform(ticket) {
   const { report, display } = data;
   if (!report?.summary || !Array.isArray(display?.results) || !display.counts) throw Error('Incomplete Conformance output. No current report.');
   const differences = display.results.filter(r => r.display.kind !== 'PASS');
+  const other = display.results.length - display.counts.pass - display.counts.behavioral_divergence;
   const facts = [];
   if (display.presentation_banner) { const p = document.createElement('p'); p.textContent = display.presentation_banner; facts.push(p); }
   const rows = items => items.map(r => [r.vector_id, r.display.label, r.expected?.decision, r.observed?.decision, r.display.plainLanguage]);
@@ -123,11 +146,11 @@ async function conform(ticket) {
   const label = document.createElement('summary'); label.textContent = `Inspect all ${display.results.length} vector results`;
   all.append(label, table(['Vector', 'Status', 'Expected', 'Observed', 'Meaning'], rows(display.results))); facts.push(all);
   present(ticket, report, {
-    title: `Engine result: ${report.summary.overall}`,
+    title: other > 0 ? 'Profile check has non-pass results.' : `Engine result: ${report.summary.overall}`,
     checked: `${report.target.id} against ${report.claimed_profile.name}; ${display.results.length} retained vectors.`,
-    found: `${display.counts.pass} matched; ${display.counts.behavioral_divergence} behavioral differences; ${display.results.length - display.counts.pass - display.counts.behavioral_divergence} other results. These are engine observations, not a security score.`,
+    found: `${display.counts.pass} matched; ${display.counts.behavioral_divergence} behavioral differences; ${other} other results. Engine classification: ${report.summary.overall}. These are engine observations, not a security score.`,
     unchecked: 'Full Solana correctness, real chain execution, signatures and safety. Proposed v1 (SIMD-0385) is experimental. Execution errors and skipped vectors are not passes.',
-    reproduce: `Profile and corpus identities are in the report. From this clone: npm --prefix apps/raven-conformance run conform -- --profile ${report.claimed_profile.name} --target ${report.target.id}`,
+    reproduce: `Profile and corpus identities are shown above and in the report. From this clone: npm --prefix apps/raven-conformance run conform -- --profile ${report.claimed_profile.name} --target ${report.target.id}`,
   }, facts, 'raven-conformance-report.json');
 }
 
@@ -148,19 +171,25 @@ async function receipt(ticket) {
 }
 
 $('check-form').addEventListener('submit', async event => {
-  event.preventDefault(); clear('Running the existing check…');
+  event.preventDefault();
+  if (step === 'conformance' && !setup) { clear(); return; }
+  clear(step === 'conformance' ? 'Running the existing check… Some targets can take over a minute. The engine does not stream progress; no result is available yet. You can cancel.' : 'Running the existing check…');
+  running = true;
   const ticket = state.start(); $('run').disabled = true; $('cancel').hidden = false;
   try {
     await ({ compare, conformance: conform, receipt })[step](ticket);
   } catch (error) {
     if (state.current(ticket)) clear(`Check did not finish: ${error.message} No current result or download.`);
   } finally {
-    if (state.current(ticket)) { worker?.terminate(); worker = null; clearTimeout(timer); $('run').disabled = false; $('cancel').hidden = true; }
+    if (state.current(ticket)) { running = false; worker?.terminate(); worker = null; clearTimeout(timer); $('run').disabled = false; $('cancel').hidden = true; }
   }
 });
 $('cancel').addEventListener('click', () => clear('Check cancelled. No current result or download.'));
 document.querySelectorAll('[data-step]').forEach(button => button.addEventListener('click', () => selectStep(button.dataset.step)));
-for (const id of ['bytes', 'encoding', 'target', 'receipt-path']) $(id).addEventListener(id === 'bytes' ? 'input' : 'change', () => clear());
+for (const id of ['bytes', 'encoding', 'target', 'receipt-path']) $(id).addEventListener(id === 'bytes' ? 'input' : 'change', () => {
+  if (id === 'bytes' || id === 'encoding') $('example').value = '';
+  clear();
+});
 $('example').addEventListener('change', () => { $('bytes').value = examples[$('example').value]; $('encoding').value = 'hex'; clear(); });
 $('next').addEventListener('click', () => { selectStep(step === 'compare' ? 'conformance' : 'receipt'); $('workspace').focus(); });
 $('download').addEventListener('click', () => {
@@ -172,16 +201,20 @@ $('download').addEventListener('click', () => {
 });
 
 selectStep('compare');
-Promise.all([
-  fetch('/kit/decoder-cases.json').then(r => { if (!r.ok) throw Error('Examples could not load.'); return r.json(); }),
-  fetch('/api/setup').then(r => { if (!r.ok) throw Error('Profile identities could not load.'); return r.json(); }),
-]).then(([cases, metadata]) => {
-  examples = cases; setup = metadata;
+fetch('/kit/decoder-cases.json').then(r => { if (!r.ok) throw Error(); return r.json(); }).then(cases => {
+  if (!cases || typeof cases !== 'object' || Array.isArray(cases) || !Object.keys(cases).length || Object.values(cases).some(value => typeof value !== 'string')) throw Error();
+  examples = cases; examplesStatus = 'ready';
   for (const name of Object.keys(examples)) { const o = document.createElement('option'); o.value = name; o.textContent = name.replaceAll('_', ' '); $('example').append(o); }
   const initial = Object.keys(examples).find(k => k.startsWith('E_'));
-  $('example').value = initial; $('bytes').value = examples[initial]; $('example').disabled = false;
+  // Do not replace public bytes the user entered while the examples were loading.
+  if (!$('bytes').value && !running && !state.result) { $('example').value = initial; $('bytes').value = examples[initial]; }
+  $('example').disabled = false;
+}).catch(() => { examplesStatus = 'failed'; }).finally(setupNotice);
+
+fetch('/api/setup').then(r => { if (!r.ok) throw Error(); return r.json(); }).then(metadata => {
+  if (!metadata?.profile?.id || !metadata?.corpus?.id || !Number.isInteger(metadata.corpus.count) || !/^[a-f0-9]{64}$/.test(metadata.profile.sha256) || !/^[a-f0-9]{64}$/.test(metadata.corpus.sha256) || !Array.isArray(metadata.targets) || !metadata.targets.length || metadata.targets.some(t => typeof t.id !== 'string' || typeof t.name !== 'string')) throw Error();
+  setup = metadata; setupStatus = 'ready';
   for (const target of setup.targets) { const o = document.createElement('option'); o.value = target.id; o.textContent = target.name; $('target').append(o); }
   $('target').value = 'SOL_BROKEN_SUBTLE'; $('target').disabled = false;
-  $('profile-detail').textContent = `${setup.profile.id} · ${setup.corpus.count} vectors · profile SHA-256 ${setup.profile.sha256}`;
-  clear('Ready. Results are calculated when you run; none are pre-filled.');
-}).catch(error => clear(`${error.message} You can still enter public bytes for comparison.`));
+  $('profile-detail').textContent = `${setup.profile.id} · ${setup.corpus.count} vectors · profile SHA-256 ${setup.profile.sha256} · corpus ${setup.corpus.id} · corpus SHA-256 ${setup.corpus.sha256}`;
+}).catch(() => { setupStatus = 'failed'; }).finally(setupNotice);

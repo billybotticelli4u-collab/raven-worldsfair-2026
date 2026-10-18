@@ -10,3 +10,6 @@
 #profile-detail{overflow-wrap:anywhere}
 #status{min-width:0;overflow-wrap:anywhere}
 #facts>p{overflow-wrap:anywhere}
+th,td.decision,td.token{white-space:nowrap;overflow-wrap:normal}
+#reproduce{font-family:monospace}
+#setup-notice{overflow-wrap:anywhere}

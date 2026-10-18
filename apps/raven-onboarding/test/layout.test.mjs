@@ -15,7 +15,10 @@ import { loadProfile } from '../../raven-conformance/src/lib/runner.js';
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 let server, base, browser, exited, cdp, profile, reference;
+let loads = 0;
 let reply = null;
+const routes = new Map();
+let holdConformance = false, heldRequest = null;
 const requests = [], blocked = [], errors = [], measurements = [];
 
 async function chromiumPath() {
@@ -30,7 +33,7 @@ async function chromiumPath() {
 
 function connect(url) {
   const socket = new WebSocket(url), pending = new Map();
-  let id = 0;
+  let id = 0, lastMethod = '';
   const ready = new Promise((resolve, reject) => {
     socket.addEventListener('open', resolve, { once: true });
     socket.addEventListener('error', () => reject(Error('Chromium debugging connection failed')), { once: true });
@@ -38,7 +41,7 @@ function connect(url) {
   const client = {
     onEvent: () => {},
     async send(method, params = {}) {
-      await ready;
+      await ready; lastMethod = method;
       const requestId = ++id;
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => { pending.delete(requestId); reject(Error(`Chromium command timed out: ${method}`)); }, 15000);
@@ -57,7 +60,7 @@ function connect(url) {
     if (m.error) p.reject(Error(m.error.message)); else p.resolve(m.result);
   });
   socket.addEventListener('close', () => {
-    for (const p of pending.values()) { clearTimeout(p.timer); p.reject(Error('Chromium debugging connection closed')); }
+    for (const p of pending.values()) { clearTimeout(p.timer); p.reject(Error(`Chromium debugging connection closed during ${lastMethod}`)); }
     pending.clear();
   });
   return client;
@@ -75,11 +78,15 @@ async function waitFor(expression, ms = 20000) {
   throw Error(`Timed out waiting for ${expression}`);
 }
 
-async function navigate(width) {
+async function navigate(width, ready = "document.readyState === 'complete' && !document.querySelector('#target').disabled") {
   reply = null;
   await cdp.send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: false });
+  const previous = loads;
   await cdp.send('Page.navigate', { url: base });
-  await waitFor("document.readyState === 'complete' && !document.querySelector('#target').disabled");
+  const until = Date.now() + 15000;
+  while (loads === previous && Date.now() < until) await wait(25);
+  assert.ok(loads > previous, 'new page load barrier');
+  await waitFor(ready);
   await evaluate('document.fonts.ready', true);
 }
 
@@ -87,17 +94,30 @@ const select = step => evaluate(`document.querySelector('[data-step="${step}"]')
 const run = () => evaluate("document.querySelector('#run').click()");
 const resultReady = () => waitFor("!document.querySelector('#result').hidden && !document.querySelector('#run').disabled");
 
+function assertFit(state, label, width) {
+  assert.equal(state.viewport, width, 'viewport positive control');
+  assert.ok(state.client > 0 && state.client <= width, 'layout viewport is measured independently of scrollbars');
+  assert.ok(state.scroll <= state.client + 1, `${label} overflows at ${width}px: ${state.scroll} > ${state.client}`);
+  assert.ok(state.rootOverflow.every(value => !['hidden', 'clip'].includes(value)), 'root overflow must not hide text');
+  for (const box of state.textBoxes.filter(box => box.visible)) {
+    assert.ok(box.scroll <= box.width + 1, `${label} clips ${box.selector}`);
+    assert.ok(box.left >= -1 && box.right <= state.client + 1, `${label} places ${box.selector} outside the readable viewport`);
+  }
+}
+
 async function fit(label, width) {
   const state = await evaluate(`(() => ({
-    viewport: innerWidth, scroll: document.documentElement.scrollWidth,
+    viewport: innerWidth, client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth,
+    rootOverflow: [document.documentElement, document.body].map(n => getComputedStyle(n).overflowX),
     identity: document.querySelector('#profile-detail').innerText,
     status: document.querySelector('#status').innerText,
     banner: document.querySelector('#facts > p')?.innerText ?? null,
     limits: document.querySelector('#limits').innerText,
     limitsVisible: document.querySelector('#limits').getClientRects().length > 0,
-    textBoxes: ['#status', '#profile-detail', '#facts > p'].map(selector => {
+    textBoxes: ['#status', '#profile-detail', '#facts > p', '#setup-notice', '#reproduce'].map(selector => {
       const node = document.querySelector(selector);
-      return { selector, visible: Boolean(node?.getClientRects().length), scroll: node?.scrollWidth, width: node?.clientWidth };
+      const rect = node?.getBoundingClientRect();
+      return { selector, visible: Boolean(node?.getClientRects().length), scroll: node?.scrollWidth, width: node?.clientWidth, left: rect?.left, right: rect?.right };
     }),
     resultVisible: !document.querySelector('#result').hidden,
     downloadDisabled: document.querySelector('#download').disabled
@@ -109,9 +129,8 @@ async function fit(label, width) {
     await writeFile(file, Buffer.from(shot.data, 'base64'));
   }
   assert.equal(state.viewport, width, 'viewport positive control');
-  assert.equal(state.scroll, width, `${label} overflows at ${width}px: ${state.scroll}`);
+  assertFit(state, label, width);
   assert.equal(state.limitsVisible, true, 'limits must remain rendered');
-  for (const box of state.textBoxes.filter(box => box.visible)) assert.ok(box.scroll <= box.width + 1, `${label} clips ${box.selector}`);
   assert.equal(state.textBoxes[0].visible, true, 'status must remain rendered');
   if (label.startsWith('conformance') || label.startsWith('banner')) assert.equal(state.textBoxes[1].visible, true, 'profile identity must remain rendered');
   if (label.startsWith('banner')) assert.equal(state.textBoxes[2].visible, true, 'failure banner must remain rendered');
@@ -147,7 +166,7 @@ before(async () => {
   reference = await response.json();
   assert.equal(reference.display.counts.pass, 30);
   profile = await mkdtemp(path.join(os.tmpdir(), 'raven-onboarding-layout-'));
-  browser = spawn(binary, ['--headless', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
+  browser = spawn(binary, ['--headless', '--disable-gpu', '--disable-background-networking', '--disable-component-update', '--disable-sync', '--disable-domain-reliability', '--metrics-recording-only', '--no-first-run', '--no-default-browser-check',
     '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0', `--user-data-dir=${profile}`,
     '--host-resolver-rules=MAP * 0.0.0.0, EXCLUDE 127.0.0.1', 'about:blank'],
     { stdio: ['ignore', 'ignore', 'pipe'], detached: process.platform !== 'win32' });
@@ -165,6 +184,7 @@ before(async () => {
   const targets = await fetch(`http://127.0.0.1:${port}/json/list`).then(r => r.json());
   cdp = connect(targets.find(t => t.type === 'page').webSocketDebuggerUrl);
   cdp.onEvent = async m => {
+    if (m.method === 'Page.loadEventFired') loads++;
     if (m.method === 'Network.requestWillBeSent') requests.push(m.params.request.url);
     if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.text);
     if (m.method !== 'Fetch.requestPaused') return;
@@ -172,9 +192,11 @@ before(async () => {
     if (!request.url.startsWith(base + '/')) {
       blocked.push(request.url); await cdp.send('Fetch.failRequest', { requestId, errorReason: 'BlockedByClient' }); return;
     }
-    if (reply && request.url === base + '/api/conformance' && request.method === 'POST') {
-      await cdp.send('Fetch.fulfillRequest', { requestId, responseCode: reply.status,
-        responseHeaders: [{ name: 'content-type', value: 'application/json' }], body: Buffer.from(JSON.stringify(reply.body)).toString('base64') });
+    if (holdConformance && request.url === base + '/api/conformance' && request.method === 'POST') { heldRequest = requestId; return; }
+    const stub = routes.get(new URL(request.url).pathname) || (request.url === base + '/api/conformance' && request.method === 'POST' ? reply : null);
+    if (stub) {
+      await cdp.send('Fetch.fulfillRequest', { requestId, responseCode: stub.status,
+        responseHeaders: [{ name: 'content-type', value: 'application/json' }], body: Buffer.from(stub.raw ?? JSON.stringify(stub.body)).toString('base64') });
     } else await cdp.send('Fetch.continueRequest', { requestId });
   };
   await cdp.send('Network.enable'); await cdp.send('Page.enable'); await cdp.send('Runtime.enable');
@@ -191,7 +213,12 @@ test('every step fits before and after real checks, keeping the complete profile
     await navigate(width);
     for (const step of ['compare', 'conformance', 'receipt']) {
       await select(step); const before = await fit(`${step}-before`, width);
-      if (step === 'conformance') assert.ok(before.identity.endsWith(`profile SHA-256 ${digest}`));
+      if (step === 'conformance') {
+        assert.ok(before.identity.includes(`profile SHA-256 ${digest}`));
+        const metadata = await fetch(base + '/api/setup').then(r => r.json());
+        assert.ok(before.identity.includes(`corpus ${metadata.corpus.id}`));
+        assert.ok(before.identity.endsWith(`corpus SHA-256 ${metadata.corpus.sha256}`));
+      }
       await run(); await resultReady();
       const title = await evaluate("document.querySelector('#result-title').innerText");
       assert.match(title, step === 'compare' ? /readers disagree/i : step === 'conformance' ? /Engine result:/ : /Agent A: PROCEED/);
@@ -210,13 +237,15 @@ test('failure, skip and mixed banners fit on phones without hiding or crediting 
       const report = structuredClone(reference.report);
       const ids = report.results.map(r => r.vector_id);
       report.results = report.results.map((r, i) => ({ ...r, status: kind === 'failure' ? 'TIMEOUT' : kind === 'skip' ? 'SKIPPED_VECTOR' : i ? 'BEHAVIORAL_DIVERGENCE' : 'TIMEOUT' }));
-      report.summary = { overall: 'INCOMPLETE', execution_error_vector_ids: kind === 'skip' ? [] : kind === 'failure' ? ids : [ids[0]], skipped_vector_ids: kind === 'skip' ? ids : [], behavioral_divergence_vector_ids: kind === 'mixed' ? ids.slice(1) : [] };
+      report.summary = { overall: kind === 'skip' ? 'CONFORMANT' : 'DIVERGENT', execution_error_vector_ids: kind === 'skip' ? [] : kind === 'failure' ? ids : [ids[0]], skipped_vector_ids: kind === 'skip' ? ids : [], behavioral_divergence_vector_ids: kind === 'mixed' ? ids.slice(1) : [] };
       const adapted = adaptReport(report, loadProfile('raven-solana-txversion-experimental/0').data);
       assert.equal(adapted.ok, true); assert.equal(adapted.display.counts.pass, 0);
       reply = { status: 200, body: { report, display: adapted.display } };
       await run(); await resultReady(); const state = await fit(`banner-${kind}`, width);
       assert.ok(state.banner && ids.every(id => state.banner.includes(id)));
       assert.match(await evaluate("document.querySelector('#found').innerText"), /^0 matched;/);
+      assert.equal(await evaluate("document.querySelector('#result-title').innerText"), 'Profile check has non-pass results.');
+      assert.equal(JSON.parse(await evaluate("document.querySelector('#raw').textContent")).summary.overall, report.summary.overall, 'raw engine classification is preserved');
     }
   }
 });
@@ -231,4 +260,97 @@ test('a long path-shaped server error remains readable and leaves no stale resul
     assert.ok(state.status.includes(message)); assert.equal(state.resultVisible, false); assert.equal(state.downloadDisabled, true);
   }
   assert.deepEqual(errors, []); assert.deepEqual(blocked, []);
+});
+
+
+test('classic scrollbar width is allowed while overflow and clipping still fail', () => {
+  const good = { viewport: 320, client: 305, scroll: 305, rootOverflow: ['visible', 'visible'], textBoxes: [{ visible: true, selector: '#status', scroll: 273, width: 273, left: 16, right: 289 }] };
+  assert.doesNotThrow(() => assertFit(good, 'classic-scrollbar', 320));
+  assert.doesNotThrow(() => assertFit({ ...good, client: 320, scroll: 320 }, 'overlay-scrollbar', 320));
+  assert.throws(() => assertFit({ ...good, scroll: 321 }, 'overflow', 320), /overflows/);
+  assert.throws(() => assertFit({ ...good, rootOverflow: ['hidden', 'hidden'] }, 'root-hiding', 320), /must not hide/);
+  assert.throws(() => assertFit({ ...good, rootOverflow: ['clip', 'visible'] }, 'root-clipping', 320), /must not hide/);
+  assert.throws(() => assertFit({ ...good, textBoxes: [{ ...good.textBoxes[0], scroll: 2525, width: 2525, right: 2541 }] }, 'wide-status', 320), /outside the readable viewport/);
+});
+
+test('profile setup failure stays explained across navigation; examples and receipt work independently', async () => {
+  try {
+    for (const stub of [{ status: 500, body: {} }, { status: 200, raw: '{' }, { status: 200, body: {} }]) {
+      routes.set('/api/setup', stub);
+      await navigate(320, "document.querySelector('#setup-notice').textContent.includes('Profile identities could not load') && !document.querySelector('#example').disabled");
+      await select('conformance');
+      assert.equal(await evaluate("document.querySelector('#run').disabled"), true);
+      assert.match(await evaluate("document.querySelector('#status').innerText"), /Profile check unavailable.*Reload to retry/);
+      await select('receipt'); await run(); await resultReady();
+      assert.equal(await evaluate("document.querySelector('#result-title').innerText"), 'Agent A: PROCEED');
+      await select('conformance');
+      assert.match(await evaluate("document.querySelector('#status').innerText"), /Profile check unavailable/);
+      await fit('setup-failure', 320);
+      await select('compare'); await run(); await resultReady();
+    }
+  } finally { routes.clear(); }
+});
+
+test('example failure does not disable a healthy profile check or manually entered bytes', async () => {
+  try {
+    routes.set('/kit/decoder-cases.json', { status: 404, body: {} });
+    await navigate(390);
+    await waitFor("document.querySelector('#setup-notice').textContent.includes('Comparison examples could not load')");
+    assert.equal(await evaluate("document.querySelector('#example').disabled"), true);
+    await select('conformance'); await run(); await resultReady();
+    assert.match(await evaluate("document.querySelector('#found').innerText"), /^27 matched; 3 behavioral differences/);
+    await select('compare');
+    await evaluate("document.querySelector('#bytes').value = '00'; document.querySelector('#bytes').dispatchEvent(new Event('input', { bubbles: true }))");
+    await run(); await resultReady();
+  } finally { routes.clear(); }
+});
+
+test('concurrent and malformed responses explain recovery without leaving a result', async () => {
+  await navigate(390); await select('conformance');
+  for (const [stub, hint] of [[{ status: 409, body: { error: 'run_in_progress' } }, /Another check is still running.*Wait for it to finish/], [{ status: 500, raw: '<html>error</html>' }, /unreadable response.*Retry/]]) {
+    reply = stub; await run(); await waitFor("document.querySelector('#status').textContent.includes('Check did not finish')");
+    assert.match(await evaluate("document.querySelector('#status').innerText"), hint);
+    assert.equal(await evaluate("document.querySelector('#result').hidden && document.querySelector('#download').disabled"), true);
+  }
+});
+
+test('decision tokens stay on one line inside scrollable tables and CLI uses monospace', async () => {
+  for (const width of [320, 390, 1440]) {
+    await navigate(width); await select('compare'); await run(); await resultReady();
+    const tokens = await evaluate("Array.from(document.querySelectorAll('td.decision,td.token'), n => { const r = document.createRange(); r.selectNodeContents(n); return { text: n.textContent, lines: new Set(Array.from(r.getClientRects(), x => x.top)).size } })");
+    assert.ok(tokens.some(t => t.text === 'ACCEPT') && tokens.some(t => t.text === 'REJECT'));
+    assert.ok(tokens.every(t => t.lines === 1), JSON.stringify(tokens));
+    await select('conformance'); await run(); await resultReady();
+    assert.match(await evaluate("getComputedStyle(document.querySelector('#reproduce')).fontFamily"), /monospace/);
+    await fit('readable-table', width);
+  }
+});
+
+test('editing bytes marks a custom input; selecting the same example restores it', async () => {
+  await navigate(390);
+  const before = await evaluate("({ example: document.querySelector('#example').value, bytes: document.querySelector('#bytes').value })");
+  await evaluate("document.querySelector('#bytes').value = '00'; document.querySelector('#bytes').dispatchEvent(new Event('input', { bubbles: true }))");
+  assert.equal(await evaluate("document.querySelector('#example').value"), '');
+  await evaluate(`document.querySelector('#example').value = ${JSON.stringify(before.example)}; document.querySelector('#example').dispatchEvent(new Event('change', { bubbles: true }))`);
+  assert.equal(await evaluate("document.querySelector('#bytes').value"), before.bytes);
+  assert.equal(await evaluate("document.querySelector('#result').hidden && document.querySelector('#download').disabled"), true);
+});
+
+test('a pending profile check explains the wait; cancellation leaves no result', async () => {
+  await navigate(320); await select('conformance');
+  holdConformance = true; heldRequest = null;
+  try {
+    await run();
+    const until = Date.now() + 5000;
+    while (!heldRequest && Date.now() < until) await wait(25);
+    assert.ok(heldRequest, 'real request interception barrier');
+    assert.match(await evaluate("document.querySelector('#status').innerText"), /can take over a minute.*does not stream progress.*no result is available/);
+    await evaluate("document.querySelector('#cancel').click()");
+    assert.equal(await evaluate("document.querySelector('#result').hidden && document.querySelector('#download').disabled"), true);
+    assert.match(await evaluate("document.querySelector('#status').innerText"), /cancelled/);
+  } finally {
+    holdConformance = false;
+    if (heldRequest) await cdp.send('Fetch.failRequest', { requestId: heldRequest, errorReason: 'Aborted' }).catch(error => { if (!/Invalid InterceptionId/.test(error.message)) throw error; });
+    heldRequest = null;
+  }
 });

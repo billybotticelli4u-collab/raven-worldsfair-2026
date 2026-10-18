@@ -110,9 +110,17 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   server.once('error', error => { console.error(error.message); process.exitCode = 1; });
   server.listen(port, '127.0.0.1', () => console.log(`Raven local onboarding: http://127.0.0.1:${server.address().port}`));
   let closing = false;
-  for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, async () => {
+  const shutdown = async () => {
     if (closing) return;
     closing = true;
+    clearInterval(parentWatch);
     await server.closeOnboarding();
-  });
+  };
+  // npm does not forward SIGTERM to its child. Stop if the original launcher
+  // disappears too; this watches only our parent, never unrelated processes.
+  const launcher = process.ppid;
+  const parentWatch = setInterval(() => { if (process.ppid !== launcher) void shutdown(); }, 250);
+  parentWatch.unref();
+  server.once('close', () => clearInterval(parentWatch));
+  for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, shutdown);
 }

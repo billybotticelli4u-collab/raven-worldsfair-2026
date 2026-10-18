@@ -40,6 +40,14 @@ test('entry point labels evidence changes and makes no receipt handoff', async (
   assert.match(response.headers.get('content-security-policy'), /connect-src 'self'/);
 });
 
+test('entry point uses the existing same-origin logo as its favicon', async () => {
+  const html = await fetch(base).then(r => r.text());
+  assert.match(html, /rel="icon" href="\/kit\/raven-logo.svg"/);
+  const response = await fetch(base + '/kit/raven-logo.svg');
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), readFileSync(new URL('../../kit-compare/raven-logo.svg', import.meta.url), 'utf8'));
+});
+
 test('cross-origin, rebinding host, arbitrary uploads and unsupported methods refuse', async () => {
   assert.equal((await post('/api/receipt', { path: 'path_a_verified' }, { origin: 'https://attacker.invalid' })).status, 403);
   assert.equal((await post('/api/receipt', { path: 'path_a_verified' }, { 'sec-fetch-site': 'cross-site' })).status, 403);
