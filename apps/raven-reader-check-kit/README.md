@@ -85,6 +85,10 @@ cases already pass because the template's input boundary rejects them.)
 | `NOT_PASSED` | No answer differed, but some cases had no usable answer (crash, timeout, invalid output, too much output) or were skipped. These are **not passes**. | 1 |
 | `INCOMPLETE` | No cases ran. | 1 |
 
+Do not read the pass count as a score. Most cases are invalid transactions that must be
+rejected, so a reader that rejects everything still matches 24 of 30 cases (rehearsed); it
+diverges only on the six valid transactions. Look at which cases differ, not at the total.
+
 Per-case outcomes: `PASS`, `BEHAVIORAL_DIVERGENCE` (different answer), `TARGET_CRASH`
 (non-zero exit), `TIMEOUT`, `INVALID_OUTPUT` (not one JSON answer, or `version` missing),
 `OUTPUT_FLOOD`, `RUNNER_FAILURE`, `SKIPPED_VECTOR`.
