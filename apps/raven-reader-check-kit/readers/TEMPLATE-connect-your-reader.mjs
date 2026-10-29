@@ -16,12 +16,18 @@
  *   - exit code 0. Any other exit code is reported as TARGET_CRASH, not as a difference.
  *   - 3 seconds per case, 256 KiB stdout, 64 KiB stderr.
  *
- *  Sandbox limits (they are part of the check, not bugs):
+ *  Reader requirements and execution controls:
  *   - Must be ONE self-contained JavaScript (ESM) file. Bundle dependencies into it
  *     (for example with your own bundler) before running the kit.
- *   - No child processes, no workers, no file writes. On Linux only this file itself
- *     may be read. On macOS network access is denied (Seatbelt).
- *   - Environment variables are filtered; do not rely on secrets or config files.
+ *   - The reader must not depend on child processes, workers, writes, network,
+ *     config files or secrets. Do not use paths relative to import.meta.url:
+ *     execution uses a captured .mjs copy, not the original path.
+ *   - Actual controls are probed and reported. Seatbelt denies network and writes
+ *     to the captured reader, but permits broad reads, children/workers and temp
+ *     writes. Node permissions deny writes/children/workers and allow reading
+ *     only the captured entry; they do NOT deny network.
+ *   - Filtered environment variables do not prove the host has no credentials.
+ *     Run reviewed readers only in an approved environment without credentials.
  * ============================================================================
  */
 import { readFileSync } from "node:fs";

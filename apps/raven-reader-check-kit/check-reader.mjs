@@ -13,7 +13,7 @@
  * Exit: 0 every case matched, 1 differences or non-passes, 2 setup/usage error.
  */
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, chmodSync, lstatSync, statSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -24,6 +24,7 @@ const PROFILE = "raven-solana-txversion-experimental/0";
 const { loadProfile, loadCorpus, classifyResult, DEFAULT_TIMEOUT_MS } = await import(path.join(ENGINE, "runner.js"));
 const { createRunWorkdir, cleanupWorkdir, resolveIsolation, spawnIsolated, DEFAULT_MAX_STDOUT_BYTES, DEFAULT_MAX_STDERR_BYTES } =
   await import(path.join(ENGINE, "isolation.js"));
+const { APP_ROOT } = await import(path.join(ENGINE, "paths.js"));
 
 const EXEC_ERRORS = new Set(["TARGET_CRASH", "TIMEOUT", "INVALID_OUTPUT", "OUTPUT_FLOOD", "RUNNER_FAILURE", "INCOMPLETE"]);
 const PLAIN = {
@@ -57,6 +58,45 @@ function parseArgs(argv) {
   return o;
 }
 const sha256 = (b) => createHash("sha256").update(b).digest("hex");
+function runIdentity(runId) {
+  const id = runId || `reader-check-${new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14)}`;
+  if (!/^[A-Za-z0-9._-]{1,80}$/.test(id)) usage("--run-id may use only letters, digits, . _ -");
+  return id;
+}
+
+// Resolve existing ancestors too: different symlinked parent paths may name
+// the same as-yet nonexistent output. Dangling links fail closed.
+function fileIdentity(filename) {
+  const absolute = path.resolve(filename);
+  let ancestor = absolute;
+  const missing = [];
+  while (true) {
+    try { lstatSync(ancestor); break; }
+    catch (e) {
+      if (e.code !== "ENOENT" || path.dirname(ancestor) === ancestor) throw e;
+      missing.unshift(path.basename(ancestor));
+      ancestor = path.dirname(ancestor);
+    }
+  }
+  const canonical = path.join(realpathSync(ancestor), ...missing);
+  const st = missing.length ? null : statSync(absolute);
+  if (st && !st.isFile()) throw new Error(`not a regular file: ${filename}`);
+  return { canonical, inode: st ? `${st.dev}:${st.ino}` : null };
+}
+
+function validateOutputPaths(reader, out, explainPath) {
+  try {
+    const files = [["reader", reader], ["JSON", out], ...(explainPath ? [["Markdown", explainPath]] : [])]
+      .map(([label, filename]) => ({ label, ...fileIdentity(filename) }));
+    for (let i = 0; i < files.length; i++) for (let j = i + 1; j < files.length; j++) {
+      const a = files[i], b = files[j];
+      if (a.canonical === b.canonical || (a.inode && a.inode === b.inode)) {
+        usage(`output_path_collision: ${a.label} and ${b.label} refer to the same file`);
+      }
+    }
+  } catch (e) { usage(`invalid_output_path: ${e.message}`); }
+}
+
 function gitIdentity() {
   try {
     const run = (args) => execFileSync("git", ["-C", KIT_DIR, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
@@ -70,10 +110,10 @@ export async function checkReader(readerPath, { runId } = {}) {
   const entryAbs = realpathSync(readerPath);
   if (!/\.(mjs|js)$/.test(entryAbs)) usage("reader must be a single .mjs/.js file");
   const readerBytes = readFileSync(entryAbs);
+  const readerDigest = sha256(readerBytes);
   const profile = loadProfile(PROFILE);
   const corpus = loadCorpus(profile.data.name); // refuses on digest mismatch
-  const id = runId || `reader-check-${new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14)}`;
-  if (!/^[A-Za-z0-9._-]{1,80}$/.test(id)) usage("--run-id may use only letters, digits, . _ -");
+  const id = runIdentity(runId);
   const workDir = createRunWorkdir(id);
   const isolation = resolveIsolation(workDir);
   if (isolation.mode === "unavailable") {
@@ -83,13 +123,33 @@ export async function checkReader(readerPath, { runId } = {}) {
   }
   const startedAt = new Date().toISOString();
   const rows = [];
+  let snapshotDir;
   try {
+    // APP_ROOT is explicitly write-denied by the existing Seatbelt profile,
+    // including when the checkout is under /tmp. Node permissions also deny
+    // writes. A normal temp/workDir copy would be writable by a Mac reader.
+    snapshotDir = mkdtempSync(path.join(realpathSync(APP_ROOT), ".reader-kit-snapshot-"));
+    const capturedEntry = path.join(snapshotDir, "reader.mjs");
+    writeFileSync(capturedEntry, readerBytes, { flag: "wx", mode: 0o400 });
+    chmodSync(snapshotDir, 0o500);
+    const snapshotMatches = () => {
+      try { return sha256(readFileSync(capturedEntry)) === readerDigest; }
+      catch { return false; }
+    };
     for (const v of corpus.data.vectors) {
       if (v.skip === true) {
         rows.push({ vector_id: v.id, expected: { ...v.expected }, observed: null, status: "SKIPPED_VECTOR", evidence: null });
         continue;
       }
-      const exec = await spawnIsolated({ entryAbs, inputObj: v.input, workDir, isolation, timeoutMs: DEFAULT_TIMEOUT_MS });
+      if (!snapshotMatches()) {
+        rows.push({ vector_id: v.id, expected: { ...v.expected }, observed: null, status: "INCOMPLETE", evidence: { note: "reader_snapshot_changed" } });
+        break;
+      }
+      const exec = await spawnIsolated({ entryAbs: capturedEntry, inputObj: v.input, workDir, isolation, timeoutMs: DEFAULT_TIMEOUT_MS });
+      if (!snapshotMatches()) {
+        rows.push({ vector_id: v.id, expected: { ...v.expected }, observed: null, status: "INCOMPLETE", evidence: { note: "reader_snapshot_changed" } });
+        break;
+      }
       const { status, evidence_note } = classifyResult(exec, v.expected);
       rows.push({
         vector_id: v.id,
@@ -101,6 +161,10 @@ export async function checkReader(readerPath, { runId } = {}) {
     }
   } finally {
     cleanupWorkdir(workDir);
+    if (snapshotDir) {
+      chmodSync(snapshotDir, 0o700);
+      rmSync(snapshotDir, { recursive: true });
+    }
   }
   const counts = {};
   for (const r of rows) counts[r.status] = (counts[r.status] || 0) + 1;
@@ -119,7 +183,7 @@ export async function checkReader(readerPath, { runId } = {}) {
     finished_at: new Date().toISOString(),
     signed: false,
     liveAcquisition: false,
-    evidence_kind: "fixture corpus (Raven-owned test cases); no chain, RPC or network data was read",
+    evidence_kind: "Raven supplied fixed fixture inputs; the kit makes no provider calls. Reader access to other data depends on the reported isolation controls and execution environment.",
     verdict,
     verdict_meaning: {
       ALL_MATCHED: "every case gave the expected decision and version",
@@ -129,14 +193,14 @@ export async function checkReader(readerPath, { runId } = {}) {
     }[verdict],
     template_not_connected: templateNotConnected,
     kit: { ...gitIdentity(), driver_sha256: sha256(readFileSync(fileURLToPath(import.meta.url))) },
-    reader: { path: path.relative(process.cwd(), entryAbs) || entryAbs, sha256: sha256(readerBytes), bytes: readerBytes.length },
+    reader: { path: path.relative(process.cwd(), entryAbs) || entryAbs, sha256: readerDigest, bytes: readerBytes.length, execution_binding: "captured_single_file" },
     profile: { name: profile.data.name, version: profile.data.version, experimental: true, file: path.basename(profile.path), sha256: profile.digest },
-    corpus: { id: corpus.data.id, version: corpus.data.version, file: path.basename(corpus.path), sha256: corpus.digest, vector_count: corpus.data.vectors.length },
+    corpus: { id: corpus.data.id, version: corpus.data.version, file: path.basename(corpus.path), sha256: corpus.digest, digest_kind: "canonical_content", file_sha256: sha256(readFileSync(corpus.path)), vector_count: corpus.data.vectors.length },
     compared_fields: ["decision", "version"],
     not_compared: ["reason text", "signature validity", "signer trust", "execution or on-chain outcome", "fees or safety"],
     limits: { timeout_ms_per_case: DEFAULT_TIMEOUT_MS, max_stdout_bytes: DEFAULT_MAX_STDOUT_BYTES, max_stderr_bytes: DEFAULT_MAX_STDERR_BYTES },
-    isolation: { mode: isolation.mode, verified: isolation.verified, platform: isolation.platform, details: isolation.details },
-    runtime: { node: process.version, platform: `${process.platform}-${process.arch}` },
+    isolation: { mode: isolation.mode, verified: isolation.verified, platform: isolation.platform, details: isolation.details, verified_controls: isolation.verified_controls, assumed_controls: isolation.assumed_controls },
+    runtime: { node: process.version, platform: `${process.platform}-${process.arch}`, electron: process.versions.electron ?? null },
     counts,
     divergent_vector_ids: divergent,
     execution_error_vector_ids: execErrors,
@@ -151,8 +215,9 @@ export function explain(report) {
   L.push(`UNSIGNED kit report. Fixture evidence only (liveAcquisition: false). Checked against Raven's pinned profile and test corpus; this is not an on-chain result and not a security approval.`, "");
   L.push(`- Reader: \`${report.reader.path}\` (sha256 \`${report.reader.sha256}\`)`);
   L.push(`- Profile: \`${report.profile.name}\` v${report.profile.version} (experimental; sha256 \`${report.profile.sha256}\`)`);
-  L.push(`- Corpus: \`${report.corpus.id}\` v${report.corpus.version}, ${report.corpus.vector_count} cases (sha256 \`${report.corpus.sha256}\`)`);
+  L.push(`- Corpus: \`${report.corpus.id}\` v${report.corpus.version}, ${report.corpus.vector_count} cases (canonical content SHA-256 \`${report.corpus.sha256}\`; file SHA-256 \`${report.corpus.file_sha256}\`)`);
   L.push(`- Kit commit: \`${report.kit.commit}\`; isolation: ${report.isolation.mode}; Node ${report.runtime.node} on ${report.runtime.platform}`, "");
+  L.push(`Isolation limits: ${report.isolation.details}`, "", "Run only reviewed code in an approved environment without credentials. These controls do not establish that the host contains no secrets.", "");
   L.push(`## Result: ${report.verdict}`, "", report.verdict_meaning, "");
   L.push("| Outcome | Cases |", "| --- | --- |");
   for (const [k, n] of Object.entries(report.counts)) L.push(`| ${k} (${PLAIN[k] || k}) | ${n} |`);
@@ -175,8 +240,14 @@ export function explain(report) {
 
 if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = parseArgs(process.argv);
-  const report = await checkReader(args.reader, { runId: args.runId });
-  const out = args.out || path.join(KIT_DIR, "reader-check-results", `${report.run_id}.json`);
+  if (!args.reader) usage("--reader is required");
+  if (!existsSync(args.reader)) usage(`reader file not found: ${args.reader}`);
+  const runId = runIdentity(args.runId);
+  const out = args.out || path.join(KIT_DIR, "reader-check-results", `${runId}.json`);
+  validateOutputPaths(args.reader, out, args.explain);
+  const report = await checkReader(args.reader, { runId });
+  // Recheck before writes in case paths changed while the reader ran.
+  validateOutputPaths(args.reader, out, args.explain);
   mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
   writeFileSync(out, JSON.stringify(report, null, 2) + "\n");
   const md = explain(report);

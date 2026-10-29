@@ -1,10 +1,11 @@
 # Raven reader-check kit — getting started
 
 Check your transaction reader against Raven's pinned Solana transaction-version
-profile, see exactly where it differs, and export the result. Local only: no
-account, no network, no installation.
+profile, see exactly where it differs, and export the result. The kit runs locally,
+needs no account or package installation, and makes no provider calls. A reader's
+access to other data depends on the actual execution controls described below.
 
-> Status: AUTHOR DELIVERED kit (Billy 1, 2026-10-28), not independently approved.
+> Status: local CODEX correction of Billy 1's kit, pending non-author acceptance.
 > Reports are **unsigned** and use **fixture** test cases (`liveAcquisition:false`).
 > Results are "checked against Raven's pinned profile and corpus", never
 > "verified on-chain".
@@ -12,11 +13,17 @@ account, no network, no installation.
 ## 1. Prerequisites
 
 - A recursive clone of this repository (the verifier submodule is not needed by this kit).
-- Node.js **22 or newer** on your PATH (`node --version`). The repository pins 22.x;
-  this kit was rehearsed on Node 26.9.0 and 24.21.0 (macOS arm64) because the Node 22
-  on the rehearsal machine would not start. Node 22 itself was not executed for this kit.
-- macOS (`sandbox-exec` available) or Linux (Node `--permission` support). If neither
+- Use genuine **Node.js 22.18.0** for the repository's pinned reproduction path.
+  Check `node -p 'JSON.stringify({node:process.versions.node,electron:process.versions.electron??null})'`:
+  `electron` must be null. An app's embedded runtime is not a substitute for Node;
+  a version string alone does not identify it. The original author used other
+  runtimes because one local Node install was broken; the completed acceptance
+  review subsequently ran its eight tests on a working standalone Node 22.18.0.
+- macOS or Linux with a working, probed isolation mode. macOS prefers
+  `sandbox-exec` and falls back to Node permissions if that probe fails. If neither
   isolation works, the kit refuses to run your reader (exit 2) rather than run it unconfined.
+- A writable `apps/raven-conformance` directory for the temporary captured reader.
+  It is removed after a normal run; failed setup refuses without returning a passing report.
 - `git` (only to stamp the kit commit into the report).
 - No `npm install`. Nothing is downloaded.
 
@@ -61,9 +68,10 @@ the faulty reader accepted it; the profile says it must be rejected.
    `{"decision":"ACCEPT"|"REJECT","version":"legacy"|0|1|null,"reason":"..."}`.
    Rejections use `version: null`.
 3. Your reader must be **one self-contained JavaScript (ESM) file**: bundle any
-   dependencies into it first. It may not start child processes, workers, write files,
-   or (macOS) use the network; on Linux it may read only its own file. Each case has
-   3 seconds and 256 KiB of output.
+   dependencies into it first. Its contract excludes child processes, workers,
+   file writes, network and external config. Each case has 3 seconds, 256 KiB stdout
+   and 64 KiB stderr. These requirements are distinct from the controls actually
+   enforced by the selected mode (see below).
 4. Run:
 
 ```sh
@@ -75,6 +83,28 @@ node apps/raven-reader-check-kit/check-reader.mjs \
 Running the unedited template is safe: it reports `NOT_PASSED` with 27 `TARGET_CRASH`
 cases and the hint `the template reader is not connected yet`. (Three malformed-input
 cases already pass because the template's input boundary rejects them.)
+
+**Captured reader.** Each run captures the input once and executes that exact copy
+for every case. Changes to the original file during the run do not change the
+tested code or its recorded SHA-256. The copy lives under the Conformance app root,
+which the existing Seatbelt profile explicitly denies writing even for a checkout
+under `/tmp`; Node permissions also deny writes. It is checked around each case
+and normally removed afterwards. Relative imports, resources beside the original
+file, and assumptions about `import.meta.url` are unsupported: the copy is a `.mjs`
+file at a different path. If capture fails or its bytes change, no full pass is
+returned. A hard process kill can leave a temporary copy; this is not a guarantee
+against a privileged or concurrently hostile host.
+
+**Execution environment.** The actual mode and controls are in the report:
+
+- Seatbelt denies network and writes to the captured reader/app root, but allows
+  broad file reads, child processes, workers and writes to temporary areas.
+- Node permissions restrict reads to the captured entry and deny writes, child
+  processes and workers. They do **not** deny network.
+
+Use reviewed readers in an approved environment without credentials. An environment
+allowlist or a network block does not prove that the machine contains no secrets.
+This kit is not permission to run unknown customer code on a personal workstation.
 
 ## 4. Reading the result
 
@@ -112,14 +142,28 @@ scored. Passing all 30 cases is not proof of full Solana correctness.
 command prints its SHA-256. `--explain` writes the plain-language summary generated from the
 same report. Default output (no `--out`) goes to
 `apps/raven-reader-check-kit/reader-check-results/` (git-ignored). The report records the kit
-commit/tree, reader SHA-256, profile and corpus SHA-256, isolation mode, Node version and
-every case's expected and observed answer.
+commit/tree, captured reader SHA-256, profile file SHA-256, isolation mode and controls,
+Node version and every case's expected and observed answer. The corpus `sha256`
+field is its **canonical content digest**, kept for compatibility; `digest_kind`
+names that meaning and `file_sha256` separately identifies the file bytes.
+
+JSON, Markdown and reader-input paths must identify different files. The CLI checks
+normalized paths, symlinks and existing hardlinks before executing and before writing;
+a collision refuses with exit 2 without overwriting the files. This is an accidental
+alias guard, not a guarantee against a hostile concurrent filesystem race.
+
+Rerun the comparison with the same captured reader bytes, profile, corpus and runtime
+to compare case outcomes. Complete report files include run IDs, timestamps and durations,
+so a rerun does **not** promise the same whole-file hash. The printed checksum identifies
+the particular exported artifact, not an authenticated signature. This kit's JSON format
+does not support the Conformance engine's registered-target report replay command.
 
 ## 6. Common errors and recovery
 
 | You see | Cause | Fix |
 | --- | --- | --- |
 | `error: reader file not found` (exit 2) | Wrong path | Paths are relative to where you run the command; run from the repo root. |
+| `output_path_collision` (exit 2) | Reader, JSON or Markdown paths identify the same file | Choose distinct destinations; existing files are preserved on refusal. |
 | `reader must be a single .mjs/.js file` | Directory or other file type | Point `--reader` at your bundled `.mjs`. |
 | `isolation unavailable, refusing to run` (exit 2) | No `sandbox-exec` (macOS) / Node permission model (Linux) | Use Node 22+ on macOS or Linux; the kit will not run your code unconfined. |
 | `CORPUS_DIGEST_MISMATCH` / `PROFILE_*` error | The pinned corpus/profile files were edited | `git checkout -- apps/raven-conformance` to restore them. Never edit them to make a reader pass. |
@@ -127,7 +171,7 @@ every case's expected and observed answer.
 | `TARGET_CRASH` with `ERR_ACCESS_DENIED` in report `stderr` | Reader imports other files, spawns processes or writes files | Bundle into one file; remove process/file/network use. |
 | `INVALID_OUTPUT missing_version` | Answer lacks `version` | Always print `version` (use `null` for REJECT). |
 | `TIMEOUT` | More than 3 s for one case | Move slow start-up work out; one process runs per case. |
-| `SyntaxError` / `ERR_UNKNOWN_FILE_EXTENSION` running the kit | Node older than 22 | Upgrade Node. |
+| Runtime errors or repeated target crashes | Wrong runtime, unsupported code or unavailable controls | Check the genuine Node identity and report details; do not infer the cause from the version string alone. |
 
 ## 7. Self-test
 
@@ -135,5 +179,8 @@ every case's expected and observed answer.
 node --test apps/raven-reader-check-kit/test/*.test.mjs
 ```
 
-Expected: 8 pass, 0 fail. This also checks that the kit's per-case outcomes equal the
-unchanged Conformance engine for its three registered Solana targets.
+The original eight tests check examples, exports and outcome equivalence with the
+unchanged Conformance engine for its three registered Solana targets. The additional
+tests cover captured reader identity, change-back, write denial, export aliases and
+reported controls. Two marker-based tests are Mac-only; Linux skips are explicit
+and do not substitute for an independent Linux acceptance run.
