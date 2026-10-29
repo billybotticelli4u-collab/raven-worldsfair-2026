@@ -115,6 +115,15 @@ This kit is not permission to run unknown customer code on a personal workstatio
 | `NOT_PASSED` | No answer differed, but some cases had no usable answer (crash, timeout, invalid output, too much output) or were skipped. These are **not passes**. | 1 |
 | `INCOMPLETE` | No cases ran. | 1 |
 
+If the captured reader changes during a run, execution stops. The affected case
+and every remaining case appear as `INCOMPLETE` rows in both exports, with no
+observed answer. The affected row records `reader_snapshot_changed`; subsequent
+rows record `not_run_after_reader_snapshot_changed`. Earlier completed answers
+remain in the report. A genuine earlier difference keeps the `DIVERGENT` verdict;
+otherwise the result is `NOT_PASSED`. The explanation states why the run stopped.
+This reporting correction does not change reader isolation, limits, or recovery
+after a hard kill, and does not establish that a customer environment is safe.
+
 Do not read the pass count as a score. Most cases are invalid transactions that must be
 rejected, so a reader that rejects everything still matches 24 of 30 cases (rehearsed); it
 diverges only on the six valid transactions. Look at which cases differ, not at the total.

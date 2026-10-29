@@ -36,7 +36,7 @@ const PLAIN = {
   OUTPUT_FLOOD: "printed more output than allowed",
   RUNNER_FAILURE: "could not be run by Raven",
   SKIPPED_VECTOR: "was skipped by the corpus (not checked)",
-  INCOMPLETE: "was not reached",
+  INCOMPLETE: "has no usable result",
 };
 
 function usage(msg) {
@@ -133,6 +133,12 @@ export async function checkReader(readerPath, { runId } = {}) {
   }
   const startedAt = new Date().toISOString();
   const rows = [];
+  const recordStoppedFrom = (index) => {
+    for (const [offset, vector] of corpus.data.vectors.slice(index).entries()) {
+      rows.push({ vector_id: vector.id, expected: { ...vector.expected }, observed: null, status: "INCOMPLETE",
+        evidence: { note: offset === 0 ? "reader_snapshot_changed" : "not_run_after_reader_snapshot_changed" } });
+    }
+  };
   let snapshotDir;
   try {
     // APP_ROOT is explicitly write-denied by the existing Seatbelt profile,
@@ -146,18 +152,18 @@ export async function checkReader(readerPath, { runId } = {}) {
       try { return sha256(readFileSync(capturedEntry)) === readerDigest; }
       catch { return false; }
     };
-    for (const v of corpus.data.vectors) {
+    for (const [index, v] of corpus.data.vectors.entries()) {
       if (v.skip === true) {
         rows.push({ vector_id: v.id, expected: { ...v.expected }, observed: null, status: "SKIPPED_VECTOR", evidence: null });
         continue;
       }
       if (!snapshotMatches()) {
-        rows.push({ vector_id: v.id, expected: { ...v.expected }, observed: null, status: "INCOMPLETE", evidence: { note: "reader_snapshot_changed" } });
+        recordStoppedFrom(index);
         break;
       }
       const exec = await spawnIsolated({ entryAbs: capturedEntry, inputObj: v.input, workDir, isolation, timeoutMs: DEFAULT_TIMEOUT_MS });
       if (!snapshotMatches()) {
-        rows.push({ vector_id: v.id, expected: { ...v.expected }, observed: null, status: "INCOMPLETE", evidence: { note: "reader_snapshot_changed" } });
+        recordStoppedFrom(index);
         break;
       }
       const { status, evidence_note } = classifyResult(exec, v.expected);
@@ -186,6 +192,7 @@ export async function checkReader(readerPath, { runId } = {}) {
     : divergent.length === 0 && execErrors.length === 0 && skipped.length === 0 ? "ALL_MATCHED"
     : divergent.length > 0 ? "DIVERGENT" : "NOT_PASSED";
   const templateNotConnected = rows.some((r) => r.evidence?.stderr?.includes("TEMPLATE_NOT_CONNECTED"));
+  const stoppedForSnapshot = rows.some((r) => r.evidence?.note === "reader_snapshot_changed");
   return {
     schema: "raven-reader-check-kit-report/0",
     run_id: id,
@@ -200,7 +207,7 @@ export async function checkReader(readerPath, { runId } = {}) {
       DIVERGENT: "at least one case gave a different decision or version than the profile expects",
       NOT_PASSED: "no answer differences, but some cases crashed, timed out, gave invalid output or were skipped",
       INCOMPLETE: "no cases ran",
-    }[verdict],
+    }[verdict] + (stoppedForSnapshot ? ". The run stopped because the captured reader changed. The affected case and every remaining case are INCOMPLETE; no answer is claimed for them." : ""),
     template_not_connected: templateNotConnected,
     kit: { ...gitIdentity(), driver_sha256: sha256(readFileSync(fileURLToPath(import.meta.url))) },
     reader: { path: path.relative(process.cwd(), entryAbs) || entryAbs, sha256: readerDigest, bytes: readerBytes.length, execution_binding: "captured_single_file" },
