@@ -86,7 +86,8 @@ function fileIdentity(filename) {
       st = null;
       continue;
     }
-    canonical = realpathSync(canonical);
+    // The native resolver also preserves symlink/.. order inside link targets.
+    canonical = realpathSync.native(canonical);
     st = statSync(canonical);
   }
   if (st && !st.isFile()) throw new Error(`not a regular file: ${filename}`);
@@ -116,7 +117,7 @@ function gitIdentity() {
 export async function checkReader(readerPath, { runId } = {}) {
   if (!readerPath) usage("--reader is required");
   if (!existsSync(readerPath)) usage(`reader file not found: ${readerPath}`);
-  const entryAbs = realpathSync(readerPath);
+  const entryAbs = fileIdentity(readerPath).canonical;
   if (!/\.(mjs|js)$/.test(entryAbs)) usage("reader must be a single .mjs/.js file");
   const readerBytes = readFileSync(entryAbs);
   const readerDigest = sha256(readerBytes);

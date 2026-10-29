@@ -148,7 +148,8 @@ field is its **canonical content digest**, kept for compatibility; `digest_kind`
 names that meaning and `file_sha256` separately identifies the file bytes.
 
 JSON, Markdown and reader-input paths must identify different files. The CLI checks
-paths in filesystem order (including symlinks followed by `..`) and existing hardlinks
+paths in filesystem order (including symlinks followed by `..` inside arguments
+and symlink targets), using the native resolver for existing components, and existing hardlinks
 before executing and before writing. A collision detected then refuses with exit 2
 and preserves existing files. After creating JSON, the CLI checks again before writing
 Markdown: a case- or Unicode-folded alias of a previously nonexistent filename may
@@ -156,6 +157,11 @@ only become detectable then. That refusal leaves the new JSON intact, writes no
 Markdown and prints no success/report line. Choose distinct names and rerun. This is
 an accidental alias guard, not an atomic export or protection against a hostile
 concurrent filesystem race.
+
+The reader capture uses the same physical-path resolution as this guard, so a
+`symlink/..` reader argument captures the file the operating system opens, not a
+lexically normalised neighbour. The nested-link regression cases have been measured
+on macOS with Node 22.18.0 and 24.18.0; Linux/native-libc acceptance remains separate.
 
 Rerun the comparison with the same captured reader bytes, profile, corpus and runtime
 to compare case outcomes. Complete report files include run IDs, timestamps and durations,
