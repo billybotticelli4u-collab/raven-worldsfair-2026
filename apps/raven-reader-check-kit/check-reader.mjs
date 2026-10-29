@@ -64,22 +64,31 @@ function runIdentity(runId) {
   return id;
 }
 
-// Resolve existing ancestors too: different symlinked parent paths may name
-// the same as-yet nonexistent output. Dangling links fail closed.
+// Resolve components in filesystem order. Lexical normalization would apply
+// ".." before following a symlink and can name a different file than the kernel.
+// Missing suffixes are allowed for new outputs; dangling links fail closed.
 function fileIdentity(filename) {
-  const absolute = path.resolve(filename);
-  let ancestor = absolute;
-  const missing = [];
-  while (true) {
-    try { lstatSync(ancestor); break; }
-    catch (e) {
-      if (e.code !== "ENOENT" || path.dirname(ancestor) === ancestor) throw e;
-      missing.unshift(path.basename(ancestor));
-      ancestor = path.dirname(ancestor);
+  const absolute = path.isAbsolute(filename) ? filename : `${process.cwd()}${path.sep}${filename}`;
+  let canonical = path.parse(absolute).root;
+  let st = statSync(canonical);
+  for (const component of absolute.split(path.sep).filter(Boolean)) {
+    if (component === "." || component === "..") {
+      if (!st?.isDirectory()) throw new Error(`cannot traverse directory: ${canonical}`);
+      if (component === "..") canonical = path.dirname(canonical);
+      st = statSync(canonical);
+      continue;
     }
+    if (st && !st.isDirectory()) throw new Error(`not a directory: ${canonical}`);
+    canonical = path.join(canonical, component);
+    try { lstatSync(canonical); }
+    catch (e) {
+      if (e.code !== "ENOENT") throw e;
+      st = null;
+      continue;
+    }
+    canonical = realpathSync(canonical);
+    st = statSync(canonical);
   }
-  const canonical = path.join(realpathSync(ancestor), ...missing);
-  const st = missing.length ? null : statSync(absolute);
   if (st && !st.isFile()) throw new Error(`not a regular file: ${filename}`);
   return { canonical, inode: st ? `${st.dev}:${st.ino}` : null };
 }
@@ -248,8 +257,11 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
   const report = await checkReader(args.reader, { runId });
   // Recheck before writes in case paths changed while the reader ran.
   validateOutputPaths(args.reader, out, args.explain);
-  mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
+  mkdirSync(path.dirname(out), { recursive: true });
   writeFileSync(out, JSON.stringify(report, null, 2) + "\n");
+  // Newly created names may alias through filesystem case/Unicode folding.
+  // JSON now has an inode: refuse before Markdown can replace its contents.
+  validateOutputPaths(args.reader, out, args.explain);
   const md = explain(report);
   if (args.explain) writeFileSync(args.explain, md + "\n");
   process.stdout.write(`verdict: ${report.verdict}  (${Object.entries(report.counts).map(([k, n]) => `${k}=${n}`).join(" ")})\n`);

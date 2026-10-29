@@ -148,9 +148,14 @@ field is its **canonical content digest**, kept for compatibility; `digest_kind`
 names that meaning and `file_sha256` separately identifies the file bytes.
 
 JSON, Markdown and reader-input paths must identify different files. The CLI checks
-normalized paths, symlinks and existing hardlinks before executing and before writing;
-a collision refuses with exit 2 without overwriting the files. This is an accidental
-alias guard, not a guarantee against a hostile concurrent filesystem race.
+paths in filesystem order (including symlinks followed by `..`) and existing hardlinks
+before executing and before writing. A collision detected then refuses with exit 2
+and preserves existing files. After creating JSON, the CLI checks again before writing
+Markdown: a case- or Unicode-folded alias of a previously nonexistent filename may
+only become detectable then. That refusal leaves the new JSON intact, writes no
+Markdown and prints no success/report line. Choose distinct names and rerun. This is
+an accidental alias guard, not an atomic export or protection against a hostile
+concurrent filesystem race.
 
 Rerun the comparison with the same captured reader bytes, profile, corpus and runtime
 to compare case outcomes. Complete report files include run IDs, timestamps and durations,
@@ -163,7 +168,7 @@ does not support the Conformance engine's registered-target report replay comman
 | You see | Cause | Fix |
 | --- | --- | --- |
 | `error: reader file not found` (exit 2) | Wrong path | Paths are relative to where you run the command; run from the repo root. |
-| `output_path_collision` (exit 2) | Reader, JSON or Markdown paths identify the same file | Choose distinct destinations; existing files are preserved on refusal. |
+| `output_path_collision` (exit 2) | Reader, JSON or Markdown paths identify the same file | Choose distinct destinations. Pre-write refusals preserve existing files; a newly detected case/Unicode alias leaves JSON intact and skips Markdown. |
 | `reader must be a single .mjs/.js file` | Directory or other file type | Point `--reader` at your bundled `.mjs`. |
 | `isolation unavailable, refusing to run` (exit 2) | No `sandbox-exec` (macOS) / Node permission model (Linux) | Use Node 22+ on macOS or Linux; the kit will not run your code unconfined. |
 | `CORPUS_DIGEST_MISMATCH` / `PROFILE_*` error | The pinned corpus/profile files were edited | `git checkout -- apps/raven-conformance` to restore them. Never edit them to make a reader pass. |
@@ -184,3 +189,6 @@ unchanged Conformance engine for its three registered Solana targets. The additi
 tests cover captured reader identity, change-back, write denial, export aliases and
 reported controls. Two marker-based tests are Mac-only; Linux skips are explicit
 and do not substitute for an independent Linux acceptance run.
+Physical-path tests cover symlink/`..` aliases and distinct-file controls. Case and
+Unicode alias tests probe the test volume and explicitly skip if it does not fold
+those names; they do not infer filesystem behavior from the operating system.
