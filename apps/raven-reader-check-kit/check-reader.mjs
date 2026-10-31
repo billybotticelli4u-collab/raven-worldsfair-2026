@@ -12,7 +12,7 @@
  *   node apps/raven-reader-check-kit/check-reader.mjs --reader <file.mjs> [--out <report.json>] [--explain <summary.md>]
  * Exit: 0 every case matched, 1 differences or non-passes, 2 setup/usage error.
  */
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, chmodSync, lstatSync, statSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
@@ -65,7 +65,10 @@ export class KitSetupError extends Error {}
 export const snapshotDirFor = (runId) => path.join(realpathSync(APP_ROOT), `.reader-kit-snapshot-${runId}`);
 const sha256 = (b) => createHash("sha256").update(b).digest("hex");
 function runIdentity(runId) {
-  const id = runId || `reader-check-${new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14)}`;
+  // Generated default: second-resolution timestamp + process id + 64 random
+  // bits, so same-second runs get distinct run-owned snapshot paths.
+  // Explicit --run-id values are used verbatim and validated as before.
+  const id = runId || `reader-check-${new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14)}-${process.pid}-${randomBytes(8).toString("hex")}`;
   if (!/^[A-Za-z0-9._-]{1,80}$/.test(id)) usage("--run-id may use only letters, digits, . _ -");
   return id;
 }

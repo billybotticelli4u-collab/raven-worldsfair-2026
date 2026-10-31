@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn, spawnSync, execFileSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -105,4 +105,60 @@ test("W-3 hard kill leaves the run-owned snapshot; the documented manual procedu
   refused(r, new RegExp(`capture_failed: .*${snap.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
   recover(snap);
   assert.equal(existsSync(snap), false);
+});
+
+// C-1: generated default run ids must not collide within one second.
+const FROZEN = `const R = globalThis.Date; const T = R.parse("2026-10-31T10:00:00.000Z");
+globalThis.Date = class extends R { constructor(...a) { if (a.length) super(...a); else super(T); } static now() { return T; } };`;
+function slowReference(d) {
+  const p = path.join(d, "slow-reference.mjs");
+  const src = readFileSync(READER, "utf8").replace(/^#!.*\n/, ""); // shebang must stay first; drop it
+  writeFileSync(p, "Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 60);\n" + src);
+  return p;
+}
+const runAsync = (args, pre = []) => new Promise((resolve) => {
+  const c = spawn(process.execPath, [...pre, path.join(KIT, "check-reader.mjs"), ...args], { stdio: ["ignore", "pipe", "pipe"] });
+  let stdout = "", stderr = ""; c.stdout.on("data", (b) => stdout += b); c.stderr.on("data", (b) => stderr += b);
+  c.on("exit", (status) => resolve({ status, stdout, stderr }));
+});
+const snapshots = (prefix) => new Set(readdirSync(APP).filter((x) => x.startsWith(prefix)));
+
+test("C-1 two same-second default-id runs overlap and both succeed with distinct outputs", async () => {
+  const d = fixture(); const freeze = path.join(d, "freeze-date.mjs"); writeFileSync(freeze, FROZEN);
+  const reader = slowReference(d); const pre = ["--import", freeze];
+  const prefix = ".reader-kit-snapshot-reader-check-20261031100000";
+  const before = snapshots(prefix);
+  const a = runAsync(["--reader", reader, "--out", path.join(d, "a.json")], pre);
+  const t0 = Date.now();
+  while ([...snapshots(prefix)].every((x) => before.has(x)) && Date.now() - t0 < 20000) await new Promise((r) => setTimeout(r, 10));
+  const b = runAsync(["--reader", reader, "--out", path.join(d, "b.json")], pre); // starts while A's snapshot exists
+  const [ra, rb] = await Promise.all([a, b]);
+  assert.equal(ra.status, 0, ra.stdout + ra.stderr); assert.equal(rb.status, 0, rb.stdout + rb.stderr);
+  const ja = JSON.parse(readFileSync(path.join(d, "a.json"), "utf8")), jb = JSON.parse(readFileSync(path.join(d, "b.json"), "utf8"));
+  assert.equal(ja.verdict, "ALL_MATCHED"); assert.equal(jb.verdict, "ALL_MATCHED");
+  for (const j of [ja, jb]) assert.match(j.run_id, /^reader-check-20261031100000-\d+-[0-9a-f]{16}$/);
+  assert.notEqual(ja.run_id, jb.run_id);
+  assert.deepEqual(snapshots(prefix), before, "no snapshot left behind");
+});
+
+test("C-1 healthy distinct explicit-id twins overlap and both succeed", async () => {
+  const d = fixture(); const reader = slowReference(d); const ids = [`c1-twin-a-${process.pid}`, `c1-twin-b-${process.pid}`];
+  const rs = await Promise.all(ids.map((id) => runAsync(["--reader", reader, "--out", path.join(d, `${id}.json`), "--run-id", id])));
+  for (const [i, r] of rs.entries()) {
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.equal(JSON.parse(readFileSync(path.join(d, `${ids[i]}.json`), "utf8")).run_id, ids[i], "explicit id used verbatim");
+    assert.equal(existsSync(path.join(APP, `.reader-kit-snapshot-${ids[i]}`)), false);
+  }
+});
+
+test("C-1 control: a pre-existing explicit-id snapshot is still refused and preserved", () => {
+  const id = `c1-explicit-${process.pid}`; const snap = path.join(APP, `.reader-kit-snapshot-${id}`);
+  mkdirSync(snap); writeFileSync(path.join(snap, "reader.mjs"), "// synthetic c1 leftover\n", { mode: 0o400 }); chmodSync(snap, 0o500);
+  try {
+    const d = fixture();
+    refused(cli(["--out", path.join(d, "r.json"), "--run-id", id]), new RegExp(`capture_failed: .*\\.reader-kit-snapshot-${id} .*already exists`));
+    assert.equal(statSync(snap).mode & 0o777, 0o500);
+    assert.equal(readFileSync(path.join(snap, "reader.mjs"), "utf8"), "// synthetic c1 leftover\n");
+    assert.equal(existsSync(path.join(d, "r.json")), false);
+  } finally { recover(snap); }
 });

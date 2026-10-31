@@ -212,8 +212,12 @@ A run that finishes or refuses normally removes its reader snapshot. A hard kill
 (`kill -9`, Ctrl-C, power loss) can leave exactly one folder per run:
 `apps/raven-conformance/.reader-kit-snapshot-<run-id>` holding `reader.mjs`. It is
 write-protected, so plain `rm -rf` fails, and `git status` lists it as untracked. The
-run id is your `--run-id`, or the `reader-check-<timestamp>` default; rerunning with
-the same id prints the exact path in a `capture_failed` message. Make sure that run
+run id is your `--run-id` (used exactly as given), or, without `--run-id`, a generated
+`reader-check-<YYYYMMDDhhmmss>-<process id>-<16 hex characters>` that is different for
+every run. With an explicit id, rerunning with the same id prints the exact path in a
+`capture_failed` message. With a generated id, `git status --porcelain apps/raven-conformance`
+shows the exact folder name (`?? apps/raven-conformance/.reader-kit-snapshot-reader-check-…/`);
+copy that one name in full. Make sure that run
 is no longer running, then, from the repository root, with `<run-id>` replaced by
 that one id (no wildcards):
 
