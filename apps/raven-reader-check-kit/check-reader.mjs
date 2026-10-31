@@ -13,7 +13,7 @@
  * Exit: 0 every case matched, 1 differences or non-passes, 2 setup/usage error.
  */
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, chmodSync, lstatSync, statSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, chmodSync, lstatSync, statSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -57,6 +57,12 @@ function parseArgs(argv) {
   }
   return o;
 }
+// Expected filesystem failures during setup/export become exit-2 refusals.
+// Anything else (programming errors) still propagates with its stack trace.
+const FS_SETUP_CODES = new Set(["EACCES", "EPERM", "EROFS", "ENOSPC", "EDQUOT", "EEXIST", "ENOENT", "ENOTDIR", "EISDIR", "ELOOP", "ENAMETOOLONG", "EMFILE", "ENFILE", "EIO", "EBUSY"]);
+const isFsSetupError = (e) => e instanceof Error && typeof e.code === "string" && FS_SETUP_CODES.has(e.code);
+export class KitSetupError extends Error {}
+export const snapshotDirFor = (runId) => path.join(realpathSync(APP_ROOT), `.reader-kit-snapshot-${runId}`);
 const sha256 = (b) => createHash("sha256").update(b).digest("hex");
 function runIdentity(runId) {
   const id = runId || `reader-check-${new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14)}`;
@@ -94,7 +100,13 @@ function fileIdentity(filename) {
   return { canonical, inode: st ? `${st.dev}:${st.ino}` : null };
 }
 
-function validateOutputPaths(reader, out, explainPath) {
+// Missing-parent policy: an explicit --out/--explain parent directory must
+// already exist (refused with exit 2 otherwise); only the kit-owned default
+// results directory is created. Trailing separators are refused.
+function validateOutputPaths(reader, out, explainPath, { defaultOut = false } = {}) {
+  for (const [label, filename] of [["JSON", out], ["Markdown", explainPath]]) {
+    if (filename && /[\\/]$/.test(filename)) usage(`invalid_output_path: ${label} path ends with a directory separator: ${filename}`);
+  }
   try {
     const files = [["reader", reader], ["JSON", out], ...(explainPath ? [["Markdown", explainPath]] : [])]
       .map(([label, filename]) => ({ label, ...fileIdentity(filename) }));
@@ -103,6 +115,13 @@ function validateOutputPaths(reader, out, explainPath) {
       if (a.canonical === b.canonical || (a.inode && a.inode === b.inode)) {
         usage(`output_path_collision: ${a.label} and ${b.label} refer to the same file`);
       }
+    }
+    for (const f of files.slice(1)) {
+      if (f.label === "JSON" && defaultOut) continue;
+      const parent = path.dirname(f.canonical);
+      let ok = false;
+      try { ok = statSync(parent).isDirectory(); } catch (e) { if (!isFsSetupError(e)) throw e; }
+      if (!ok) usage(`output_parent_missing: the ${f.label} folder ${parent} does not exist; create it first (the kit creates only its default results folder)`);
     }
   } catch (e) { usage(`invalid_output_path: ${e.message}`); }
 }
@@ -144,10 +163,24 @@ export async function checkReader(readerPath, { runId } = {}) {
     // APP_ROOT is explicitly write-denied by the existing Seatbelt profile,
     // including when the checkout is under /tmp. Node permissions also deny
     // writes. A normal temp/workDir copy would be writable by a Mac reader.
-    snapshotDir = mkdtempSync(path.join(realpathSync(APP_ROOT), ".reader-kit-snapshot-"));
+    // One run-owned snapshot path per run id; an existing path (for example a
+    // hard-kill leftover) is never reused or deleted here.
+    const ownedDir = snapshotDirFor(id);
+    try { mkdirSync(ownedDir, { mode: 0o700 }); }
+    catch (e) {
+      if (!isFsSetupError(e)) throw e;
+      throw new KitSetupError(`capture_failed: could not create the reader snapshot folder ${ownedDir} (${e.code}). ` +
+        (e.code === "EEXIST" ? "It already exists, probably left by an interrupted run with this run id; see README 'Recovering after a hard kill' or use another --run-id." : "The engine folder must be writable by you; nothing was run."));
+    }
+    snapshotDir = ownedDir;
     const capturedEntry = path.join(snapshotDir, "reader.mjs");
-    writeFileSync(capturedEntry, readerBytes, { flag: "wx", mode: 0o400 });
-    chmodSync(snapshotDir, 0o500);
+    try {
+      writeFileSync(capturedEntry, readerBytes, { flag: "wx", mode: 0o400 });
+      chmodSync(snapshotDir, 0o500);
+    } catch (e) {
+      if (!isFsSetupError(e)) throw e;
+      throw new KitSetupError(`capture_failed: could not capture the reader into ${snapshotDir} (${e.code}); nothing was run.`);
+    }
     const snapshotMatches = () => {
       try { return sha256(readFileSync(capturedEntry)) === readerDigest; }
       catch { return false; }
@@ -260,18 +293,32 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
   if (!args.reader) usage("--reader is required");
   if (!existsSync(args.reader)) usage(`reader file not found: ${args.reader}`);
   const runId = runIdentity(args.runId);
+  const defaultOut = !args.out;
   const out = args.out || path.join(KIT_DIR, "reader-check-results", `${runId}.json`);
-  validateOutputPaths(args.reader, out, args.explain);
-  const report = await checkReader(args.reader, { runId });
+  validateOutputPaths(args.reader, out, args.explain, { defaultOut });
+  let report;
+  try { report = await checkReader(args.reader, { runId }); }
+  catch (e) { if (e instanceof KitSetupError) usage(e.message); throw e; }
   // Recheck before writes in case paths changed while the reader ran.
-  validateOutputPaths(args.reader, out, args.explain);
-  mkdirSync(path.dirname(out), { recursive: true });
-  writeFileSync(out, JSON.stringify(report, null, 2) + "\n");
+  validateOutputPaths(args.reader, out, args.explain, { defaultOut });
+  try {
+    if (defaultOut) mkdirSync(path.dirname(out), { recursive: true });
+    writeFileSync(out, JSON.stringify(report, null, 2) + "\n");
+  } catch (e) {
+    if (!isFsSetupError(e)) throw e;
+    usage(`export_write_failed: could not write the JSON report ${out} (${e.code}); no result is reported as complete`);
+  }
   // Newly created names may alias through filesystem case/Unicode folding.
   // JSON now has an inode: refuse before Markdown can replace its contents.
-  validateOutputPaths(args.reader, out, args.explain);
+  validateOutputPaths(args.reader, out, args.explain, { defaultOut });
   const md = explain(report);
-  if (args.explain) writeFileSync(args.explain, md + "\n");
+  if (args.explain) {
+    try { writeFileSync(args.explain, md + "\n"); }
+    catch (e) {
+      if (!isFsSetupError(e)) throw e;
+      usage(`export_write_failed: could not write the Markdown summary ${args.explain} (${e.code}); the JSON report ${out} was written and kept; no success is claimed`);
+    }
+  }
   process.stdout.write(`verdict: ${report.verdict}  (${Object.entries(report.counts).map(([k, n]) => `${k}=${n}`).join(" ")})\n`);
   const nonPass = report.results.filter((x) => x.status !== "PASS");
   for (const r of nonPass.slice(0, 10)) {

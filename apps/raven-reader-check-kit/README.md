@@ -167,6 +167,15 @@ Markdown and prints no success/report line. Choose distinct names and rerun. Thi
 an accidental alias guard, not an atomic export or protection against a hostile
 concurrent filesystem race.
 
+**Output folders.** The folder for an explicit `--out` or `--explain` must already
+exist; if it does not (including when a `symlink/..` path points at a missing physical
+folder), the CLI refuses with `output_parent_missing` and exit 2 before running the reader,
+and creates nothing. Only the kit's own default results folder is created. A path ending
+in `/` is refused with exit 2. If writing the JSON fails, the CLI exits 2 with
+`export_write_failed` and reports no result as complete; if writing the Markdown fails
+after the JSON was written, the JSON is kept, no summary is written, exit is 2 and no
+success line is printed.
+
 The reader capture uses the same physical-path resolution as this guard, so a
 `symlink/..` reader argument captures the file the operating system opens, not a
 lexically normalised neighbour. The nested-link regression cases have been measured
@@ -184,6 +193,10 @@ does not support the Conformance engine's registered-target report replay comman
 | --- | --- | --- |
 | `error: reader file not found` (exit 2) | Wrong path | Paths are relative to where you run the command; run from the repo root. |
 | `output_path_collision` (exit 2) | Reader, JSON or Markdown paths identify the same file | Choose distinct destinations. Pre-write refusals preserve existing files; a newly detected case/Unicode alias leaves JSON intact and skips Markdown. |
+| `output_parent_missing` (exit 2) | The folder for `--out`/`--explain` does not exist | Create the folder (`mkdir -p <folder>`) and rerun. Nothing was run or written. |
+| `invalid_output_path: … ends with a directory separator` (exit 2) | `--out`/`--explain` ends with `/` | Give a file name, e.g. `results/report.json`. |
+| `export_write_failed` (exit 2) | The JSON or Markdown file could not be written (permissions, full disk) | Fix the folder permission or space and rerun. If only the Markdown failed, the JSON named in the message was kept. |
+| `capture_failed` (exit 2) | The kit could not create its reader snapshot folder `apps/raven-conformance/.reader-kit-snapshot-<run-id>` (folder not writable, or it already exists from an interrupted run) | Make the checkout writable, or follow "Recovering after a hard kill" below, or use a different `--run-id`. Nothing was run. |
 | `reader must be a single .mjs/.js file` | Directory or other file type | Point `--reader` at your bundled `.mjs`. |
 | `isolation unavailable, refusing to run` (exit 2) | No `sandbox-exec` (macOS) / Node permission model (Linux) | Use Node 22+ on macOS or Linux; the kit will not run your code unconfined. |
 | `CORPUS_DIGEST_MISMATCH` / `PROFILE_*` error | The pinned corpus/profile files were edited | `git checkout -- apps/raven-conformance` to restore them. Never edit them to make a reader pass. |
@@ -192,6 +205,27 @@ does not support the Conformance engine's registered-target report replay comman
 | `INVALID_OUTPUT missing_version` | Answer lacks `version` | Always print `version` (use `null` for REJECT). |
 | `TIMEOUT` | More than 3 s for one case | Move slow start-up work out; one process runs per case. |
 | Runtime errors or repeated target crashes | Wrong runtime, unsupported code or unavailable controls | Check the genuine Node identity and report details; do not infer the cause from the version string alone. |
+
+### Recovering after a hard kill (manual)
+
+A run that finishes or refuses normally removes its reader snapshot. A hard kill
+(`kill -9`, Ctrl-C, power loss) can leave exactly one folder per run:
+`apps/raven-conformance/.reader-kit-snapshot-<run-id>` holding `reader.mjs`. It is
+write-protected, so plain `rm -rf` fails, and `git status` lists it as untracked. The
+run id is your `--run-id`, or the `reader-check-<timestamp>` default; rerunning with
+the same id prints the exact path in a `capture_failed` message. Make sure that run
+is no longer running, then, from the repository root, with `<run-id>` replaced by
+that one id (no wildcards):
+
+```sh
+chmod u+w apps/raven-conformance/.reader-kit-snapshot-<run-id>
+rm -f apps/raven-conformance/.reader-kit-snapshot-<run-id>/reader.mjs
+rmdir apps/raven-conformance/.reader-kit-snapshot-<run-id>
+```
+
+`rmdir` refuses if anything else is in the folder; stop and inspect in that case. The
+kit never removes such a leftover by itself. This procedure is tested on macOS only,
+on leftovers created by the self-test.
 
 ## 7. Self-test
 
