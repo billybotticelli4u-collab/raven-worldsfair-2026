@@ -234,8 +234,12 @@ on leftovers created by the self-test.
 ## 7. Self-test
 
 ```sh
-node --test apps/raven-reader-check-kit/test/*.test.mjs
+node --test --test-concurrency=1 apps/raven-reader-check-kit/test/*.test.mjs
 ```
+
+Run the test files serially: their fixtures inspect shared reader-snapshot folders,
+so parallel test files can interfere with each other's checks. This setting does
+not serialize reader runs; the concurrency tests still launch overlapping runs.
 
 The original eight tests check examples, exports and outcome equivalence with the
 unchanged Conformance engine for its three registered Solana targets. The additional
