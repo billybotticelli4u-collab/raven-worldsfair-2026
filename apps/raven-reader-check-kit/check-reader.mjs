@@ -13,7 +13,7 @@
  * Exit: 0 every case matched, 1 differences or non-passes, 2 setup/usage error.
  */
 import { createHash, randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, chmodSync, lstatSync, statSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, chmodSync, lstatSync, statSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -127,6 +127,17 @@ function validateOutputPaths(reader, out, explainPath, { defaultOut = false } = 
       if (!ok) usage(`output_parent_missing: the ${f.label} folder ${parent} does not exist; create it first (the kit creates only its default results folder)`);
     }
   } catch (e) { usage(`invalid_output_path: ${e.message}`); }
+}
+
+// Publish an export by writing a private sibling temp file and renaming it over
+// the (physical) target, so a failed or partial write never truncates earlier
+// bytes at the target. The temp file is removed on failure.
+function publishExport(file, bytes, runId) {
+  // Same physical resolution as the alias checks (symlink/.. order preserved).
+  const target = fileIdentity(file).canonical;
+  const tmp = `${target}.${runId}.${randomBytes(6).toString("hex")}.tmp`;
+  try { writeFileSync(tmp, bytes, { flag: "wx" }); renameSync(tmp, target); }
+  catch (e) { try { rmSync(tmp, { force: true }); } catch {} throw e; }
 }
 
 function gitIdentity() {
@@ -304,9 +315,10 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
   catch (e) { if (e instanceof KitSetupError) usage(e.message); throw e; }
   // Recheck before writes in case paths changed while the reader ran.
   validateOutputPaths(args.reader, out, args.explain, { defaultOut });
+  const jsonBytes = Buffer.from(JSON.stringify(report, null, 2) + "\n");
   try {
     if (defaultOut) mkdirSync(path.dirname(out), { recursive: true });
-    writeFileSync(out, JSON.stringify(report, null, 2) + "\n");
+    publishExport(out, jsonBytes, runId);
   } catch (e) {
     if (!isFsSetupError(e)) throw e;
     usage(`export_write_failed: could not write the JSON report ${out} (${e.code}); no result is reported as complete`);
@@ -315,12 +327,20 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
   // JSON now has an inode: refuse before Markdown can replace its contents.
   validateOutputPaths(args.reader, out, args.explain, { defaultOut });
   const md = explain(report);
+  const mdBytes = Buffer.from(md + "\n");
   if (args.explain) {
-    try { writeFileSync(args.explain, md + "\n"); }
+    try { publishExport(args.explain, mdBytes, runId); }
     catch (e) {
       if (!isFsSetupError(e)) throw e;
       usage(`export_write_failed: could not write the Markdown summary ${args.explain} (${e.code}); the JSON report ${out} was written and kept; no success is claimed`);
     }
+  }
+  // Another writer may have replaced an export after we published it. Never
+  // print this run's verdict beside bytes this run did not write.
+  for (const [label, file, bytes] of [["JSON report", out, jsonBytes], ...(args.explain ? [["Markdown summary", args.explain, mdBytes]] : [])]) {
+    let same = false;
+    try { same = readFileSync(file).equals(bytes); } catch (e) { if (!isFsSetupError(e)) throw e; }
+    if (!same) usage(`export_overwritten: the ${label} ${file} no longer holds this run's bytes (another run or writer replaced it); no success is claimed`);
   }
   process.stdout.write(`verdict: ${report.verdict}  (${Object.entries(report.counts).map(([k, n]) => `${k}=${n}`).join(" ")})\n`);
   const nonPass = report.results.filter((x) => x.status !== "PASS");
@@ -329,7 +349,7 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
   }
   if (nonPass.length > 10) process.stdout.write(`  ... ${nonPass.length - 10} more non-passing cases listed in the report\n`);
   if (report.template_not_connected) process.stdout.write("  hint: the template reader is not connected yet — edit classifyTransaction()\n");
-  process.stdout.write(`report: ${out}  sha256 ${sha256(readFileSync(out))}\n`);
+  process.stdout.write(`report: ${out}  sha256 ${sha256(jsonBytes)}\n`);
   if (args.explain) process.stdout.write(`summary: ${args.explain}\n`);
   process.stdout.write("UNSIGNED; fixture evidence only (liveAcquisition:false)\n");
   process.exit(report.verdict === "ALL_MATCHED" ? 0 : 1);
