@@ -132,11 +132,20 @@ function validateOutputPaths(reader, out, explainPath, { defaultOut = false } = 
 // Publish an export by writing a private sibling temp file and renaming it over
 // the (physical) target, so a failed or partial write never truncates earlier
 // bytes at the target. The temp file is removed on failure.
-function publishExport(file, bytes, runId) {
+// The temp basename is bounded (47 bytes) and independent of the target
+// name and run id, so any target name the filesystem accepts can be published.
+// The temp file is created owner-only (0600) and only receives its final mode
+// after every byte is written: an existing target keeps its own permission bits
+// (never widened); a new target gets the ordinary 0666 & ~umask default, as
+// before. Only POSIX mode bits are handled; ACLs/ownership are not copied.
+function publishExport(file, bytes) {
   // Same physical resolution as the alias checks (symlink/.. order preserved).
   const target = fileIdentity(file).canonical;
-  const tmp = `${target}.${runId}.${randomBytes(6).toString("hex")}.tmp`;
-  try { writeFileSync(tmp, bytes, { flag: "wx" }); renameSync(tmp, target); }
+  const tmp = path.join(path.dirname(target), `.reader-kit-export-${randomBytes(12).toString("hex")}.tmp`);
+  let existingMode = null;
+  try { existingMode = statSync(target).mode & 0o777; } catch (e) { if (e.code !== "ENOENT") throw e; }
+  const finalMode = existingMode ?? (0o666 & ~process.umask());
+  try { writeFileSync(tmp, bytes, { flag: "wx", mode: 0o600 }); chmodSync(tmp, finalMode); renameSync(tmp, target); }
   catch (e) { try { rmSync(tmp, { force: true }); } catch {} throw e; }
 }
 
@@ -318,7 +327,7 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
   const jsonBytes = Buffer.from(JSON.stringify(report, null, 2) + "\n");
   try {
     if (defaultOut) mkdirSync(path.dirname(out), { recursive: true });
-    publishExport(out, jsonBytes, runId);
+    publishExport(out, jsonBytes);
   } catch (e) {
     if (!isFsSetupError(e)) throw e;
     usage(`export_write_failed: could not write the JSON report ${out} (${e.code}); no result is reported as complete`);
@@ -329,7 +338,7 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
   const md = explain(report);
   const mdBytes = Buffer.from(md + "\n");
   if (args.explain) {
-    try { publishExport(args.explain, mdBytes, runId); }
+    try { publishExport(args.explain, mdBytes); }
     catch (e) {
       if (!isFsSetupError(e)) throw e;
       usage(`export_write_failed: could not write the Markdown summary ${args.explain} (${e.code}); the JSON report ${out} was written and kept; no success is claimed`);
