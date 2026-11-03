@@ -177,7 +177,7 @@ The **pair** of files is not written as one transaction:
   summary is written, exit is 2 and no success line is printed.
 - After publishing, the CLI re-reads each file and refuses (exit 2, no success line)
   if it no longer holds this run's bytes (`export_overwritten`) or cannot be re-read
-  (`export_verification_failed`).
+  because of a permission error (`EACCES` or `EPERM`, `export_verification_failed`).
 - Remaining limit: another run that replaces the JSON after this run re-read it, but
   before this run re-read its Markdown, is not detected. The earlier run then exits
   normally and prints a JSON hash that no longer matches the file, and the JSON and
@@ -273,8 +273,9 @@ no target name, so neither the name nor the file's age shows which run created i
 whether that run is still going; a concurrent run's in-progress file looks the same.
 Do not remove these files by pattern or by age. Only after you have confirmed that no
 reader-check run is writing to that folder, inspect the one file you mean (its content
-is a JSON report or a Markdown summary naming its run id) and decide about that file
-by its full name. The kit never removes such a file after a hard kill.
+is a complete or partial JSON report or Markdown summary; a complete one names its
+run id) and decide about that file by its full name. The kit never removes such a
+file after a hard kill.
 
 ## 7. Self-test
 
