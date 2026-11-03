@@ -164,8 +164,38 @@ and preserves existing files. After creating JSON, the CLI checks again before w
 Markdown: a case- or Unicode-folded alias of a previously nonexistent filename may
 only become detectable then. That refusal leaves the new JSON intact, writes no
 Markdown and prints no success/report line. Choose distinct names and rerun. This is
-an accidental alias guard, not an atomic export or protection against a hostile
-concurrent filesystem race.
+an accidental alias guard, not protection against a hostile concurrent filesystem race.
+
+**How each file is written.** Each export file is replaced atomically on its own: the
+CLI writes a private temporary file `.reader-kit-export-<24 hex characters>.tmp` in the
+same physical folder (created owner-only, mode 0600), gives it its final mode, then
+renames it over the target. A failed or interrupted write therefore never truncates
+the earlier file at that name; the temporary file is removed on an ordinary failure.
+The **pair** of files is not written as one transaction:
+
+- If the Markdown write fails after the JSON was published, the new JSON is kept, no
+  summary is written, exit is 2 and no success line is printed.
+- After publishing, the CLI re-reads each file and refuses (exit 2, no success line)
+  if it no longer holds this run's bytes (`export_overwritten`) or cannot be re-read
+  (`export_verification_failed`).
+- Remaining limit: another run that replaces the JSON after this run re-read it, but
+  before this run re-read its Markdown, is not detected. The earlier run then exits
+  normally and prints a JSON hash that no longer matches the file, and the JSON and
+  Markdown on disk can come from different runs. Do not point concurrent runs at the
+  same output names; compare the printed hash with the file if in doubt.
+  There is no locking.
+
+**Permissions.** Because the file is replaced by rename, what matters is write
+permission on the **folder**, not on the existing file: an existing read-only file in
+a writable folder is replaced, and a writable file in a read-only folder is refused
+with `export_write_failed`. An existing file keeps its POSIX permission bits
+(never widened); a new file gets the ordinary default (`0666` minus your umask).
+The replacement is a new file: ACLs, ownership, extended attributes, hard links to
+the old file and other metadata are not carried over or claimed. If the preserved bits
+do not let you read the file (for example `0200`), the export is written but cannot be
+verified, and the CLI refuses with `export_verification_failed`. Measured on local
+Linux folders (the folder-permission and mode behaviour also on macOS); ACLs,
+other-user or sticky folders, network filesystems and Windows are not tested.
 
 **Output folders.** The folder for an explicit `--out` or `--explain` must already
 exist; if it does not (including when a `symlink/..` path points at a missing physical
@@ -174,7 +204,7 @@ and creates nothing. Only the kit's own default results folder is created. A pat
 in `/` is refused with exit 2. If writing the JSON fails, the CLI exits 2 with
 `export_write_failed` and reports no result as complete; if writing the Markdown fails
 after the JSON was written, the JSON is kept, no summary is written, exit is 2 and no
-success line is printed.
+success line is printed (see "How each file is written" above).
 
 The reader capture uses the same physical-path resolution as this guard, so a
 `symlink/..` reader argument captures the file the operating system opens, not a
@@ -195,7 +225,9 @@ does not support the Conformance engine's registered-target report replay comman
 | `output_path_collision` (exit 2) | Reader, JSON or Markdown paths identify the same file | Choose distinct destinations. Pre-write refusals preserve existing files; a newly detected case/Unicode alias leaves JSON intact and skips Markdown. |
 | `output_parent_missing` (exit 2) | The folder for `--out`/`--explain` does not exist | Create the folder (`mkdir -p <folder>`) and rerun. Nothing was run or written. |
 | `invalid_output_path: … ends with a directory separator` (exit 2) | `--out`/`--explain` ends with `/` | Give a file name, e.g. `results/report.json`. |
-| `export_write_failed` (exit 2) | The JSON or Markdown file could not be written (permissions, full disk) | Fix the folder permission or space and rerun. If only the Markdown failed, the JSON named in the message was kept. |
+| `export_write_failed` (exit 2) | The JSON or Markdown file could not be written (folder not writable, full disk, name refused) | Fix the folder permission or space and rerun. The earlier file at that name is unchanged. If only the Markdown failed, the JSON named in the message was kept. |
+| `export_overwritten` (exit 2) | After this run published the named file it no longer held this run's bytes: another run or writer replaced it (or removed it) | Do not use that file as this run's result. Make sure no other run writes the same names, then rerun. |
+| `export_verification_failed` (exit 2) | The named file was published, but re-reading it to verify failed with the shown permission error (for example an existing file whose preserved mode is write-only `0200`) | Give yourself read permission on that file (for example `chmod u+r <file>`) and rerun; no success is claimed for this run. |
 | `capture_failed` (exit 2) | The kit could not create its reader snapshot folder `apps/raven-conformance/.reader-kit-snapshot-<run-id>` (folder not writable, or it already exists from an interrupted run) | Make the checkout writable, or follow "Recovering after a hard kill" below, or use a different `--run-id`. Nothing was run. |
 | `reader must be a single .mjs/.js file` | Directory or other file type | Point `--reader` at your bundled `.mjs`. |
 | `isolation unavailable, refusing to run` (exit 2) | No `sandbox-exec` (macOS) / Node permission model (Linux) | Use Node 22+ on macOS or Linux; the kit will not run your code unconfined. |
@@ -209,7 +241,8 @@ does not support the Conformance engine's registered-target report replay comman
 ### Recovering after a hard kill (manual)
 
 A run that finishes or refuses normally removes its reader snapshot. A hard kill
-(`kill -9`, Ctrl-C, power loss) can leave exactly one folder per run:
+(`kill -9`, Ctrl-C, power loss) can leave one snapshot folder per run (and an export
+temporary file, see below):
 `apps/raven-conformance/.reader-kit-snapshot-<run-id>` holding `reader.mjs`. It is
 write-protected, so plain `rm -rf` fails, and `git status` lists it as untracked. The
 run id is your `--run-id` (used exactly as given), or, without `--run-id`, a generated
@@ -231,6 +264,18 @@ rmdir apps/raven-conformance/.reader-kit-snapshot-<run-id>
 kit never removes such a leftover by itself. This procedure is tested on macOS only,
 on leftovers created by the self-test.
 
+**Export temporary files.** A hard kill during an export can also leave a
+`.reader-kit-export-<24 hex characters>.tmp` file in the folder of `--out` or `--explain`
+(the earlier export at the target name stays intact). It is owner-only (`0600`) while
+being written, but a kill after the final-mode step and before the rename leaves a
+complete file with the export's intended final mode. The name contains no run id and
+no target name, so neither the name nor the file's age shows which run created it or
+whether that run is still going; a concurrent run's in-progress file looks the same.
+Do not remove these files by pattern or by age. Only after you have confirmed that no
+reader-check run is writing to that folder, inspect the one file you mean (its content
+is a JSON report or a Markdown summary naming its run id) and decide about that file
+by its full name. The kit never removes such a file after a hard kill.
+
 ## 7. Self-test
 
 ```sh
@@ -249,3 +294,5 @@ and do not substitute for an independent Linux acceptance run.
 Physical-path tests cover symlink/`..` aliases and distinct-file controls. Case and
 Unicode alias tests probe the test volume and explicitly skip if it does not fold
 those names; they do not infer filesystem behavior from the operating system.
+Permission tests that rely on unreadable files skip when run as root (root bypasses
+file modes); run the self-test as an ordinary user.

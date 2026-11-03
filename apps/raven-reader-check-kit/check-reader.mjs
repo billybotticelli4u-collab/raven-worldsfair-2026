@@ -347,8 +347,14 @@ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.me
   // Another writer may have replaced an export after we published it. Never
   // print this run's verdict beside bytes this run did not write.
   for (const [label, file, bytes] of [["JSON report", out, jsonBytes], ...(args.explain ? [["Markdown summary", args.explain, mdBytes]] : [])]) {
+    // A permission error on the re-read means this run could not verify the
+    // file, not that someone replaced it (e.g. a preserved write-only mode).
     let same = false;
-    try { same = readFileSync(file).equals(bytes); } catch (e) { if (!isFsSetupError(e)) throw e; }
+    try { same = readFileSync(file).equals(bytes); }
+    catch (e) {
+      if (!isFsSetupError(e)) throw e;
+      if (e.code === "EACCES" || e.code === "EPERM") usage(`export_verification_failed: the ${label} ${file} was published but could not be re-read to verify it (${e.code}); its permissions may not allow you to read it; no success is claimed`);
+    }
     if (!same) usage(`export_overwritten: the ${label} ${file} no longer holds this run's bytes (another run or writer replaced it); no success is claimed`);
   }
   process.stdout.write(`verdict: ${report.verdict}  (${Object.entries(report.counts).map(([k, n]) => `${k}=${n}`).join(" ")})\n`);
