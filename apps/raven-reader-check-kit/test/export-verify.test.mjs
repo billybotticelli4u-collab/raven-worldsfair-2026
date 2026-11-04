@@ -2,6 +2,7 @@
 // re-read. That is a verification failure, not a replacement by another writer.
 // Synthetic fixtures only; POSIX mode bits; skipped as root (root bypasses modes).
 import { test } from "node:test";
+import { ownedId } from "./_isolation.mjs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { chmodSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync } from "node:fs";
@@ -20,28 +21,28 @@ const go = (args) => spawnSync(process.execPath, [path.join(KIT, "check-reader.m
 for (const which of ["JSON report", "Markdown summary"]) {
   test(`W-2: an existing ${which} kept at write-only 0200 is written but refused as export_verification_failed (EACCES), not export_overwritten`, { skip }, (t) => {
     const d = fixture(t); const out = path.join(d, "r.json"), ex = path.join(d, "s.md");
-    assert.equal(go(["--run-id", "w2-first", "--out", out, "--explain", ex]).status, 0);
+    assert.equal(go(["--run-id", ownedId("w2-first"), "--out", out, "--explain", ex]).status, 0);
     const target = which === "JSON report" ? out : ex;
     chmodSync(target, 0o200);
-    const a = go(["--run-id", "w2-second", "--out", out, "--explain", ex]);
+    const a = go(["--run-id", ownedId("w2-second"), "--out", out, "--explain", ex]);
     assert.equal(a.status, 2, a.stdout + a.stderr);
     assert.match(a.stderr, new RegExp(`export_verification_failed: the ${which} .* could not be re-read to verify it \\(EACCES\\)`));
     assert.doesNotMatch(a.stderr, /export_overwritten|at .*check-reader\.mjs/);
     assert.doesNotMatch(a.stdout, /verdict:|report:|summary:/);
     assert.equal(mode(target), "200", "preserved mode");
     chmodSync(target, 0o600);
-    assert.match(readFileSync(target, "utf8"), /w2-second/, "this run's bytes were published");
+    assert.match(readFileSync(target, "utf8"), new RegExp(ownedId("w2-second")), "this run's bytes were published");
     assert.deepEqual(readdirSync(d).sort(), ["r.json", "s.md"]);
   });
 }
 
 test("W-2 control: an ordinary readable existing pair is replaced and verified (exit 0)", { skip }, (t) => {
   const d = fixture(t); const out = path.join(d, "r.json"), ex = path.join(d, "s.md");
-  assert.equal(go(["--run-id", "w2c-first", "--out", out, "--explain", ex]).status, 0);
+  assert.equal(go(["--run-id", ownedId("w2c-first"), "--out", out, "--explain", ex]).status, 0);
   chmodSync(out, 0o600);
-  const a = go(["--run-id", "w2c-second", "--out", out, "--explain", ex]);
+  const a = go(["--run-id", ownedId("w2c-second"), "--out", out, "--explain", ex]);
   assert.equal(a.status, 0, a.stderr);
   assert.match(a.stdout, /verdict: ALL_MATCHED/);
-  assert.equal(JSON.parse(readFileSync(out, "utf8")).run_id, "w2c-second");
+  assert.equal(JSON.parse(readFileSync(out, "utf8")).run_id, ownedId("w2c-second"));
   assert.equal(mode(out), "600");
 });
