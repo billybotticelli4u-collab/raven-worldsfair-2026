@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { ownedId } from "./_isolation.mjs";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, symlinkSync, existsSync, rmSync } from "node:fs";
@@ -23,7 +24,7 @@ function fixture(t) {
   return dir;
 }
 function cli(t, dir, reader, out, summary) {
-  const args = [path.join(KIT, "check-reader.mjs"), "--reader", reader, "--out", out, "--run-id", "native-paths"];
+  const args = [path.join(KIT, "check-reader.mjs"), "--reader", reader, "--out", out, "--run-id", ownedId("native-paths")];
   if (summary) args.push("--explain", summary);
   const r = spawnSync(process.execPath, args, { cwd: dir, encoding: "utf8", timeout: 15000 });
   assert.equal(r.error, undefined, "CLI must finish inside the test bound");

@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { ownedId } from "./_isolation.mjs";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync, symlinkSync, linkSync, existsSync } from "node:fs";
@@ -25,7 +26,7 @@ for (const [name, before, after, verdict] of [
     writeFileSync(entry, before);
     // checkReader captures synchronously before its first await. By V21, the
     // original path has certainly changed, irrespective of first-child timing.
-    const running = checkReader(entry, { runId: `binding-${name}` });
+    const running = checkReader(entry, { runId: ownedId(`binding-${name}`) });
     writeFileSync(entry, after);
     const report = await running;
     assert.equal(report.reader.sha256, sha(before));
@@ -43,7 +44,7 @@ import {fileURLToPath as ownPath} from 'node:url';
 try { attemptChmod(ownPath(import.meta.url), 0o600); attemptWrite(ownPath(import.meta.url), 'throw new Error("rewritten");'); process.stderr.write('WRITE_ALLOWED'); }
 catch(e) { process.stderr.write('WRITE_DENIED:'+e.code); }`);
   writeFileSync(entry, guarded);
-  const report = await checkReader(entry, { runId: "binding-self-write" });
+  const report = await checkReader(entry, { runId: ownedId("binding-self-write") });
   assert.equal(report.verdict, "ALL_MATCHED");
   assert.deepEqual(report.counts, { PASS: 30 });
   assert.equal(report.reader.sha256, sha(guarded));
@@ -68,7 +69,7 @@ if (raw === ${JSON.stringify(JSON.stringify(v21.input))}) {
   const original = withBarrier(faulty), replacement = withBarrier(reference);
   assert.notEqual(original, faulty);
   writeFileSync(entry, original);
-  const running = checkReader(entry, { runId: "binding-change-back" });
+  const running = checkReader(entry, { runId: ownedId("binding-change-back") });
   writeFileSync(entry, replacement);
   const deadline = Date.now() + 5000;
   while (!existsSync(marker)) { assert(Date.now() < deadline, "V21 barrier not reached"); await new Promise(r => setTimeout(r, 5)); }
@@ -97,7 +98,7 @@ for (const shape of ["same", "normalized", "symlink", "hardlink", "symlink-paren
     if (shape === "reader-symlink") symlinkSync(reader, out);
     if (shape === "reader-hardlink") linkSync(reader, out);
     const before = new Map([reader, out, explain].filter(p => existsSync(p)).map(p => [p, readFileSync(p)]));
-    const r = spawnSync(process.execPath, [path.join(KIT, "check-reader.mjs"), "--reader", reader, "--out", out, "--explain", explain, "--run-id", "export-alias"], { encoding: "utf8", timeout: 10000 });
+    const r = spawnSync(process.execPath, [path.join(KIT, "check-reader.mjs"), "--reader", reader, "--out", out, "--explain", explain, "--run-id", ownedId("export-alias")], { encoding: "utf8", timeout: 10000 });
     assert.equal(r.status, 2, `${r.stdout}\n${r.stderr}`);
     assert.match(r.stderr, /output_path_collision/);
     assert.doesNotMatch(r.stdout, /verdict:/);
@@ -117,7 +118,7 @@ test("colliding exports refuse before executing the reader", { skip: process.pla
 });
 
 test("reports distinguish captured bytes, digest kinds and measured isolation", async () => {
-  const report = await checkReader(path.join(KIT, "readers/reference-reader.mjs"), { runId: "binding-report-contract" });
+  const report = await checkReader(path.join(KIT, "readers/reference-reader.mjs"), { runId: ownedId("binding-report-contract") });
   const corpus = loadCorpus("raven-solana-txversion-experimental/0");
   assert.equal(report.reader.execution_binding, "captured_single_file");
   assert.equal(report.corpus.digest_kind, "canonical_content");

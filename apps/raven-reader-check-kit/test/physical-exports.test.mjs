@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { ownedId } from "./_isolation.mjs";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, symlinkSync, existsSync, statSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -16,7 +17,7 @@ function fixture(t) {
 }
 function run(dir, out, summary) {
   return spawnSync(process.execPath, [path.join(KIT, "check-reader.mjs"), "--reader", READER,
-    "--out", out, "--explain", summary, "--run-id", "physical-export"],
+    "--out", out, "--explain", summary, "--run-id", ownedId("physical-export")],
   { cwd: dir, encoding: "utf8", timeout: 15000 });
 }
 function observe(t, r, out) {

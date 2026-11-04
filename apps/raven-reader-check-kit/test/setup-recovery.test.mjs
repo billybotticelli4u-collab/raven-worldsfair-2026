@@ -6,6 +6,7 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSyn
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ownedId } from "./_isolation.mjs";
 
 const KIT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const APP = realpathSync(path.join(KIT, "..", "raven-conformance"));
@@ -21,13 +22,13 @@ function refused(r, pattern) {
 
 test("W-1 explicit JSON parent missing is refused before running; nothing created", () => {
   const d = fixture(); const out = path.join(d, "missing", "r.json");
-  refused(cli(["--out", out, "--run-id", "w1-json-parent"]), /output_parent_missing/);
+  refused(cli(["--out", out, "--run-id", ownedId("w1-json-parent")]), /output_parent_missing/);
   assert.equal(existsSync(path.join(d, "missing")), false);
 });
 
 test("W-1 Markdown parent missing is refused before running; JSON not written", () => {
   const d = fixture(); const out = path.join(d, "r.json");
-  refused(cli(["--out", out, "--explain", path.join(d, "nope", "s.md"), "--run-id", "w1-md-parent"]), /output_parent_missing/);
+  refused(cli(["--out", out, "--explain", path.join(d, "nope", "s.md"), "--run-id", ownedId("w1-md-parent")]), /output_parent_missing/);
   assert.equal(existsSync(out), false);
 });
 
@@ -35,21 +36,21 @@ test("W-1 physical parent missing behind symlink/.. is refused", () => {
   const d = fixture(); mkdirSync(path.join(d, "a", "sub"), { recursive: true }); mkdirSync(path.join(d, "b"));
   symlinkSync(path.join(d, "a", "sub"), path.join(d, "b", "link"));
   const out = `${d}/b/link/../missing/r.json`; // physically a/missing (absent); lexically b/missing
-  refused(cli(["--out", out, "--run-id", "w1-link-parent"]), /output_parent_missing|invalid_output_path/);
+  refused(cli(["--out", out, "--run-id", ownedId("w1-link-parent")]), /output_parent_missing|invalid_output_path/);
   assert.equal(existsSync(path.join(d, "a", "missing")), false);
   assert.equal(existsSync(path.join(d, "b", "missing")), false);
 });
 
 test("W-1 trailing separators are refused for JSON and Markdown", () => {
   const d = fixture();
-  refused(cli(["--out", `${d}/r.json/`, "--run-id", "w1-trail-json"]), /ends with a directory separator/);
-  refused(cli(["--out", `${d}/r.json`, "--explain", `${d}/s.md/`, "--run-id", "w1-trail-md"]), /ends with a directory separator/);
+  refused(cli(["--out", `${d}/r.json/`, "--run-id", ownedId("w1-trail-json")]), /ends with a directory separator/);
+  refused(cli(["--out", `${d}/r.json`, "--explain", `${d}/s.md/`, "--run-id", ownedId("w1-trail-md")]), /ends with a directory separator/);
   assert.equal(existsSync(`${d}/r.json`), false);
 });
 
 test("W-1 JSON export-write failure is exit 2 with explanation", () => {
   const d = fixture(); const ro = path.join(d, "ro"); mkdirSync(ro); chmodSync(ro, 0o500);
-  try { refused(cli(["--out", path.join(ro, "r.json"), "--run-id", "w1-json-write"]), /export_write_failed: could not write the JSON report/); }
+  try { refused(cli(["--out", path.join(ro, "r.json"), "--run-id", ownedId("w1-json-write")]), /export_write_failed: could not write the JSON report/); }
   finally { chmodSync(ro, 0o700); }
   assert.equal(existsSync(path.join(ro, "r.json")), false);
 });
@@ -57,7 +58,7 @@ test("W-1 JSON export-write failure is exit 2 with explanation", () => {
 test("W-1 Markdown export-write failure keeps the written JSON and claims no success", () => {
   const d = fixture(); const ro = path.join(d, "ro"); mkdirSync(ro); chmodSync(ro, 0o500);
   const out = path.join(d, "r.json");
-  try { refused(cli(["--out", out, "--explain", path.join(ro, "s.md"), "--run-id", "w1-md-write"]), /export_write_failed: could not write the Markdown summary.*JSON report .* was written and kept/); }
+  try { refused(cli(["--out", out, "--explain", path.join(ro, "s.md"), "--run-id", ownedId("w1-md-write")]), /export_write_failed: could not write the Markdown summary.*JSON report .* was written and kept/); }
   finally { chmodSync(ro, 0o700); }
   const report = JSON.parse(readFileSync(out, "utf8"));
   assert.equal(report.verdict, "ALL_MATCHED");
@@ -116,29 +117,38 @@ function slowReference(d) {
   writeFileSync(p, "Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 60);\n" + src);
   return p;
 }
-const runAsync = (args, pre = []) => new Promise((resolve) => {
+const runAsync = (args, pre = []) => {
   const c = spawn(process.execPath, [...pre, path.join(KIT, "check-reader.mjs"), ...args], { stdio: ["ignore", "pipe", "pipe"] });
-  let stdout = "", stderr = ""; c.stdout.on("data", (b) => stdout += b); c.stderr.on("data", (b) => stderr += b);
-  c.on("exit", (status) => resolve({ status, stdout, stderr }));
-});
+  const done = new Promise((resolve) => {
+    let stdout = "", stderr = ""; c.stdout.on("data", (b) => stdout += b); c.stderr.on("data", (b) => stderr += b);
+    c.on("exit", (status) => resolve({ status, stdout, stderr }));
+  });
+  done.pid = c.pid; // the default run id embeds the child pid: the test's owned prefix
+  return done;
+};
 const snapshots = (prefix) => new Set(readdirSync(APP).filter((x) => x.startsWith(prefix)));
 
 test("C-1 two same-second default-id runs overlap and both succeed with distinct outputs", async () => {
   const d = fixture(); const freeze = path.join(d, "freeze-date.mjs"); writeFileSync(freeze, FROZEN);
   const reader = slowReference(d); const pre = ["--import", freeze];
   const prefix = ".reader-kit-snapshot-reader-check-20261031100000";
-  const before = snapshots(prefix);
+  // Isolation: only snapshots carrying this test's child pids are owned; other
+  // suites freezing the same second are neither counted nor touched.
+  const owned = (c) => `${prefix}-${c.pid}-`;
   const a = runAsync(["--reader", reader, "--out", path.join(d, "a.json")], pre);
+  assert.equal(snapshots(owned(a)).size, 0);
   const t0 = Date.now();
-  while ([...snapshots(prefix)].every((x) => before.has(x)) && Date.now() - t0 < 20000) await new Promise((r) => setTimeout(r, 10));
+  while (snapshots(owned(a)).size === 0 && Date.now() - t0 < 20000) await new Promise((r) => setTimeout(r, 10));
+  assert.equal(snapshots(owned(a)).size, 1, "A's snapshot exists when B starts");
   const b = runAsync(["--reader", reader, "--out", path.join(d, "b.json")], pre); // starts while A's snapshot exists
   const [ra, rb] = await Promise.all([a, b]);
   assert.equal(ra.status, 0, ra.stdout + ra.stderr); assert.equal(rb.status, 0, rb.stdout + rb.stderr);
   const ja = JSON.parse(readFileSync(path.join(d, "a.json"), "utf8")), jb = JSON.parse(readFileSync(path.join(d, "b.json"), "utf8"));
   assert.equal(ja.verdict, "ALL_MATCHED"); assert.equal(jb.verdict, "ALL_MATCHED");
   for (const j of [ja, jb]) assert.match(j.run_id, /^reader-check-20261031100000-\d+-[0-9a-f]{16}$/);
+  assert(ja.run_id.startsWith(owned(a).slice(".reader-kit-snapshot-".length)) && jb.run_id.startsWith(owned(b).slice(".reader-kit-snapshot-".length)));
   assert.notEqual(ja.run_id, jb.run_id);
-  assert.deepEqual(snapshots(prefix), before, "no snapshot left behind");
+  assert.equal(snapshots(owned(a)).size + snapshots(owned(b)).size, 0, "no snapshot left behind");
 });
 
 test("C-1 healthy distinct explicit-id twins overlap and both succeed", async () => {

@@ -1,11 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadCorpus } from "../../raven-conformance/src/lib/runner.js";
+import { ownedId, assertNoOwnedSnapshot } from "./_isolation.mjs";
 
 const KIT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const APP = path.resolve(KIT, "../raven-conformance");
@@ -14,7 +15,9 @@ const ids = vectors.map(v => v.id);
 const faultIndex = ids.indexOf("V21_v1_size_cap_exceeded");
 assert(faultIndex >= 0 && faultIndex + 1 < vectors.length);
 
-function run(trigger, readerName = "reference-reader.mjs") {
+const SNAPSHOT = (id) => path.join(realpathSync(APP), `.reader-kit-snapshot-${id}`);
+
+function run(trigger, readerName = "reference-reader.mjs", { simulateOwnedLeak = false, runId: givenRunId } = {}) {
   const dir = mkdtempSync(path.join(tmpdir(), "raven-kit-completeness-"));
   const control = path.join(dir, "control.json");
   const preload = path.join(dir, "change-snapshot.mjs");
@@ -43,16 +46,24 @@ process.on('exit', () => fs.writeFileSync(${JSON.stringify(control)}, JSON.strin
 `);
   const reader = path.join(KIT, "readers", readerName);
   const inputBefore = readFileSync(reader);
-  const snapshotsBefore = readdirSync(APP).filter(x => x.startsWith(".reader-kit-snapshot-")).sort();
+  // Isolation: this run owns exactly one snapshot path (unique per suite
+  // invocation via ownedId). Other test files' or suites' live snapshots are
+  // neither counted nor touched.
+  // Callers that need an id of their own (the isolation controls) pass one, so
+  // no test depends on another test's snapshot name or leftovers.
+  const runId = givenRunId ?? ownedId(`snapshot-completeness-${trigger}`);
+  const owned = SNAPSHOT(runId);
+  assert.equal(existsSync(owned), false, "owned snapshot path must be fresh");
   const out = path.join(dir, "report.json"), summary = path.join(dir, "report.md");
   const child = spawnSync(process.execPath, ["--import", preload, path.join(KIT, "check-reader.mjs"),
-    "--reader", reader, "--out", out, "--explain", summary, "--run-id", `snapshot-completeness-${trigger}`],
+    "--reader", reader, "--out", out, "--explain", summary, "--run-id", runId],
     { encoding: "utf8", timeout: 15000 });
   assert.equal(child.error, undefined, child.error?.message);
   assert.equal(child.signal, null, child.stderr);
   assert.equal(child.stderr, "");
   assert.deepEqual(readFileSync(reader), inputBefore, "source reader must be preserved");
-  assert.deepEqual(readdirSync(APP).filter(x => x.startsWith(".reader-kit-snapshot-")).sort(), snapshotsBefore);
+  if (simulateOwnedLeak) { mkdirSync(owned); writeFileSync(path.join(owned, "reader.mjs"), "// simulated owned leftover\n"); }
+  assertNoOwnedSnapshot([owned], "this run's snapshot must be removed");
   return { child, report: JSON.parse(readFileSync(out, "utf8")), markdown: readFileSync(summary, "utf8"),
     control: JSON.parse(readFileSync(control, "utf8")) };
 }
@@ -104,4 +115,48 @@ test("unchanged snapshot still exports the complete matching twin", () => {
   assert.deepEqual(report.results.map(r => r.vector_id), ids);
   assert.deepEqual(report.execution_error_vector_ids, []);
   assert.doesNotMatch(report.verdict_meaning, /stopped|snapshot/);
+});
+
+// Isolation controls (test infrastructure only). Each control owns its own run
+// id and its own fixtures, removes exactly what it created whatever the
+// outcome, and discriminates on its own assertions, in any order or alone.
+test("isolation control: a deliberately leaked owned snapshot still fails the leak check", () => {
+  const runId = ownedId("isolation-owned-leak"); const owned = SNAPSHOT(runId);
+  assert.equal(existsSync(owned), false, "control-owned snapshot path must be fresh");
+  try {
+    let leaked;
+    assert.throws(() => run(0, undefined, { simulateOwnedLeak: true, runId }), (e) => {
+      assert.equal(e.code, "ERR_ASSERTION"); assert.match(e.message, /snapshot must be removed/);
+      leaked = e.actual?.[0]; return true;
+    }, "the leak check must reject a leaked owned snapshot");
+    assert.equal(leaked, owned, "the reported leak is exactly this control's owned path");
+  } finally { rmSync(owned, { recursive: true, force: true }); }
+  assert.equal(existsSync(owned), false);
+});
+
+test("isolation control: an unrelated live snapshot present during the cleanup check is preserved and not counted", () => {
+  // Own run id and own foreign fixture; nothing shared with any other test.
+  // The foreign snapshot exists before the run starts and throughout,
+  // including at the instant the leak check runs.
+  const runId = ownedId("isolation-foreign-run"); const owned = SNAPSHOT(runId);
+  const foreign = SNAPSHOT(ownedId("isolation-foreign-live"));
+  assert.equal(existsSync(owned), false, "control-owned snapshot path must be fresh");
+  mkdirSync(foreign); writeFileSync(path.join(foreign, "reader.mjs"), "// unrelated live snapshot\n", { mode: 0o400 }); chmodSync(foreign, 0o500);
+  try {
+    const { child, report } = run(0, undefined, { runId });
+    assert.equal(child.status, 0, child.stderr);
+    assert.equal(report.verdict, "ALL_MATCHED");
+    assert.equal(report.run_id, runId, "the run used this control's own id");
+    assert.equal(existsSync(owned), false, "this control's own snapshot was removed");
+    assert.equal(statSync(foreign).mode & 0o777, 0o500, "foreign snapshot untouched");
+    assert.equal(readFileSync(path.join(foreign, "reader.mjs"), "utf8"), "// unrelated live snapshot\n");
+    // The leak check is live (it does see a path it is told to own) yet does not
+    // count the foreign snapshot when checking only the owned path.
+    assert.throws(() => assertNoOwnedSnapshot([foreign]), /owned snapshot left behind/, "the leak check must be able to see an existing path");
+    assert.doesNotThrow(() => assertNoOwnedSnapshot([owned]), "the foreign snapshot must not be counted against the owned path");
+    assert.equal(readFileSync(path.join(foreign, "reader.mjs"), "utf8"), "// unrelated live snapshot\n");
+  } finally {
+    chmodSync(foreign, 0o700); rmSync(foreign, { recursive: true });
+    rmSync(owned, { recursive: true, force: true });
+  }
 });
