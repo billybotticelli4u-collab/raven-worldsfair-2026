@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Raven — follow the evidence</title>
+  <meta name="description" content="Compare transaction readers, test a named profile and inspect the evidence behind an agent's decision. Local review candidate.">
+  <link rel="icon" href="/kit/raven-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css"><script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#workspace">Skip to the check</a>
+  <header class="masthead"><a class="brand" href="/" aria-label="Raven home"><img src="/kit/raven-logo.svg" alt="" width="44" height="44">RAVEN<span>.</span></a><span class="local-label">Local review candidate</span><a href="#limits">Scope &amp; limits</a></header>
+  <main>
+    <section class="intro" aria-labelledby="purpose"><p class="eyebrow">Evidence before action</p><h1 id="purpose">See what was checked.<br>Understand the decision.</h1><p>Raven helps Solana developers see how software interprets transaction bytes, then inspect the evidence an agent uses before deciding.</p></section>
+    <div class="workspace-grid">
+      <nav class="journey" aria-label="Evidence workflow">
+        <p class="eyebrow">Choose a check</p>
+        <button data-step="compare" aria-current="step"><span class="step-number">01</span><span><strong>Compare interpretations</strong><small>Same bytes. Three real Kit versions.</small></span></button>
+        <button data-step="conformance"><span class="step-number">02</span><span><strong>Test against a profile</strong><small>Make expected differences visible.</small></span></button>
+        <button data-step="receipt"><span class="step-number">03</span><span><strong>Check a receipt before deciding</strong><small>Verification facts, then agent policy.</small></span></button>
+        <p class="journey-note">Three related checks. Each uses its own evidence; no automatic handoff is implied.</p>
+      </nav>
+      <section id="workspace" class="workspace" tabindex="-1" aria-labelledby="step-title">
+        <p class="eyebrow" id="evidence-type">Unsigned comparison report</p><h2 id="step-title">Compare interpretations</h2><p id="step-description"></p>
+        <p class="transition" id="transition"></p>
+        <form id="check-form">
+          <p id="setup-notice" class="help" role="status" hidden></p>
+          <fieldset id="compare-fields"><legend class="sr-only">Comparison input</legend><label for="example">Start with an example</label><select id="example" disabled><option value="" disabled>Custom bytes</option></select><div class="input-heading"><label for="bytes">Transaction bytes</label><label for="encoding" class="sr-only">Byte encoding</label><select id="encoding"><option value="hex">Hex</option><option value="base64">Base64</option></select></div><textarea id="bytes" rows="4" spellcheck="false" aria-describedby="input-help"></textarea><p class="help" id="input-help">Choose an example to reset custom bytes, or enter your public bytes, up to 4,096 bytes. Decoding happens in your browser. No wallet or RPC call.</p></fieldset>
+          <fieldset id="conformance-fields" hidden><legend class="sr-only">Profile check</legend><label for="target">Choose a demonstration target</label><select id="target" disabled></select><p id="profile-detail" class="help"></p><p class="help">The “broken” targets are deliberate Raven examples. Proposed v1 (SIMD-0385) is experimental; this finite corpus is not full Solana conformance.</p></fieldset>
+          <fieldset id="receipt-fields" hidden><legend class="sr-only">Receipt check</legend><label for="receipt-path">Choose the evidence supplied to Agent A</label><select id="receipt-path"><option value="path_a_verified">Original retained receipt</option><option value="path_b_tampered">Receipt with one field tampered</option><option value="path_b_wrong_subject">Receipt for a different subject</option><option value="path_b_missing">No receipt supplied</option><option value="path_b_exception">Verifier exception control</option></select><p class="help">Signed retained BONK fixture · liveAcquisition:false. Evaluation uses the disclosed fixture clock, not current blockchain freshness.</p></fieldset>
+          <div class="run-bar"><button class="primary" id="run" type="submit" disabled>Run comparison</button><button id="cancel" type="button" hidden>Cancel check</button><span id="status" role="status" aria-live="polite">Loading local examples…</span></div>
+        </form>
+        <section id="result" class="result" hidden aria-labelledby="result-title"><div class="result-heading"><div><p class="eyebrow">Actual result</p><h3 id="result-title"></h3></div><button id="download" type="button" disabled>Save report</button></div><dl class="summary"><div><dt>What was checked</dt><dd id="checked"></dd></div><div><dt>What Raven found</dt><dd id="found"></dd></div><div><dt>What remains unchecked</dt><dd id="unchecked"></dd></div><div><dt>Inspect or reproduce</dt><dd id="reproduce"></dd></div></dl><div id="facts"></div><details><summary>Inspect exact evidence and identities</summary><pre id="raw"></pre></details><button type="button" id="next" class="next"></button></section>
+        <noscript>This local workspace needs JavaScript to run the checks. The existing command-line demos remain available.</noscript>
+      </section>
+    </div>
+    <section id="limits" class="limits"><h2>Scope &amp; limits</h2><p>Comparison and Conformance produce unsigned reports. A match is not a safety verdict, and a difference is not a vulnerability claim. The pinned Kit adapters each call the transaction decoder and compiled-message decoder; adapter composition can change outcomes.</p><p>Agent Trust verifies a retained signed receipt using the existing pinned verifier. The exchange record you save is unsigned. PROCEED is Agent A’s policy decision, not permission to transact. Nothing here submits a transaction, acquires fresh chain data or moves funds.</p><p>These are separate examples. A comparison report is not converted into a receipt. Existing engines, fixtures, profiles, trust configuration and agent policy are retained. This candidate is local only and awaits non-author review.</p></section>
+  </main>
+  <footer>Raven · Inspect the evidence. Keep the limits visible.</footer>
+</body></html>

@@ -7,6 +7,8 @@
     "node": "22.x"
   },
   "scripts": {
+    "onboarding": "node --experimental-strip-types apps/raven-onboarding/server.mjs",
+    "test:onboarding": "node --experimental-strip-types --test apps/raven-onboarding/test/*.test.mjs",
     "demo": "node --experimental-strip-types scripts/agent-trust-demo.mjs",
     "demo:live-solana": "node --experimental-strip-types --disable-warning=ExperimentalWarning apps/worldsfair-agent-trust/live/demo-live-solana.mjs",
     "demo:live-local": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/agent-trust-live-demo.mjs",
